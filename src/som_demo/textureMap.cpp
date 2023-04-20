@@ -19,7 +19,7 @@ void createTexture(){
     // load image, create texture and generate mipmaps
     int nrChannels;
     // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-    unsigned char *data = stbi_load("texture/a.png", &image_width, &image_height, &nrChannels, 0);
+    unsigned char *data = stbi_load("texture/b.png", &image_width, &image_height, &nrChannels, 0);
 
     if (data)
     {

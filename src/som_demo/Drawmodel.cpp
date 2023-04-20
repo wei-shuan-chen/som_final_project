@@ -60,8 +60,8 @@ void runthreadSomIter();
 void Shader_Create()
 {
 
-    rawmodel.LoadFile("raw/vase01.inf", "raw/vase01.raw");
-    // rawmodel.LoadFile("raw/ball67.inf", "raw/ball67.raw");
+    // rawmodel.LoadFile("raw/vase01.inf", "raw/vase01.raw");
+    rawmodel.LoadFile("raw/ball67.inf", "raw/ball67.raw");
     // rawmodel.LoadFile("raw/utah_teapot.inf", "raw/utah_teapot.raw");
     // std::vector<glm::ivec3> voxelPosition;
     SOM_Create(rawmodel.Voxel_Position(), rawmodel.bounderNum, rawmodel.bounderMaxLocate);
@@ -199,30 +199,29 @@ void Model_create_noshadow(Shader shader){
         model.Push();
         model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
+        if(texshow)
+            shader.setBool("tex", true);
+        else
+            shader.setBool("tex", false);        
         shader.setBool("shader",false);
         glBindVertexArray(lattice_plane.VAO);
         glDrawArrays(GL_TRIANGLES, 0, world.lattice_plane.size());
         model.Pop();
     }
-
+    
     if(showLatticeLine){
         model.Push();
         model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
+        if(texshow)
+            shader.setBool("tex", true);
+        else
+            shader.setBool("tex", false);
         shader.setBool("shader",false);
         glBindVertexArray(lattice_line.VAO);
         glDrawArrays(GL_LINES, 0, world.lattice_line.size());
         model.Pop();
     }
-    // if(showVoxel){
-    //     model.Push();
-    //     shader.setMat4("model", model.Top());
-    //     shader.setBool("shader",true);
-    //     shader.setBool("tex",false);
-    //     glBindVertexArray(voxel.VAO);
-    //     glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
-    //     model.Pop();
-    // }
 
 }
 void Model_create(Shader shader){
@@ -231,6 +230,7 @@ void Model_create(Shader shader){
         model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         shader.setBool("tex",false);
+        shader.setBool("shader",true);
         glBindVertexArray(voxel.VAO);
         glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
         model.Pop();

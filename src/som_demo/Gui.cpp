@@ -4,7 +4,7 @@ void imgui_init(GLFWwindow *window);
 void imgui_create();
 void imgui_end();
 static int shape = -1;
-
+bool texshow = false;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
@@ -35,6 +35,14 @@ void imgui_create(){
     ImGui::Text("radius, %f", latticeData->neighbor);
     ImGui::Text("learning_rate, %f", latticeData->learning_rate);
     ImGui::Combo("init lattice shape", &shape, shapes, IM_ARRAYSIZE(shapes)); 
+
+    static int texnum = 0;  
+    const char* tex_types[2] = { "false", "true"};
+    const char* tex_type = (texnum >= 0 && texnum < 2) ? tex_types[texnum] : "Unknown";
+    ImGui::SliderInt("texture show", &texnum, 0, 1, tex_type);
+    if(texnum == 0) texshow = false;
+    else texshow = true;
+     
     if(ImGui::Button("Start")) {
         startSOM = true;
         cout << "start" << endl;

@@ -10,9 +10,14 @@
 
 using namespace std;
 
+
+extern bool texshow;
+
 void imgui_init(GLFWwindow *window);
 void imgui_create();
 void imgui_end();
 int shape_init();
+
+
 
 #endif

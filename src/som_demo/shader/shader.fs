@@ -55,7 +55,11 @@ float ShadowCalculation(vec3 fragPos)
 void main()
 {
     if(!shader){
-        FragColor = texture(texturemap, fs_in.TexCoords);
+        if(tex){
+            FragColor = texture(texturemap, fs_in.TexCoords);
+        }else{
+            FragColor = vec4(fs_in.Color, 1.0);;
+        }
     }
     else{
 

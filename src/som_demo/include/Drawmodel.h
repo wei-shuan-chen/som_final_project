@@ -15,6 +15,7 @@
 #include "world.h"
 #include "logger.h"
 #include "camera.h"
+#include "Gui.h"
 
 void Shader_Create();
 void Shader_Use();

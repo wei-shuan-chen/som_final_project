@@ -112,16 +112,19 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
     const LatData* latticeData = Lattice_Struct_Use();
     int latticeTime = 1;
     if(latticeData->shapeLattice == 4) latticeTime = 5;
-    for (int i = 0; i < latticeData->map_width-1; i++)
-    {
-        for (int j = 0; j < latticeData->map_height-1; j++)
+    for(int k = 0; k < latticeTime; k++){
+        for (int i = 0; i < latticeData->map_width-1; i++)
         {
-            float i_tex = (float)i / (float)(latticeData->map_width-2);
-            float i1_tex = (float)(i+1) / (float)(latticeData->map_width-2);
-            float j_tex = (float)j / (float)(latticeData->map_width-2);
-            float j1_tex = (float)(j+1) / (float)(latticeData->map_width-2);
-            for(int k = 0; k < latticeTime; k++){
+            for (int j = 0; j < latticeData->map_height-1; j++)
+            {
+                float i_tex, i1_tex, j_tex, j1_tex;
 
+                i_tex = (float)i / (float)(latticeData->map_width-1);
+                i1_tex = (float)(i+1) / (float)(latticeData->map_width-1);
+                j_tex = (float)j / (float)(latticeData->map_width-1);
+                j1_tex = (float)(j+1) / (float)(latticeData->map_width-1);
+                
+               
                 // line
                 world.lattice_line.push_back(Vertex{ {latticeData->lattice[k][i][j].x, latticeData->lattice[k][i][j].y, latticeData->lattice[k][i][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i_tex, j_tex}});
                 world.lattice_line.push_back(Vertex{ {latticeData->lattice[k][i+1][j].x, latticeData->lattice[k][i+1][j].y, latticeData->lattice[k][i+1][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i1_tex, j_tex}});
@@ -136,6 +139,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
                 world.lattice_line.push_back(Vertex{ {latticeData->lattice[k][i][j].x, latticeData->lattice[k][i][j].y, latticeData->lattice[k][i][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i_tex, j_tex}});
                 
                 // plane
+                
                 world.lattice_plane.push_back(Vertex{ {latticeData->lattice[k][i][j].x, latticeData->lattice[k][i][j].y, latticeData->lattice[k][i][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i_tex, j_tex}});
                 world.lattice_plane.push_back(Vertex{ {latticeData->lattice[k][i+1][j].x, latticeData->lattice[k][i+1][j].y, latticeData->lattice[k][i+1][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i1_tex, j_tex}});
                 world.lattice_plane.push_back(Vertex{ {latticeData->lattice[k][i+1][j+1].x, latticeData->lattice[k][i+1][j+1].y, latticeData->lattice[k][i+1][j+1].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i1_tex, j1_tex}});
@@ -143,6 +147,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
                 world.lattice_plane.push_back(Vertex{ {latticeData->lattice[k][i+1][j+1].x, latticeData->lattice[k][i+1][j+1].y, latticeData->lattice[k][i+1][j+1].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i1_tex, j1_tex}});
                 world.lattice_plane.push_back(Vertex{ {latticeData->lattice[k][i][j+1].x, latticeData->lattice[k][i][j+1].y, latticeData->lattice[k][i][j+1].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i_tex, j1_tex}});
                 world.lattice_plane.push_back(Vertex{ {latticeData->lattice[k][i][j].x, latticeData->lattice[k][i][j].y, latticeData->lattice[k][i][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i_tex, j_tex}});
+                
             }
             
         }
@@ -270,15 +275,16 @@ void renew_world(){
     const LatData* latticeData = Lattice_Struct_Use();
     int latticeTime = 1;
     if(latticeData->shapeLattice == 4) latticeTime = 5;
-    for (int j = 0; j < latticeData->map_height-1; j++)
-    {
-        for (int i = 0; i < latticeData->map_width-1; i++)
+    for(int k = 0; k < latticeTime; k++){
+        for (int j = 0; j < latticeData->map_height-1; j++)
         {
-            float i_tex = (float)i / (float)(latticeData->map_width-2);
-            float i1_tex = (float)(i+1) / (float)(latticeData->map_width-2);
-            float j_tex = (float)j / (float)(latticeData->map_width-2);
-            float j1_tex = (float)(j+1) / (float)(latticeData->map_width-2);
-            for(int k = 0; k < latticeTime; k++){
+            for (int i = 0; i < latticeData->map_width-1; i++)
+            {
+                float i_tex = (float)i / (float)(latticeData->map_width-2);
+                float i1_tex = (float)(i+1) / (float)(latticeData->map_width-2);
+                float j_tex = (float)j / (float)(latticeData->map_width-2);
+                float j1_tex = (float)(j+1) / (float)(latticeData->map_width-2);
+            
 
                 // line
                 world.lattice_line.push_back(Vertex{ {latticeData->lattice[k][i][j].x, latticeData->lattice[k][i][j].y, latticeData->lattice[k][i][j].z}, {0.0f, 0.0f, 0.0f}, { 1.0f,  1.0f, 1.0f}, {i_tex, j_tex}});
