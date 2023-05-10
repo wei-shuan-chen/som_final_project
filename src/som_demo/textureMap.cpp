@@ -19,7 +19,7 @@ void createTexture(){
     // load image, create texture and generate mipmaps
     int nrChannels;
     // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-    unsigned char *data = stbi_load("texture/b.png", &image_width, &image_height, &nrChannels, 0);
+    unsigned char *data = stbi_load("texture/color.png", &image_width, &image_height, &nrChannels, 0);
 
     if (data)
     {
@@ -45,10 +45,10 @@ void createTexture(){
                 if(nrChannels == 3) image[i][j][k] = data[i*image_width*3 + j*3 + k];
                 if(nrChannels == 4) image[i][j][k] = data[i*image_width*4 + j*4 + k];
             }
-        }    
+        }
     }
 
-    cout << "Image " << image_height << " x " << image_width <<endl; 
+    cout << "Image " << image_height << " x " << image_width <<endl;
 
     stbi_image_free(data);
 }
@@ -74,9 +74,9 @@ void createdepthTexture(){
 
 }
 void bindTexture(int act, int bind){
-    
+
     glActiveTexture(GL_TEXTURE0+act);
-    
+
     if(bind == 0){
         glBindTexture(GL_TEXTURE_2D, texture);
     }else if(bind == 1){

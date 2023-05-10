@@ -12,11 +12,11 @@ using namespace std;
 typedef struct LatData {
     glm::fvec3*** lattice; // [5][h][w]
 
-    int map_width = 10;
-    int map_height = 10;
-    const int max_iter = 20000;
+    int map_width = 30;
+    int map_height = 30;
+    const int max_iter = 120000;
     int iter = 0;
-    double learning_rate = 0.01;
+    double learning_rate = 0.005;
     double neighbor = map_width/2.0;
     int shapeLattice = 4;// 0 random cylinder, 1 cylinder, 2 random flat, 3 flat, 4 halfball, 5 donut
 }LatData;
