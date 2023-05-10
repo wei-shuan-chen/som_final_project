@@ -23,7 +23,7 @@ typedef struct LatData {
 
 
 LatData* Lattice_Struct_Use();
-void SOM_Create(std::vector<glm::ivec3>  bounderVoxelData, int bounderNum, int *max);
+void SOM_Create(std::vector<glm::ivec3>  bounderVoxelData, int bounderNum, glm::ivec3 max);
 void SOM_IterateOnce();
 void SOM_Destroy();
 void SOM_Again();

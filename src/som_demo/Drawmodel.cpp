@@ -25,7 +25,6 @@ Item voxel;
 Item lattice_line;
 Item lattice_plane;
 
-RAWmodel rawmodel;
 
 float near_plane = 0.01f, far_plane = 10000000.0f;
 
@@ -64,8 +63,8 @@ void Shader_Create()
     rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
     // rawmodel.LoadFile("raw/utah_teapot.inf", "raw/utah_teapot.raw");
     // std::vector<glm::ivec3> voxelPosition;
-    SOM_Create(rawmodel.Voxel_Position(), rawmodel.bounderNum, rawmodel.bounderMaxLocate);
-    create_world(rawmodel.bounderVoxelData, rawmodel.bounderNum);
+    SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
+    create_world(rawmodel.voxelModel);
 
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
 
@@ -277,10 +276,10 @@ void Model_mapping(){
     int shapeNum = 1;
     if(latticeData->shapeLattice == 4) shapeNum = 5;
     // for(int n = 2216; n < 2217; n++){// voxel
-    for(int n = 0; n < rawmodel.bounderNum; n++){// voxel
-        double v_x = rawmodel.bounderVoxelData[n].bounderVoxelLocate.x;
-        double v_y = rawmodel.bounderVoxelData[n].bounderVoxelLocate.y;
-        double v_z = rawmodel.bounderVoxelData[n].bounderVoxelLocate.z;
+    for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
+        double v_x = rawmodel.voxelModel.voxel[n].locate.x;
+        double v_y = rawmodel.voxelModel.voxel[n].locate.y;
+        double v_z = rawmodel.voxelModel.voxel[n].locate.z;
         double minDist = 100000;
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice
@@ -317,10 +316,10 @@ void Model_mapping(){
         // log_info("%f * %i\nimageRate : %i, %i\nimage: {%i, %i, %i}\n\n",
         // trueMinLatticeCoordRate.y, image_height, imageRate.x, imageRate.y, image[imageRate.y][imageRate.x].x, image[imageRate.y][imageRate.x].y, image[imageRate.y][imageRate.x].z);
         // glm::ivec3 imageColor = image[imageRate.x][imageRate.y];
-        rawmodel.bounderVoxelData[n].bounderVoxelColor = image[imageRate.y][imageRate.x];
+        rawmodel.voxelModel.voxel[n].color = image[imageRate.y][imageRate.x];
 
     }
-    renew_voxel_color(rawmodel.bounderVoxelData, rawmodel.bounderNum);
+    renew_voxel_color(rawmodel.voxelModel);
     voxel.renewVBO(world.voxel);
     log_info("end: model mapping\n");
 }

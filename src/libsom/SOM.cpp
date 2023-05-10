@@ -12,7 +12,7 @@ int datasteNum = 0;
 const double fix_learning_rate = latticedata.learning_rate;
 const double fix_radius = latticedata.neighbor;
 
-glm::fvec3 ***createMap(int map_width, int map_height, int *max);
+glm::fvec3 ***createMap(int map_width, int map_height, glm::ivec3 max);
 glm::fvec3 *createInputDataset(std::vector<glm::ivec3> bounderVoxelData, int bounderNum);
 glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu);
 glm::ivec3 computeHalfballDist(glm::ivec3 p0);
@@ -25,7 +25,7 @@ double computeradius(int iter, double fun);
 double computeScale(double sigma, double dist);
 bool isInNeighborhood(double squaredDist, double radius);
 
-void SOM_Create(std::vector<glm::ivec3> bounderVoxelData, int bounderNum, int *max)
+void SOM_Create(std::vector<glm::ivec3> bounderVoxelData, int bounderNum, glm::ivec3 max)
 {
     srand(time(NULL));
 
@@ -148,7 +148,7 @@ glm::fvec3 *createInputDataset(std::vector<glm::ivec3> bounderVoxelData, int bou
 
     return dataset;
 }
-glm::fvec3 ***createMap(int map_width, int map_height, int *max)
+glm::fvec3 ***createMap(int map_width, int map_height, glm::ivec3 max)
 {
     double val = PI / 180;
 
@@ -342,7 +342,7 @@ glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
         int half = (latticedata.map_width-1)/2;
         if(bmu.x <= half){
             if(node.x >= half+bmu.x){
-                diff.x = bmu.x+((latticedata.map_width-1) - node.x); 
+                diff.x = bmu.x+((latticedata.map_width-1) - node.x);
             }else{
                 diff.x = node.x - bmu.x;
             }
@@ -357,7 +357,7 @@ glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
         half = (latticedata.map_height-1)/2;
         if(bmu.y <= half){
             if(node.y >= half+bmu.y){
-                diff.y = bmu.y+((latticedata.map_height-1) - node.y); 
+                diff.y = bmu.y+((latticedata.map_height-1) - node.y);
             }else{
                 diff.y = node.y - bmu.y;
             }
@@ -380,7 +380,7 @@ glm::ivec3 computeHalfballDist(glm::ivec3 p0){
     else if(p0.z == 2) a = {0, p0.x, p0.y};
     else if(p0.z == 3) a = {p0.x, p0.y, w};
     else if(p0.z == 4) a = {w, p0.x, p0.y};
- 
+
     return a;
 }
 void destroy(glm::fvec3 ***arr, int width, int height)

@@ -5,7 +5,8 @@
 #include <iostream>
 #include <string>
 
-#include "BoundingVoxels.h"
+#include "SurfaceVoxels.h"
+
 using namespace std;
 typedef unsigned char  BYTE;
 
@@ -19,28 +20,34 @@ typedef struct InfData_t {
     int type; // 0 unsigned char, 1 float, 2 double
 }InfData_t;
 
-class RAWmodel{
+class RAWmodel_cls{
 public:
-    RAWmodel();
-    ~RAWmodel();
+    RAWmodel_cls();
+    ~RAWmodel_cls();
+    // var
+    SurfaceVoxModel_t voxelModel;
+    InfData_t infdata;
+
+    // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
     std::vector<glm::ivec3> Voxel_Position();
 
-    InfData_t infdata;
-    std::vector<VoxData_b> bounderVoxelData;
-    int bounderMaxLocate[3] = {0, 0, 0};
-    int*** voxelData; // 0 air, 1 bounder, 2 inside
-    int bounderNum;
+
 
 private:
+    int*** rawData; // 0 air, 1 bounder, 2 inside
     bool LoadINFfile(const char* infFileName);
-    void CreateVoxel();
-    bool LoadRAWfile(const char*rawFileName);
     bool SetSampleType(const char* type);
+
+    void CreateRawData();
+
+    bool LoadRAWfile(const char*rawFileName);
     bool ReadRawFile(FILE *file);
+
+
     void SetVoxelData();
-    void CreateBounderVoxelLocate();
-    void SetbounderVoxelFaceAir(int i, int j, int k, int num);
+    void findSurfaceVoxel(int z, int y, int x, int num);
+
     void checkComputerEndian();
     void setMaxbounder(int i, int j, int k);
 
@@ -49,5 +56,5 @@ private:
     double* d_voxelData;
 
 };
-
+extern RAWmodel_cls rawmodel;
 #endif

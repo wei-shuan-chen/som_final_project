@@ -4,7 +4,7 @@ struct World world = {};
 
 
 
-void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
+void create_world(SurfaceVoxModel_t  voxelModel) {
     world.cube = {
         //       position                  normal                 color               tex
         Vertex{  { 0.0f,  0.0f,  0.0f, } , { 0.0f,  0.0f, -1.0f}, {1.0f, 0.0f, 1.0f}, {0.0, 0.0} },
@@ -50,14 +50,14 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
         Vertex{  { 0.0f,  1.0f,  0.0f, } , { 0.0f,  1.0f,  0.0f}, {1.0f, 0.0f, 1.0f}, {0.0, 0.0} },
     };
     // for(int i = 54890; i < 54900; i++){// voxel
-    for(int i = 0; i < bounderNum; i++){
-        int x = bounderVoxelData[i].bounderVoxelLocate.x;
-        int y = bounderVoxelData[i].bounderVoxelLocate.y;
-        int z = bounderVoxelData[i].bounderVoxelLocate.z;
-        float r = bounderVoxelData[i].bounderVoxelColor.r;
-        float g = bounderVoxelData[i].bounderVoxelColor.g;
-        float b = bounderVoxelData[i].bounderVoxelColor.b;
-        if(bounderVoxelData[i].bounderVoxelFaceAir[0] == 0){//0
+    for(int i = 0; i < voxelModel.num; i++){
+        int x = voxelModel.voxel[i].locate.x;
+        int y = voxelModel.voxel[i].locate.y;
+        int z = voxelModel.voxel[i].locate.z;
+        float r = voxelModel.voxel[i].color.r;
+        float g = voxelModel.voxel[i].color.g;
+        float b = voxelModel.voxel[i].color.b;
+        if(voxelModel.voxel[i].faceAir[0]){//0
             //                              position                             normal                 color
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
@@ -66,7 +66,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[1] == 0){//1
+        if(voxelModel.voxel[i].faceAir[1]){//1
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
@@ -74,7 +74,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[4] == 0){//2
+        if(voxelModel.voxel[i].faceAir[4]){//2
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
@@ -82,7 +82,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[5] == 0){//3
+        if(voxelModel.voxel[i].faceAir[5]){//3
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
@@ -90,7 +90,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[2] == 0){//4
+        if(voxelModel.voxel[i].faceAir[2]){//4
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
@@ -98,7 +98,7 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[3] == 0){//5
+        if(voxelModel.voxel[i].faceAir[3]){//5
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b} });
@@ -208,18 +208,18 @@ void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum) {
     };
 
 }
-void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum){
+void renew_voxel_color(SurfaceVoxModel_t voxelModel){
     world.voxel.clear();
     // for(int i = 54890; i < 54900; i++){// voxel
-    for(int i = 0; i < bounderNum; i++){
-        int x = bounderVoxelData[i].bounderVoxelLocate.x;
-        int y = bounderVoxelData[i].bounderVoxelLocate.y;
-        int z = bounderVoxelData[i].bounderVoxelLocate.z;
-        float r = (bounderVoxelData[i].bounderVoxelColor.r)/256.0;
-        float g = (bounderVoxelData[i].bounderVoxelColor.g)/256.0;
-        float b = (bounderVoxelData[i].bounderVoxelColor.b)/256.0;
+    for(int i = 0; i < voxelModel.num; i++){
+        int x = voxelModel.voxel[i].locate.x;
+        int y = voxelModel.voxel[i].locate.y;
+        int z = voxelModel.voxel[i].locate.z;
+        float r = (voxelModel.voxel[i].color.r)/256.0;
+        float g = (voxelModel.voxel[i].color.g)/256.0;
+        float b = (voxelModel.voxel[i].color.b)/256.0;
 
-        if(bounderVoxelData[i].bounderVoxelFaceAir[0] == 0){//0
+        if(voxelModel.voxel[i].faceAir[0]){//0
             //                              position                             normal                 color
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
@@ -228,7 +228,7 @@ void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum)
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[1] == 0){//1
+        if(voxelModel.voxel[i].faceAir[1]){//1
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
@@ -236,7 +236,7 @@ void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum)
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[4] == 0){//2
+        if(voxelModel.voxel[i].faceAir[4]){//2
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
@@ -244,7 +244,7 @@ void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum)
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[5] == 0){//3
+        if(voxelModel.voxel[i].faceAir[5]){//3
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
@@ -252,7 +252,7 @@ void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum)
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[2] == 0){//4
+        if(voxelModel.voxel[i].faceAir[2]){//4
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
@@ -260,7 +260,7 @@ void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum)
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b} });
         }
-        if(bounderVoxelData[i].bounderVoxelFaceAir[3] == 0){//5
+        if(voxelModel.voxel[i].faceAir[3]){//5
             world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b} });
             world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b} });

@@ -5,8 +5,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-#include <cstdlib> 
-#include <ctime> 
+#include <cstdlib>
+#include <ctime>
 #include <glm/glm.hpp>
 
 #include "Vertex.h"
@@ -23,9 +23,9 @@ struct World {
     std::vector<Vertex> lattice_plane; // plane of texture
 };
 
-void create_world(std::vector<VoxData_b>  bounderVoxelData, int bounderNum);
+void create_world(SurfaceVoxModel_t  voxelModel);
 void renew_world();
-void renew_voxel_color(std::vector<VoxData_b>  bounderVoxelData, int bounderNum);
+void renew_voxel_color(SurfaceVoxModel_t voxelModel);
 void destroy_world();
 extern struct World world;
 
