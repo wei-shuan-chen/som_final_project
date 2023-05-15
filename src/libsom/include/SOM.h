@@ -52,7 +52,7 @@ private:
     LatData_t latticeData;
     InputData_t inputData;
 
-    glm::fvec3 ***createMap(int width, int height, glm::ivec3 max);
+    glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max);
     glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);
     glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu);
     glm::ivec3 computeHalfballDist(glm::ivec3 p0);
