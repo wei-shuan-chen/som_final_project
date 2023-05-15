@@ -199,7 +199,6 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 
 }
 
-
 void RAWmodel_cls::SetVoxelData(){
 
     int num = 0;

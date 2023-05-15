@@ -47,7 +47,7 @@ void Model_lightCube_create(Shader shader);
 void ourShader_model();
 void depthShader_model();
 void lightShader_model();
-glm::fvec2 findMinDistPrecisePos(const LatData* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de);
+glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de);
 glm::fvec3 pointTotriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n);
 glm::fvec3 crossPruduct(glm::fvec3 a, glm::fvec3 b);
 float innerProduct(glm::fvec3 a, glm::fvec3 b);
@@ -63,7 +63,7 @@ void Shader_Create()
     rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
     // rawmodel.LoadFile("raw/utah_teapot.inf", "raw/utah_teapot.raw");
     // std::vector<glm::ivec3> voxelPosition;
-    SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
+    som.SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
     create_world(rawmodel.voxelModel);
 
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
@@ -90,8 +90,8 @@ void Modify_position(int x, int y, int z){
 }
 void Shader_Use(){
     // som iter
-    const LatData* latticeData = Lattice_Struct_Use();
-    if(latticeData->iter < latticeData->max_iter && startSOM){
+    const LatData_t* latticeData = som.Lattice_get();
+    if(latticeData->iter < latticeData->finalIter && startSOM){
         // SOM_IterateOnce();
         renew_world();
         lattice_line.renewVBO(world.lattice_line);
@@ -146,7 +146,7 @@ void ViewProjection_Create(int n){
         lightShader.setMat4("projection", projection.Top());
     }else if(n == 2){
         MatrixStack shadowProj;
-        shadowProj.Save(glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane));
+        shadowProj.Save(glm::perspective(glm::radians(90.0f), (float)tex.shadowTex.width / (float)tex.shadowTex.height, near_plane, far_plane));
 
         shadowTransforms.clear();
         shadowTransforms.push_back(shadowProj.Top() * glm::lookAt(lightPos, lightPos + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
@@ -161,8 +161,8 @@ void ViewProjection_Create(int n){
 void ourShader_model(){
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    bindTexture(0,0);//texture
-    bindTexture(1,1);//depthtexture
+    tex.bindTexture(0,0);//texture
+    tex.bindTexture(1,1);//depthtexture
     Model_Floor_Create(ourShader);
     Model_create(ourShader);
     Model_create_noshadow(ourShader);
@@ -171,10 +171,10 @@ void lightShader_model(){
     Model_lightCube_create(lightShader);
 }
 void depthShader_model(){
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+    glViewport(0, 0, tex.shadowTex.width, tex.shadowTex.height);
+    glBindFramebuffer(GL_FRAMEBUFFER, tex.shadowTex.depthFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        bindTexture(0,0);
+        tex.bindTexture(0,0);
         Model_create(depthShader);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -190,7 +190,6 @@ void Model_Floor_Create(Shader shader){
     glBindVertexArray(ground.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     model.Pop();
-    // log_debug("%ld", ground.VAO);
 
 }
 void Model_create_noshadow(Shader shader){
@@ -248,9 +247,9 @@ void Model_lightCube_create(Shader shader){
 
 }
 void runthreadSomIter(){
-    const LatData* latticeData = Lattice_Struct_Use();
-	while(latticeData->iter < latticeData->max_iter && startSOM){
-		SOM_IterateOnce();
+    const LatData_t* latticeData = som.Lattice_get();
+	while(latticeData->iter < latticeData->finalIter && startSOM){
+		som.SOM_IterateOnce();
 	}
 }
 void createThread(){
@@ -261,7 +260,6 @@ void createThread(){
 
 }
 void Model_del(){
-    SOM_Destroy();
     destroy_world();
     cube.Item_del();
     ground.Item_del();
@@ -272,9 +270,9 @@ void Model_del(){
 }
 
 void Model_mapping(){
-    const LatData* latticeData = Lattice_Struct_Use();
+    const LatData_t* latticeData = som.Lattice_get();
     int shapeNum = 1;
-    if(latticeData->shapeLattice == 4) shapeNum = 5;
+    if(latticeData->type == BALL) shapeNum = 5;
     // for(int n = 2216; n < 2217; n++){// voxel
     for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
         double v_x = rawmodel.voxelModel.voxel[n].locate.x;
@@ -284,8 +282,8 @@ void Model_mapping(){
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice
         for(int k = 0; k < shapeNum; k++){
-            for(int j = 0; j < latticeData->map_height; j++){
-                for(int i = 0; i < latticeData->map_width; i++){
+            for(int j = 0; j < latticeData->height; j++){
+                for(int i = 0; i < latticeData->width; i++){
 
                     double l_x = latticeData->lattice[k][j][i].x;
                     double l_y = latticeData->lattice[k][j][i].y;
@@ -309,21 +307,21 @@ void Model_mapping(){
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // log_info("trueminLatticeCoord : %f, %f", trueMinLatticeCoord.x, trueMinLatticeCoord.y);
         // find the color of minDist lattice
-        glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->map_width-1), trueMinLatticeCoord.y/(latticeData->map_height-1)};
+        glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
         // log_info("trueminLatticeCoordRate : %f, %f\n\n", trueMinLatticeCoordRate.x, trueMinLatticeCoordRate.y);
         // glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)image_height), (int)(trueMinLatticeCoordRate.y*(double)image_width)};
-        glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(image_width-1)), (int)(trueMinLatticeCoordRate.y*(double)(image_height-1))};
+        glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(tex.imageTex.width-1)), (int)(trueMinLatticeCoordRate.y*(double)(tex.imageTex.height-1))};
         // log_info("%f * %i\nimageRate : %i, %i\nimage: {%i, %i, %i}\n\n",
         // trueMinLatticeCoordRate.y, image_height, imageRate.x, imageRate.y, image[imageRate.y][imageRate.x].x, image[imageRate.y][imageRate.x].y, image[imageRate.y][imageRate.x].z);
         // glm::ivec3 imageColor = image[imageRate.x][imageRate.y];
-        rawmodel.voxelModel.voxel[n].color = image[imageRate.y][imageRate.x];
+        rawmodel.voxelModel.voxel[n].color = tex.imageTex.image[imageRate.y][imageRate.x];
 
     }
     renew_voxel_color(rawmodel.voxelModel);
     voxel.renewVBO(world.voxel);
     log_info("end: model mapping\n");
 }
-glm::fvec2 findMinDistPrecisePos(const LatData* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){
+glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){
 
     glm::fvec3 twoDcoord = minLatticeCoord;
 
@@ -332,7 +330,7 @@ glm::fvec2 findMinDistPrecisePos(const LatData* latticeData, double mid, glm::fv
     // latticeData->threeDCoord[latticeData->minNum] = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
     for(int i = 0; i < 4; i++){
         // find triangle(o,a1,a2)
-        if(minLatticeCoord.x+impair[i][0] < 0 || minLatticeCoord.x+impair[i][0] > latticeData->map_width-1 || minLatticeCoord.y+impair[i][1] < 0 || minLatticeCoord.y+impair[i][1] > latticeData->map_height-1){
+        if(minLatticeCoord.x+impair[i][0] < 0 || minLatticeCoord.x+impair[i][0] > latticeData->width-1 || minLatticeCoord.y+impair[i][1] < 0 || minLatticeCoord.y+impair[i][1] > latticeData->height-1){
         //    log_info("point%d in the edge!",i);
            continue;
         }
@@ -426,7 +424,7 @@ float innerProduct(glm::fvec3 a, glm::fvec3 b){
         double l_lz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x-1].z;
         leftDist = (l_lx-v_x)*(l_lx-v_x) + (l_ly-v_y)*(l_ly-v_y) + (l_lz-v_z)*(l_lz-v_z);
     }
-    if(minLatticeCoord.x != latticeData->map_width-1){//right
+    if(minLatticeCoord.x != latticeData->width-1){//right
         double l_rx = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+1].x;
         double l_ry = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+1].y;
         double l_rz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+1].z;
@@ -438,7 +436,7 @@ float innerProduct(glm::fvec3 a, glm::fvec3 b){
         double l_dz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y-1][minLatticeCoord.x].z;
         downDist = (l_dx-v_x)*(l_dx-v_x) + (l_dy-v_y)*(l_dy-v_y) + (l_dz-v_z)*(l_dz-v_z);
     }
-    if(minLatticeCoord.y != latticeData->map_height-1){//top
+    if(minLatticeCoord.y != latticeData->height-1){//top
         double l_tx = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+1][minLatticeCoord.x].x;
         double l_ty = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+1][minLatticeCoord.x].y;
         double l_tz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+1][minLatticeCoord.x].z;

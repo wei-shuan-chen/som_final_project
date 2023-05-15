@@ -32,8 +32,6 @@ public:
     void LoadFile(const char* infFileName,const char* rawFileName);
     std::vector<glm::ivec3> Voxel_Position();
 
-
-
 private:
     int*** rawData; // 0 air, 1 bounder, 2 inside
     bool LoadINFfile(const char* infFileName);
@@ -43,7 +41,6 @@ private:
 
     bool LoadRAWfile(const char*rawFileName);
     bool ReadRawFile(FILE *file);
-
 
     void SetVoxelData();
     void findSurfaceVoxel(int z, int y, int x, int num);

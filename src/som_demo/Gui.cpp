@@ -23,26 +23,26 @@ void imgui_init(GLFWwindow *window){
 void imgui_create(){
 
     const char* shapes[] = { "random cylinder", "cylinder", "random flat", "flat", "halfball", "donut" };
-    
-    const LatData* latticeData = Lattice_Struct_Use();
+
+    const LatData_t* latticeData = som.Lattice_get();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-   
+
     ImGui::NewFrame();
     // ImGui::ShowDemoWindow();
     ImGui::Begin("SOM_3D_voxel");
     ImGui::Text("iter : %d",latticeData->iter);
-    ImGui::Text("radius, %f", latticeData->neighbor);
-    ImGui::Text("learning_rate, %f", latticeData->learning_rate);
-    ImGui::Combo("init lattice shape", &shape, shapes, IM_ARRAYSIZE(shapes)); 
+    ImGui::Text("radius, %f", latticeData->radius);
+    ImGui::Text("learning_rate, %f", latticeData->learningRate);
+    ImGui::Combo("init lattice shape", &shape, shapes, IM_ARRAYSIZE(shapes));
 
-    static int texnum = 0;  
+    static int texnum = 0;
     const char* tex_types[2] = { "false", "true"};
     const char* tex_type = (texnum >= 0 && texnum < 2) ? tex_types[texnum] : "Unknown";
     ImGui::SliderInt("texture show", &texnum, 0, 1, tex_type);
     if(texnum == 0) texshow = false;
     else texshow = true;
-     
+
     if(ImGui::Button("Start")) {
         startSOM = true;
         cout << "start" << endl;
@@ -52,7 +52,7 @@ void imgui_create(){
         Model_mapping();
     }
     if(ImGui::Button("Again")){
-        startSOM = false; 
+        startSOM = false;
     }
 
     ImGui::End();
@@ -61,7 +61,7 @@ int shape_init(){
     return shape;
 }
 void imgui_end(){
-    				
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

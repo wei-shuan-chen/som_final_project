@@ -11,15 +11,33 @@
 
 using namespace std;
 
-void createTexture();
-void createdepthTexture();
-void bindTexture(int act, int bind);
+typedef struct imageTex_t{
+    int width, height;
+    unsigned int texture;
+    unsigned char *data;
+    glm::ivec3** image;
+}imageTex_t;
 
-extern glm::ivec3** image;
-extern int image_width, image_height;
-extern unsigned int texture;
-extern unsigned int depthCubemap;
-extern unsigned int depthFBO;
-extern const unsigned int SHADOW_WIDTH, SHADOW_HEIGHT;
+typedef struct shadowTex_t{
+    const unsigned int width = 1024, height = 1024;
+    unsigned int depthCubemap;
+    unsigned int depthFBO;
+}shadowTex_t;
+
+
+class texture_cls{
+public:
+    texture_cls();
+    ~texture_cls();
+    void createTexture();
+    void createdepthTexture();
+    void bindTexture(int act, int bind);
+    imageTex_t imageTex;
+    shadowTex_t shadowTex;
+private:
+    void texture1Dto2D(int nrChannels);
+};
+
+extern texture_cls tex;
 
 #endif

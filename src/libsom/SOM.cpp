@@ -3,65 +3,54 @@
 #include <iostream>
 
 #include "SOM.h"
+som_cls som;
 
-LatData latticedata;
+som_cls::som_cls(){}
 
-glm::fvec3 *dataset;
-int dataExtraPoint[4];
-int datasteNum = 0;
-const double fix_learning_rate = latticedata.learning_rate;
-const double fix_radius = latticedata.neighbor;
-
-glm::fvec3 ***createMap(int map_width, int map_height, glm::ivec3 max);
-glm::fvec3 *createInputDataset(std::vector<glm::ivec3> bounderVoxelData, int bounderNum);
-glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu);
-glm::ivec3 computeHalfballDist(glm::ivec3 p0);
-const glm::fvec3 getInput(glm::fvec3 *dataset, int datasteNum);
-void destroy(glm::fvec3 ***arr, int width, int height);
-void destroyDataset(glm::fvec3 *arr, int datasteNum);
-void updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 nodeId, double radius, double learning_rate);
-double computerate(int iter, double fun);
-double computeradius(int iter, double fun);
-double computeScale(double sigma, double dist);
-bool isInNeighborhood(double squaredDist, double radius);
-
-void SOM_Create(std::vector<glm::ivec3> bounderVoxelData, int bounderNum, glm::ivec3 max)
-{
-    srand(time(NULL));
-
-    // 1. Create input dataset
-    dataset = createInputDataset(bounderVoxelData, bounderNum);
-    // 2. Create lattice
-    latticedata.lattice = createMap(latticedata.map_width, latticedata.map_height, max);
-    datasteNum = bounderNum;
+som_cls::~som_cls(){
+    // 1. Destroy lattice
+    destroy(latticeData.lattice, latticeData.width, latticeData.height);
+    // 2. Destroy input dataset
+    destroyDataset(inputData.input, inputData.num);
 }
 
-void SOM_IterateOnce()
+
+void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 size)
+{
+    srand(time(NULL));
+    // 1. Create input dataset
+    inputData.input = createInputDataset(voxelPos, voxelNum);
+    // 2. Create lattice
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, size);
+    inputData.num = voxelNum;
+}
+
+void som_cls::SOM_IterateOnce()
 {
     // 1. Get one input from the dataset
     // 2. Find BMU
-    // 3. Update BMU and the neighbors
-    latticedata.learning_rate = computerate(latticedata.iter, fix_learning_rate);
-    latticedata.neighbor = computeradius(latticedata.iter, fix_radius);
-    const glm::fvec3 nowInput = getInput(dataset, datasteNum);
+    // 3. Update BMU and the radius
+    latticeData.learningRate = computerate(latticeData.iter, latticeData.initLearningRate);
+    latticeData.radius = computeradius(latticeData.iter, latticeData.initRadius);
+    const glm::fvec3 nowInput = getInput(inputData.input, inputData.num);
     double minDist = -1.0;
 
     int shapeNum = 1;
-    if (latticedata.shapeLattice == 4)
+    if (latticeData.type == BALL)
         shapeNum = 5;
 
     glm::ivec3 bmu;
     // compute winner point
     for (int k = 0; k < shapeNum; k++)
     {
-        for (int i = 0; i < latticedata.map_height; i++)
+        for (int i = 0; i < latticeData.height; i++)
         {
-            for (int j = 0; j < latticedata.map_width; j++)
+            for (int j = 0; j < latticeData.width; j++)
             {
                 double tmp1 = 0.0;
-                float dx = (latticedata.lattice[k][i][j].x - nowInput.x);
-                float dy = (latticedata.lattice[k][i][j].y - nowInput.y);
-                float dz = (latticedata.lattice[k][i][j].z - nowInput.z);
+                float dx = (latticeData.lattice[k][i][j].x - nowInput.x);
+                float dy = (latticeData.lattice[k][i][j].y - nowInput.y);
+                float dz = (latticeData.lattice[k][i][j].z - nowInput.z);
                 tmp1 = dx * dx + dy * dy + dz * dz;
                 if (minDist < 0.0)
                 {
@@ -81,240 +70,186 @@ void SOM_IterateOnce()
     // renew winner point and neighnorhood
     for (int k = 0; k < shapeNum; k++)
     {
-        for (int i = 0; i < latticedata.map_height; i++)
+        for (int i = 0; i < latticeData.height; i++)
         {
-            for (int j = 0; j < latticedata.map_width; j++)
+            for (int j = 0; j < latticeData.width; j++)
             {
                 glm::ivec3 node = glm::ivec3(j, i, k);
                 glm::ivec3 diff = computNeiborhood(node, bmu); // node - bmu;
                 double squaredDist = static_cast<double>(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
                 // std::cout << "Dist " <<squaredDist<<std::endl;
-                if((k == 0 && i == 4 && j == 0)||(k == 4 && j == latticedata.map_height - 1 && i ==  latticedata.map_width - 4)){
+                if((k == 0 && i == 4 && j == 0)||(k == 4 && j == latticeData.height - 1 && i ==  latticeData.width - 4)){
                     // cout << "node -> k, (x, y) : "<< node.z <<", " << node.x<<", " << node.y << endl;
                     // cout << "diff : " << diff.x << ", "<<diff.y << "\n\n";
                 }
-                if (isInNeighborhood(squaredDist, latticedata.neighbor))
+                if (isInradiushood(squaredDist, latticeData.radius))
                 {
-                    double n_radius = computeScale(latticedata.neighbor, squaredDist);
-                    updateNode(latticedata.lattice, nowInput, node, n_radius, latticedata.learning_rate);
+                    double n_radius = computeScale(latticeData.radius, squaredDist);
+                    updateNode(latticeData.lattice, nowInput, node, n_radius, latticeData.learningRate);
                 }
             }
         }
     }
-    latticedata.iter++;
+    latticeData.iter++;
     // cout << iter <<endl;
 }
 
-void SOM_Destroy()
+
+void som_cls::SOM_Again()
 {
-    // 1. Destroy lattice
-    destroy(latticedata.lattice, latticedata.map_width, latticedata.map_height);
-    // 2. Destroy input dataset
-    destroyDataset(dataset, datasteNum);
-}
-void SOM_Again()
-{
-    // destroy(lattice, map_width, map_height);
+    // destroy(lattice, width, height);
 
     // is_som_finished = false;
-    // map_width;
-    // map_height;
+    // width;
+    // height;
     // datasteNum = 0;
     // iter = 0;
-    // learning_rate = 0.1;
+    // learningRate = 0.1;
     // radius = 5;
-    // learning_rate = 0.1;
-    // neighbor = 5;
-    // lattice = createMap(map_width, map_height, max_lattice_range);
+    // learningRate = 0.1;
+    // radius = 5;
+    // lattice = createLatticeData(width, height, max_lattice_range);
 }
-LatData *Lattice_Struct_Use()
+LatData_t * som_cls::Lattice_get()
 {
-    return &latticedata;
+    return &latticeData;
 }
-glm::fvec3 *createInputDataset(std::vector<glm::ivec3> bounderVoxelData, int bounderNum)
+glm::fvec3 * som_cls::createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum)
 {
-    glm::fvec3 *dataset = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * bounderNum);
+    glm::fvec3 *dataset = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * voxelNum);
 
-    glm::fvec3 maxPos, minPos, leftPos, rightPos, topPos, bottomPos;
-    maxPos = minPos = leftPos = rightPos = topPos = bottomPos = {0.0, 0.0, 0.0};
-    for (int i = 0; i < bounderNum; i++)
-    {
-        dataset[i] = bounderVoxelData[i];
-        // find extra data point
-        // if()
-
-    }
-
+    for (int i = 0; i < voxelNum; i++)
+        dataset[i] = voxelPos[i];
 
     return dataset;
 }
-glm::fvec3 ***createMap(int map_width, int map_height, glm::ivec3 max)
+glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size)
 {
-    double val = PI / 180;
 
     glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * 5);
     for (int j = 0; j < 5; j++)
     {
-        lattice[j] = (glm::fvec3 **)malloc(sizeof(glm::fvec3 *) * map_height);
-        for (int i = 0; i < map_height; i++)
+        lattice[j] = (glm::fvec3 **)malloc(sizeof(glm::fvec3 *) * height);
+        for (int i = 0; i < height; i++)
         {
-            lattice[j][i] = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * map_width);
+            lattice[j][i] = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * width);
         }
     }
-    switch (latticedata.shapeLattice)
-    {
-    case 0: // random cylinder
-        for (int i = 0; i < map_height; i++)
+    if(latticeData.type == PLANE){
+        for (int h = 0; h < height; h++)
         {
-            for (int j = 0; j < map_width; j++)
+            for (int w = 0; w < width; w++)
             {
                 double i0, j0, k0;
+                double ratio_w = (double)w / (double)(width - 1);
+                double ratio_h = (double)h / (double)(height - 1);
 
-                i0 = (rand() % abs(max[0] - 1)) * (-1);
-                j0 = rand() % max[1];
-                k0 = rand() % max[2];
-                // std::cout << i0 << ", " << max[0]<<std::endl;
-                lattice[0][i][j] = {i0, j0, k0};
+                i0 = (double)size[0] * ratio_w;
+                j0 = size[1];
+                k0 = (double)size[2] * ratio_h;
+
+                lattice[0][h][w] = {i0, j0, k0};
             }
         }
-        break;
-    case 1: // cylinder
-
-        for (int i = 0; i < map_height; i++)
+    }else if(latticeData.type == CYLINDER){
+        for (int h = 0; h < height; h++)
         {
-            double theta = 360.0 / (double)(map_height - 1);
-            for (int j = 0; j < map_width; j++)
+            double theta = 360.0 / (double)(height - 1);
+            for (int w = 0; w < width; w++)
             {
                 double i0, j0, k0;
 
-                i0 = (max[0] / 2) * cos(i * theta * val) + (max[0] / 2);
-                j0 = (max[1] / map_width) * j;
-                k0 = (max[2] / 2) * sin(i * theta * val) + (max[2] / 2);
-                // std::cout << i0 << ", " << max[0]<<std::endl;
-                lattice[0][i][j] = {i0, j0, k0};
+                double ratio_w = (double)w / (double)(width - 1);
+                double ratio_h = (double)h / (double)(height - 1);
+
+                i0 = ((double)size[0] / 2.0) * cos(2 * PI * ratio_w) + (size[0] / 2);
+                j0 = ratio_h * (double)size[1];
+                k0 = ((double)size[2] / 2.0) * sin(2 * PI * ratio_w) + (size[2] / 2);
+                // std::cout << i0 << ", " << size[0]<<std::endl;
+                lattice[0][h][w] = {i0, j0, k0};
             }
         }
-        break;
-    case 2: // random flat
-        for (int i = 0; i < map_height; i++)
+    }else if(latticeData.type == DONUT){
+        float R = (size[2] + size[1]) / 4;
+        float r = R / 5.0;
+        for (int h = 0; h < height; h++)
         {
-            for (int j = 0; j < map_width; j++)
+            for (int w = 0; w < width; w++)
             {
-                double i0, j0, k0;
+                double fi =  2 * PI * (double)w / (double)(width - 1);
+                double theta =  2 * PI * (double)h / (double)(height - 1);
 
-                i0 = (rand() % abs(max[0] - 1)) * (-1);
-                j0 = rand() % max[1];
-                k0 = rand() % max[2];
-                // std::cout << i0 << ", " << max[0]<<std::endl;
-                lattice[0][i][j] = {i0, j0, k0};
-            }
-        }
-        break;
-    case 3: // flat
-    {       // We need curly brackets because there are variable declarations
-        double ratio_x = (double)max[0] / (double)(map_height - 1);
-        double ratio_z = (double)max[2] / (double)(map_width - 1);
-        for (int i = 0; i < map_height; i++)
-        {
-            for (int j = 0; j < map_width; j++)
-            {
-                double i0, j0, k0;
-
-                i0 = j * ratio_x;
-                j0 = max[1];
-                k0 = i * ratio_z;
-
-                lattice[0][i][j] = {i0, j0, k0};
+                double i0 = r * cos(theta) + ((double)size[0] / 2.0);
+                double j0 =  cos(fi)* ( R + r*sin(theta)) + ((double)size[1] / 2.0);
+                double k0 = sin(fi)* ( R + r*sin(theta)) + ((double)size[2] / 2.0);
+                lattice[0][h][w] = {i0, j0, k0};
             }
         }
     }
-    break;
-    case 4: // half ball (only square)
+    else if(latticeData.type == BALL){
         //   1          back
         // 2 0 4   left  top  right
         //   3          front
-        { // We need curly brackets because there are variable declarations
-            double ratio_x = (double)max[0] / (double)(map_height - 1);
-            double ratio_y = (double)max[1] / (double)(map_height - 1);
-            double ratio_z = (double)max[2] / (double)(map_height - 1);
-            double i0, j0, k0;
-            for (int i = 0; i < map_height; i++)
-            {
-                for (int j = 0; j < map_width; j++)
-                {
-                    // 0 x-z plane
-                    i0 = (map_width - 1 - j) * ratio_x;
-                    j0 = max[1];
-                    k0 = i * ratio_z;
-                    lattice[0][i][j] = {i0, j0, k0};
+        // We need curly brackets because there are variable declarations
 
-                    // 1 x-y plane
-                    i0 = (map_width - 1 - j) * ratio_x;
-                    j0 = i * ratio_y;
-                    k0 = 0;
-                    lattice[1][i][j] = {i0, j0, k0};
-
-                    // 2 y-z plane
-                    i0 = max[0];
-                    j0 = j * ratio_y;
-                    k0 = i * ratio_z;
-                    lattice[2][i][j] = {i0, j0, k0};
-
-                    // 3 y-z plane
-                    i0 = (map_width - 1 - j) * ratio_x;
-                    j0 = i * ratio_y;
-                    k0 = max[2];
-                    lattice[3][i][j] = {i0, j0, k0};
-
-                    // 4 x-y plane
-                    i0 = 0;
-                    j0 = j * ratio_y;
-                    k0 = i * ratio_z;
-                    lattice[4][i][j] = {i0, j0, k0};
-                }
-            }
-        }
-        break;
-    case 5:
+        double i0, j0, k0;
+        for (int h = 0; h < height; h++)
         {
-
-            float R = (max[2] + max[1]) / 4;
-            float r = R / 5.0;
-            double rad = 360.0/(double)(map_width-1);
-            for (int i = 0; i < map_width; i++)
+            for (int w = 0; w < width; w++)
             {
-                for (int j = 0; j < map_height; j++)
-                {
-                    double fi = (double)i*rad *PI/180.0;
-                    double theta = (double)j*rad *PI/180.0;
+                double ratio_w = (double)w / (double)(width - 1);
+                double ratio_h = (double)h / (double)(height - 1);
+                // 0 x-z plane
+                i0 = size[0] * ratio_w;
+                j0 = size[1];
+                k0 = size[2] * ratio_h;
+                lattice[0][h][w] = {i0, j0, k0};
 
-                    double i0 = r * cos(theta)-0.2 + max[0]/2;
-                    double j0 =  cos(fi)* ( R + r*sin(theta)) + max[1]/2;
-                    double k0 = sin(fi)* ( R + r*sin(theta)) + max[2]/2;
-                    lattice[0][i][j] = {i0, j0, k0};
-                }
+                // 1 x-y plane
+                i0 = size[0] * ratio_w;
+                j0 = size[1] * ratio_h;
+                k0 = 0;
+                lattice[1][h][w] = {i0, j0, k0};
+
+                // 2 y-z plane
+                i0 = size[0];
+                j0 = size[1] * ratio_w;
+                k0 = size[2] * ratio_h;
+                lattice[2][h][w] = {i0, j0, k0};
+
+                // 3 x-y plane
+                i0 = size[0] * ratio_w;
+                j0 = size[1] * ratio_h;
+                k0 = size[2];
+                lattice[3][h][w] = {i0, j0, k0};
+
+                // 4 y-z plane
+                i0 = 0;
+                j0 = size[1] * ratio_w;
+                k0 = size[2] * ratio_h;
+                lattice[4][h][w] = {i0, j0, k0};
             }
         }
-        break;
-    default:
-        cout << "error initLattic num" << endl;
-        break;
     }
 
     return lattice;
 }
-glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
+glm::ivec3 som_cls::computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
 {
 
     glm::ivec3 diff = {0, 0, 0};
 
-    if (latticedata.shapeLattice == 0 || latticedata.shapeLattice == 1)
+    if (latticeData.type == PLANE)
+    { // plane
+        diff = node - bmu;
+    }
+    else if (latticeData.type == CYLINDER)
     { // cylinder
-        int half = (latticedata.map_width - 1) / 2;
+        int half = (latticeData.width - 1) / 2;
         if (bmu.y <= half)
         {
             if (node.y >= half + bmu.y)
-                diff.y = bmu.y + ((latticedata.map_width - 1) - node.y);
+                diff.y = bmu.y + ((latticeData.width - 1) - node.y);
             else
                 diff.y = node.y - bmu.y;
         }
@@ -323,26 +258,15 @@ glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
             if (node.y >= bmu.y - half)
                 diff.y = bmu.y - node.y;
             else
-                diff.y = node.y + ((latticedata.map_width - 1) - bmu.y);
+                diff.y = node.y + ((latticeData.width - 1) - bmu.y);
         }
         diff.x = node.x - bmu.x;
     }
-    else if (latticedata.shapeLattice == 2 || latticedata.shapeLattice == 3)
-    { // plane
-        diff = node - bmu;
-    }
-    else if (latticedata.shapeLattice == 4)
-    { // half ball
-        //   1          back
-        // 2 0 4   left  top  right
-        //   3          front
-        diff = computeHalfballDist(node)-computeHalfballDist(bmu);
-    }
-    else if(latticedata.shapeLattice == 5){
-        int half = (latticedata.map_width-1)/2;
+    else if(latticeData.type == DONUT){
+        int half = (latticeData.width-1)/2;
         if(bmu.x <= half){
             if(node.x >= half+bmu.x){
-                diff.x = bmu.x+((latticedata.map_width-1) - node.x);
+                diff.x = bmu.x+((latticeData.width-1) - node.x);
             }else{
                 diff.x = node.x - bmu.x;
             }
@@ -350,14 +274,14 @@ glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
             if(node.x >= bmu.x - half){
                 diff.x = bmu.x - node.x;
             }else{
-                diff.x = node.x + ((latticedata.map_width-1) - bmu.x);
+                diff.x = node.x + ((latticeData.width-1) - bmu.x);
             }
         }
 
-        half = (latticedata.map_height-1)/2;
+        half = (latticeData.height-1)/2;
         if(bmu.y <= half){
             if(node.y >= half+bmu.y){
-                diff.y = bmu.y+((latticedata.map_height-1) - node.y);
+                diff.y = bmu.y+((latticeData.height-1) - node.y);
             }else{
                 diff.y = node.y - bmu.y;
             }
@@ -365,16 +289,23 @@ glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
             if(node.y >= bmu.y - half){
                 diff.y = bmu.y - node.y;
             }else{
-                diff.y = node.y + ((latticedata.map_height-1) - bmu.y);
+                diff.y = node.y + ((latticeData.height-1) - bmu.y);
             }
         }
     }
+    else if (latticeData.type == BALL)
+    { // half ball
+        //   1          back
+        // 2 0 4   left  top  right
+        //   3          front
+        diff = computeHalfballDist(node)-computeHalfballDist(bmu);
+    }
     return diff;
 }
-glm::ivec3 computeHalfballDist(glm::ivec3 p0){
+glm::ivec3 som_cls::computeHalfballDist(glm::ivec3 p0){
 
     glm::ivec3 a = {0, 0, 0};
-    int w = latticedata.map_width - 1;
+    int w = latticeData.width - 1;
     if(p0.z == 0) a = {p0.x, w, p0.y};
     else if(p0.z == 1) a = {p0.x, p0.y, 0};
     else if(p0.z == 2) a = {0, p0.x, p0.y};
@@ -383,7 +314,7 @@ glm::ivec3 computeHalfballDist(glm::ivec3 p0){
 
     return a;
 }
-void destroy(glm::fvec3 ***arr, int width, int height)
+void som_cls::destroy(glm::fvec3 ***arr, int width, int height)
 {
 
     for (int j = 0; j < 5; j++)
@@ -396,24 +327,24 @@ void destroy(glm::fvec3 ***arr, int width, int height)
         free(arr[j]);
     }
 }
-void destroyDataset(glm::fvec3 *arr, int datasteNum)
+void som_cls::destroyDataset(glm::fvec3 *arr, int datasteNum)
 {
     free(arr);
 }
-double computeradius(int iter, double fun)
+double som_cls::computeradius(int iter, double fun)
 {
-    double lamda = ((double)(latticedata.max_iter)) / log(fun);
+    double lamda = ((double)(latticeData.finalIter)) / log(fun);
     double sigma = fun * exp(-1 * ((double)iter) / lamda);
 
     return sigma;
 }
-double computerate(int iter, double fun)
+double som_cls::computerate(int iter, double fun)
 {
-    double sigma = fun * exp(-1 * ((double)iter) / ((double)(latticedata.max_iter)));
+    double sigma = fun * exp(-1 * ((double)iter) / ((double)(latticeData.finalIter)));
     return sigma;
 }
 
-const glm::fvec3 getInput(glm::fvec3 *dataset, int datasteNum)
+const glm::fvec3 som_cls::getInput(glm::fvec3 *dataset, int datasteNum)
 {
     int num, i;
     num = (datasteNum / RAND_MAX) + 1;
@@ -426,7 +357,7 @@ const glm::fvec3 getInput(glm::fvec3 *dataset, int datasteNum)
     return dataset[i];
 }
 
-bool isInNeighborhood(double squaredDist, double radius)
+bool som_cls::isInradiushood(double squaredDist, double radius)
 {
     if (squaredDist <= (radius * radius))
     {
@@ -436,16 +367,16 @@ bool isInNeighborhood(double squaredDist, double radius)
     return false;
 }
 
-double computeScale(double sigma, double dist)
+double som_cls::computeScale(double sigma, double dist)
 {
     double theta = exp((-1 * dist) / (2 * pow(sigma, 2)));
 
     return theta;
 }
 
-void updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 nodeId, double radius, double learning_rate)
+void som_cls::updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 nodeId, double radius, double learningRate)
 {
-    lattice[nodeId.z][nodeId.y][nodeId.x].x = lattice[nodeId.z][nodeId.y][nodeId.x].x + radius * learning_rate * (nowInput.x - lattice[nodeId.z][nodeId.y][nodeId.x].x);
-    lattice[nodeId.z][nodeId.y][nodeId.x].y = lattice[nodeId.z][nodeId.y][nodeId.x].y + radius * learning_rate * (nowInput.y - lattice[nodeId.z][nodeId.y][nodeId.x].y);
-    lattice[nodeId.z][nodeId.y][nodeId.x].z = lattice[nodeId.z][nodeId.y][nodeId.x].z + radius * learning_rate * (nowInput.z - lattice[nodeId.z][nodeId.y][nodeId.x].z);
+    lattice[nodeId.z][nodeId.y][nodeId.x].x = lattice[nodeId.z][nodeId.y][nodeId.x].x + radius * learningRate * (nowInput.x - lattice[nodeId.z][nodeId.y][nodeId.x].x);
+    lattice[nodeId.z][nodeId.y][nodeId.x].y = lattice[nodeId.z][nodeId.y][nodeId.x].y + radius * learningRate * (nowInput.y - lattice[nodeId.z][nodeId.y][nodeId.x].y);
+    lattice[nodeId.z][nodeId.y][nodeId.x].z = lattice[nodeId.z][nodeId.y][nodeId.x].z + radius * learningRate * (nowInput.z - lattice[nodeId.z][nodeId.y][nodeId.x].z);
 }

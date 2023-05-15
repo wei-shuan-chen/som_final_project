@@ -63,8 +63,8 @@ int main()
 	// ------------------------------------
 	imgui_init(window);
 	Shader_Create();
-    createTexture();
-	createdepthTexture();	
+    tex.createTexture();
+	tex.createdepthTexture();
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
@@ -148,7 +148,7 @@ void keyPressFun(GLFWwindow* window, int key, int scancode, int action, int mods
 		startSOM = true;
 		createThread();
 	}
-	
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
