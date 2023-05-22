@@ -28,47 +28,16 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
 void som_cls::SOM_IterateOnce()
 {
     // 1. Get one input from the dataset
+    latticeData.learningRate = computeLearningRate();
+    latticeData.radius = computeRadius();
+    const glm::fvec3 nowInput = getInput();
+    // cout << "nowinput : "<< nowInput.x << ", " << nowInput.y << ", " << nowInput.z<< endl;
     // 2. Find BMU
+    const glm::ivec3 bmu = findBmu(nowInput);
+    // cout << "bmu : " << bmu.x << ", " << bmu.y << ", " << bmu.z << endl;
     // 3. Update BMU and the radius
-    latticeData.learningRate = computerate(latticeData.iter, latticeData.initLearningRate);
-    latticeData.radius = computeradius(latticeData.iter, latticeData.initRadius);
-    const glm::fvec3 nowInput = getInput(inputData.input, inputData.num);
-    double minDist = -1.0;
-
-    int shapeNum = 1;
-    if (latticeData.type == BALL)
-        shapeNum = 5;
-
-    glm::ivec3 bmu;
-    // compute winner point
-    for (int k = 0; k < shapeNum; k++)
-    {
-        for (int i = 0; i < latticeData.height; i++)
-        {
-            for (int j = 0; j < latticeData.width; j++)
-            {
-                double tmp1 = 0.0;
-                float dx = (latticeData.lattice[k][i][j].x - nowInput.x);
-                float dy = (latticeData.lattice[k][i][j].y - nowInput.y);
-                float dz = (latticeData.lattice[k][i][j].z - nowInput.z);
-                tmp1 = dx * dx + dy * dy + dz * dz;
-                if (minDist < 0.0)
-                {
-                    minDist = tmp1;
-                    continue;
-                }
-
-                if (minDist > tmp1)
-                {
-                    minDist = tmp1;
-                    bmu = {j, i, k};
-                }
-            }
-        }
-    }
-    // cout << "bmu -> k, (x, y) : "<< bmu.z <<", " << bmu.x<<", " << bmu.y << endl;
-    // renew winner point and neighnorhood
-    for (int k = 0; k < shapeNum; k++)
+    // findBmuNeighbor(nowInput, bmu);
+    for (int k = 0; k < latticeData.typeNum[latticeData.type]; k++)
     {
         for (int i = 0; i < latticeData.height; i++)
         {
@@ -77,21 +46,17 @@ void som_cls::SOM_IterateOnce()
                 glm::ivec3 node = glm::ivec3(j, i, k);
                 glm::ivec3 diff = computNeiborhood(node, bmu); // node - bmu;
                 double squaredDist = static_cast<double>(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-                // std::cout << "Dist " <<squaredDist<<std::endl;
-                if((k == 0 && i == 4 && j == 0)||(k == 4 && j == latticeData.height - 1 && i ==  latticeData.width - 4)){
-                    // cout << "node -> k, (x, y) : "<< node.z <<", " << node.x<<", " << node.y << endl;
-                    // cout << "diff : " << diff.x << ", "<<diff.y << "\n\n";
-                }
                 if (isInradiushood(squaredDist, latticeData.radius))
                 {
                     double n_radius = computeScale(latticeData.radius, squaredDist);
+                    // cout << "scale : " << n_radius << endl;
                     updateNode(latticeData.lattice, nowInput, node, n_radius, latticeData.learningRate);
                 }
             }
         }
     }
+
     latticeData.iter++;
-    // cout << iter <<endl;
 }
 
 
@@ -126,8 +91,8 @@ glm::fvec3 * som_cls::createInputDataset(std::vector<glm::ivec3> voxelPos, int v
 glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size)
 {
 
-    glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * 5);
-    for (int j = 0; j < 5; j++)
+    glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * 6);
+    for (int j = 0; j < 6; j++)
     {
         lattice[j] = (glm::fvec3 **)malloc(sizeof(glm::fvec3 *) * height);
         for (int i = 0; i < height; i++)
@@ -154,7 +119,6 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
     }else if(latticeData.type == CYLINDER){
         for (int h = 0; h < height; h++)
         {
-            double theta = 360.0 / (double)(height - 1);
             for (int w = 0; w < width; w++)
             {
                 double i0, j0, k0;
@@ -199,41 +163,272 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
             {
                 double ratio_w = (double)w / (double)(width - 1);
                 double ratio_h = (double)h / (double)(height - 1);
-                // 0 x-z plane
+                // 0 x-z plane up
                 i0 = size[0] * ratio_w;
                 j0 = size[1];
                 k0 = size[2] * ratio_h;
                 lattice[0][h][w] = {i0, j0, k0};
 
-                // 1 x-y plane
+                // 1 x-y plane back
                 i0 = size[0] * ratio_w;
                 j0 = size[1] * ratio_h;
                 k0 = 0;
                 lattice[1][h][w] = {i0, j0, k0};
 
-                // 2 y-z plane
-                i0 = size[0];
+                // 2 y-z plane left
+                i0 = 0;
                 j0 = size[1] * ratio_w;
                 k0 = size[2] * ratio_h;
                 lattice[2][h][w] = {i0, j0, k0};
 
-                // 3 x-y plane
+                // 3 x-y plane front
                 i0 = size[0] * ratio_w;
                 j0 = size[1] * ratio_h;
                 k0 = size[2];
                 lattice[3][h][w] = {i0, j0, k0};
 
-                // 4 y-z plane
-                i0 = 0;
+                // 4 y-z plane right
+                i0 = size[0];
                 j0 = size[1] * ratio_w;
                 k0 = size[2] * ratio_h;
                 lattice[4][h][w] = {i0, j0, k0};
+
+                // 5 x-z plane down
+                i0 = size[0] * ratio_w;
+                j0 = 0;
+                k0 = size[2] * ratio_h;
+                lattice[5][h][w] = {i0, j0, k0};
+
             }
         }
     }
 
     return lattice;
 }
+
+double som_cls::computeRadius()
+{
+    double iter_d = latticeData.iter;
+    double finalIter_d = latticeData.finalIter;
+    double initRadius_d = latticeData.initRadius;
+
+    double sigma = initRadius_d * exp(-1 * log(initRadius_d) * iter_d / finalIter_d);
+
+    return sigma;
+}
+double som_cls::computeLearningRate()
+{
+    double iter_d = latticeData.iter;
+    double finalIter_d = latticeData.finalIter;
+    double initLearningRate_d = latticeData.initLearningRate;
+
+    double sigma = initLearningRate_d * exp(-1 * iter_d / finalIter_d);
+
+    return sigma;
+}
+const glm::fvec3 som_cls::getInput()
+{
+    // 0 <= rand_i < 1
+    double rand_i = (double)rand() / (double)(RAND_MAX+1.0);
+    int i = rand_i*inputData.num;
+
+    return inputData.input[i];
+}
+const glm::ivec3 som_cls::findBmu(glm::fvec3 nowInput){
+    double minDist = -1.0;
+    glm::ivec3 bmu;
+    // compute winner point
+    for (int k = 0; k < latticeData.typeNum[latticeData.type]; k++)
+    {
+        for (int i = 0; i < latticeData.height; i++)
+        {
+            for (int j = 0; j < latticeData.width; j++)
+            {
+                double tmp1 = 0.0;
+                float dx = (latticeData.lattice[k][i][j].x - nowInput.x);
+                float dy = (latticeData.lattice[k][i][j].y - nowInput.y);
+                float dz = (latticeData.lattice[k][i][j].z - nowInput.z);
+                tmp1 = dx * dx + dy * dy + dz * dz;
+                if (minDist < 0.0)
+                {
+                    minDist = tmp1;
+                    bmu = {j, i, k};
+                    continue;
+                }
+
+                if (minDist > tmp1)
+                {
+                    minDist = tmp1;
+                    bmu = {j, i, k};
+                }
+            }
+        }
+    }
+    return bmu;
+}
+void som_cls::findBmuNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu){
+    int radius = latticeData.radius;
+    for(int r = 0; r < radius; r++){
+        for(int m = 0; m < 7; m+=2){
+            glm::ivec2 move;
+            if(r == 0){
+                if(m == 0){
+                    move = {0, 0};
+                    ensureNeighbor(nowInput, bmu, move, 0.0);
+                }
+            }else{
+                int nowp, nextp;
+                if(m == 0){
+                    nowp = r*bmuMove[m+2].x;
+                    nextp = r*bmuMove[m].x;
+                }else if(m == 2){
+                    nowp = (r*bmuMove[m+2].y)+1;
+                    nextp = (r*bmuMove[m].y)-1;
+                }else if(m == 4){
+                    nowp = r*bmuMove[m].x;
+                    nextp = r*bmuMove[m+2].x;
+                }else if(m == 6){
+                    nowp = (r*bmuMove[m].y)+1;
+                    nextp = (r*bmuMove[m+2].y)-1;
+                }
+
+                while(nowp <= nextp){
+                    if(m == 0 || m == 4){
+                        move.y = r*bmuMove[m].y;
+                        move.x = nowp;
+                    }
+                    if(m == 2 || m == 6){
+                        move.x = r*bmuMove[m].x;
+                        move.y = nowp;
+                    }
+                    double squaredDist = static_cast<double>(move.x * move.x + move.y * move.y);
+                    if (isInradiushood(squaredDist, radius)){
+                        ensureNeighbor(nowInput, bmu, move, squaredDist);
+                    }
+                    nowp++;
+                }
+            }
+        }
+
+    }
+
+}
+void som_cls::ensureNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu, glm::ivec2 move, double squaredDist){
+    int radius = latticeData.radius;
+    int w = latticeData.width;
+    int h = latticeData.height;
+
+    glm::ivec3 update = bmu;
+
+    glm::ivec2 tmp, delta;
+    tmp.x = move.x + bmu.x;
+    tmp.y = move.y + bmu.y;
+
+    delta.x = computDelta(w, tmp.x);
+    delta.y = computDelta(h, tmp.y);
+
+    if(latticeData.type == PLANE){
+        update.x = tmp.x;
+        update.y = tmp.y;
+        if(tmp.x < 0 || tmp.x >= w)return;
+        if(tmp.y < 0 || tmp.y >= h)return;
+    }
+    if(latticeData.type == CYLINDER){
+        update.x = delta.x;
+        update.y = tmp.y;
+        if(tmp.y < 0 || tmp.y >= h) return;
+    }
+    if(latticeData.type == DONUT){
+        update.x = delta.x;
+        update.y = delta.y;
+    }
+    if(latticeData.type == BALL){
+        if((tmp.x < 0 || tmp.x >= w) && (tmp.y < 0 || tmp.y >= h)) return;
+        if((tmp.x >= 0 || tmp.x < w) && (tmp.y >= 0 || tmp.y < h)){
+            update.x = delta.x;
+            update.y = delta.y;
+        }else{
+            int style = bmu.z, newStyle;
+
+            if(tmp.x < 0 || tmp.x >= w){
+                if(tmp.x >= w) newStyle = ballneighber[style][0];
+                else newStyle = ballneighber[style][2];
+
+                update.x = delta.x;
+                update.y = delta.y;
+                if(ballneighber[newStyle][0] == style){
+                    update.x = (w-1) - delta.x;
+                }
+                if(ballneighber[newStyle][1] == style){
+                    update.y = (h-1) - delta.y;
+                }
+            }
+            if(tmp.y < 0 || tmp.y >= h){
+                if(tmp.y >= h) newStyle = ballneighber[style][1];
+                else newStyle = ballneighber[style][3];
+
+                update.x = delta.y;
+                update.y = delta.x;
+                if(ballneighber[newStyle][0] == style){
+                    update.x = (w-1) - delta.y;
+                }
+                if(ballneighber[newStyle][1] == style){
+                    update.y = (h-1) - delta.x;
+                }
+            }
+
+        }
+
+    }
+    double scale = computeScale(radius, squaredDist);
+    updateNode(latticeData.lattice, nowInput, update, scale, latticeData.learningRate);
+
+    if(latticeData.type == CYLINDER){
+        for(int h1 = 0; h1 < h; h1++){
+            latticeData.lattice[0][h1][w-1] = latticeData.lattice[0][h1][0];
+        }
+    }
+    if(latticeData.type == DONUT){
+        for(int h1 = 0; h1 < h; h1++){
+            latticeData.lattice[0][h1][w-1] = latticeData.lattice[0][h1][0];
+        }
+        for(int w1 = 0; w1 < w; w1++){
+            latticeData.lattice[0][h-1][w1] = latticeData.lattice[0][0][w1];
+        }
+    }
+
+    return;
+}
+int som_cls::computDelta(int edge, int tmp){
+    int delta;
+
+    if(tmp < 0){ //tmpx < 0
+        delta = (edge-1) + tmp;
+    }else if(tmp < edge-1){ // 0 <= tmpx <= width-1
+        delta = tmp;
+    }else{ // width-1 < tmpx
+        delta = tmp - (edge-1);
+    }
+
+    return delta;
+}
+double som_cls::computeScale(double radius, double dist)
+{
+    double scale = exp((-1 * dist) / (2 * pow(radius, 2)));
+
+    return scale;
+}
+void som_cls::updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 update, double scale, double learningRate)
+{
+    int x = update.x, y = update.y, z = update.z;
+    // cout << x << ", " << y << ", " << z << endl;
+    lattice[z][y][x].x = lattice[z][y][x].x + scale * learningRate * (nowInput.x - lattice[z][y][x].x);
+    lattice[z][y][x].y = lattice[z][y][x].y + scale * learningRate * (nowInput.y - lattice[z][y][x].y);
+    lattice[z][y][x].z = lattice[z][y][x].z + scale * learningRate * (nowInput.z - lattice[z][y][x].z);
+}
+
+
+
 glm::ivec3 som_cls::computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
 {
 
@@ -311,9 +506,23 @@ glm::ivec3 som_cls::computeHalfballDist(glm::ivec3 p0){
     else if(p0.z == 2) a = {0, p0.x, p0.y};
     else if(p0.z == 3) a = {p0.x, p0.y, w};
     else if(p0.z == 4) a = {w, p0.x, p0.y};
+    else if(p0.z == 5) a = {p0.x, 0, p0.y};
 
     return a;
 }
+
+bool som_cls::isInradiushood(double squaredDist, double radius)
+{
+    if (squaredDist <= (radius * radius))
+    {
+        // std::cout << "dist : " << squaredDist << " radius : " << radius*radius << std::endl;
+        return true;
+    }
+    return false;
+}
+
+
+
 void som_cls::destroy(glm::fvec3 ***arr, int width, int height)
 {
 
@@ -330,53 +539,4 @@ void som_cls::destroy(glm::fvec3 ***arr, int width, int height)
 void som_cls::destroyDataset(glm::fvec3 *arr, int datasteNum)
 {
     free(arr);
-}
-double som_cls::computeradius(int iter, double fun)
-{
-    double lamda = ((double)(latticeData.finalIter)) / log(fun);
-    double sigma = fun * exp(-1 * ((double)iter) / lamda);
-
-    return sigma;
-}
-double som_cls::computerate(int iter, double fun)
-{
-    double sigma = fun * exp(-1 * ((double)iter) / ((double)(latticeData.finalIter)));
-    return sigma;
-}
-
-const glm::fvec3 som_cls::getInput(glm::fvec3 *dataset, int datasteNum)
-{
-    int num, i;
-    num = (datasteNum / RAND_MAX) + 1;
-    i = (rand() * num) % datasteNum + rand() % num;
-    while (i >= datasteNum)
-    {
-        i = (rand() * num) % datasteNum + rand() % num;
-    }
-
-    return dataset[i];
-}
-
-bool som_cls::isInradiushood(double squaredDist, double radius)
-{
-    if (squaredDist <= (radius * radius))
-    {
-        // std::cout << "dist : " << squaredDist << " radius : " << radius*radius << std::endl;
-        return true;
-    }
-    return false;
-}
-
-double som_cls::computeScale(double sigma, double dist)
-{
-    double theta = exp((-1 * dist) / (2 * pow(sigma, 2)));
-
-    return theta;
-}
-
-void som_cls::updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 nodeId, double radius, double learningRate)
-{
-    lattice[nodeId.z][nodeId.y][nodeId.x].x = lattice[nodeId.z][nodeId.y][nodeId.x].x + radius * learningRate * (nowInput.x - lattice[nodeId.z][nodeId.y][nodeId.x].x);
-    lattice[nodeId.z][nodeId.y][nodeId.x].y = lattice[nodeId.z][nodeId.y][nodeId.x].y + radius * learningRate * (nowInput.y - lattice[nodeId.z][nodeId.y][nodeId.x].y);
-    lattice[nodeId.z][nodeId.y][nodeId.x].z = lattice[nodeId.z][nodeId.y][nodeId.x].z + radius * learningRate * (nowInput.z - lattice[nodeId.z][nodeId.y][nodeId.x].z);
 }

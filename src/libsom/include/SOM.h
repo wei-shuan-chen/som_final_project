@@ -18,8 +18,8 @@ enum latType{
 typedef struct LatData_t {
     glm::fvec3*** lattice; // [5][h][w]
 
-    int width = 20;
-    int height = 20;
+    int width = 15;
+    int height = 15;
 
     int iter = 0;
     const int finalIter = 120000;
@@ -31,6 +31,7 @@ typedef struct LatData_t {
     const double initRadius = width/2.0;
 
     int type = 3;// 0 plane, 1 cylinder, 2 donut, 3 ball
+    int typeNum[4] = {1,1,1,6};
 }LatData_t;
 
 typedef struct InputData_t {
@@ -48,23 +49,37 @@ public:
     void SOM_Create(std::vector<glm::ivec3>  voxelPos, int voxelNum, glm::ivec3 max);
     void SOM_IterateOnce();
     void SOM_Again();
+
+    // debug
+    // std::vector<glm::fvec3> debugThreeCoord;
+
 private:
     LatData_t latticeData;
     InputData_t inputData;
+    glm::ivec2 bmuMove[9] = {{1, 1},{0, 1},{-1, 1},{-1, 0},{-1, -1},{0, -1},{1, -1},{1, 0},{1, 1}};
+    int ballneighber[6][4] = {{4,3,2,1},{4,0,2,5},{0,3,5,1},{4,0,2,5,},{0,3,5,1},{4,3,2,1}};
 
+    // som create
     glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max);
     glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);
+    // som iterate
+    double computeLearningRate();
+    double computeRadius();
+    const glm::fvec3 getInput();
+    const glm::ivec3 findBmu(glm::fvec3 nowInput);
+    void findBmuNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu);
+    void ensureNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu, glm::ivec2 move, double squaredDist);
+        int computDelta(int edge, int tmp);
+        double computeScale(double sigma, double dist);
+        void updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 update, double scale, double learningRate);
+
+
     glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu);
     glm::ivec3 computeHalfballDist(glm::ivec3 p0);
-    const glm::fvec3 getInput(glm::fvec3 *dataset, int datasteNum);
+    bool isInradiushood(double squaredDist, double radius);
+    // ~som_cls
     void destroy(glm::fvec3 ***arr, int width, int height);
     void destroyDataset(glm::fvec3 *arr, int datasteNum);
-    void updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 nodeId, double radius, double learningRate);
-    double computerate(int iter, double fun);
-    double computeradius(int iter, double fun);
-    double computeScale(double sigma, double dist);
-    bool isInradiushood(double squaredDist, double radius);
-
 };
 
 extern som_cls som;

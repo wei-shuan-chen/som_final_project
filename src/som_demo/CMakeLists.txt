@@ -26,14 +26,14 @@ target_include_directories(som-demo PRIVATE
 )
 
 
-target_link_libraries(som-demo PRIVATE 
+target_link_libraries(som-demo PRIVATE
     som
     raw
-    glad 
-    imgui 
-    glm::glm 
-    glfw 
-    OpenGL::GL 
+    glad
+    imgui
+    glm::glm
+    glfw
+    OpenGL::GL
 )
 
 if(OpenMP_CXX_FOUND)

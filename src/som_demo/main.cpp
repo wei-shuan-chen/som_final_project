@@ -41,7 +41,7 @@ int main()
 
 	// glfw window creation
 	// --------------------
-	GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "SOM_3D", NULL, NULL);
+	GLFWwindow *window = glfwCreateWindow(drawModel.SCR_WIDTH, drawModel.SCR_HEIGHT, "SOM_3D", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -62,7 +62,7 @@ int main()
 	// build and compile our shader program
 	// ------------------------------------
 	imgui_init(window);
-	Shader_Create();
+	drawModel.Shader_Create();
     tex.createTexture();
 	tex.createdepthTexture();
 	glEnable(GL_DEPTH_TEST);
@@ -78,13 +78,12 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		imgui_create();
-		Shader_Use();
+		drawModel.Shader_Use();
 
 		imgui_end();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	Model_del();
 	glfwTerminate();
 	destroy_world();
 	return 0;
@@ -98,40 +97,40 @@ void processInput(GLFWwindow *window)
 		glfwSetWindowShouldClose(window, true);
 	// camera
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
+		drawModel.camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
+		drawModel.camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
+		drawModel.camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
+		drawModel.camera.ProcessKeyboard(RIGHT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(UP, deltaTime);
+		drawModel.camera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(DOWN, deltaTime);
+		drawModel.camera.ProcessKeyboard(DOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-		camera.ProcessKeyboard(PITCHUP, deltaTime);
+		drawModel.camera.ProcessKeyboard(PITCHUP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-		camera.ProcessKeyboard(PITCHDOWN, deltaTime);
+		drawModel.camera.ProcessKeyboard(PITCHDOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-		camera.ProcessKeyboard(YAWUP, deltaTime);
+		drawModel.camera.ProcessKeyboard(YAWUP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-		camera.ProcessKeyboard(YAWDOWN, deltaTime);
+		drawModel.camera.ProcessKeyboard(YAWDOWN, deltaTime);
 
 	// light
-	float v = rate*deltaTime;
+	float v = drawModel.rate*deltaTime;
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-		lightPos = lightPos+glm::vec3(0.0,v,0.0);
+		drawModel.lightPos = drawModel.lightPos+glm::vec3(0.0,v,0.0);
 	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
-		lightPos = lightPos+glm::vec3(0.0,-1*v,0.0);
+		drawModel.lightPos = drawModel.lightPos+glm::vec3(0.0,-1*v,0.0);
 	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
-		lightPos = lightPos+glm::vec3(-1*v,0.0,0.0);
+		drawModel.lightPos = drawModel.lightPos+glm::vec3(-1*v,0.0,0.0);
 	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-		lightPos = lightPos+glm::vec3(v,0.0,0.0);
+		drawModel.lightPos = drawModel.lightPos+glm::vec3(v,0.0,0.0);
 	// if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
 	// 	lightPos = lightPos+glm::vec3(0.0,0.0,v);
 	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-		lightPos = lightPos+glm::vec3(0.0,0.0,-1*v);
+		drawModel.lightPos = drawModel.lightPos+glm::vec3(0.0,0.0,-1*v);
 
 
 }
@@ -139,11 +138,11 @@ void keyPressFun(GLFWwindow* window, int key, int scancode, int action, int mods
 
 	// show
 	if(key == GLFW_KEY_Z && action == GLFW_PRESS)
-		showVoxel = !showVoxel;
+		drawModel.showVoxel = !drawModel.showVoxel;
 	if(key == GLFW_KEY_X && action == GLFW_PRESS)
-		showLatticePlane = !showLatticePlane;
+		drawModel.showLatticePlane = !drawModel.showLatticePlane;
 	if(key == GLFW_KEY_C && action == GLFW_PRESS)
-		showLatticeLine = !showLatticeLine;
+		drawModel.showLatticeLine = !drawModel.showLatticeLine;
 	if(key == GLFW_KEY_G && action == GLFW_PRESS){
 		startSOM = true;
 		createThread();

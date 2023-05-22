@@ -1,68 +1,29 @@
 #include "Drawmodel.h"
-
-const unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
-glm::vec3 lightPos = glm::vec3(50.0,50.0,50.0);
-Camera camera(glm::vec3(0.0f, 5.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-float rate;
-bool showVoxel = true;
-bool showLatticePlane = true;
-bool showLatticeLine = true;
+model_cls drawModel;
+void createThread();
+void runthreadSomIter();
+thread t1;
 bool startSOM = false;
 
-MatrixStack model;
-MatrixStack view;
-MatrixStack projection;
-std::vector<glm::mat4> shadowTransforms;
 
-Shader ourShader;
-Shader lightShader;
-Shader depthShader;
+model_cls::model_cls(){
+    glm::vec3 lightPos = glm::vec3(50.0,50.0,50.0);
+    Camera camera(glm::vec3(0.0f, 5.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+model_cls::~model_cls(){
+    destroy_world();
+    cube.Item_del();
+    ground.Item_del();
+    lightcube.Item_del();
+    voxel.Item_del();
+    lattice_line.Item_del();
+    lattice_plane.Item_del();
+}
 
-Item cube;
-Item lightcube;
-Item ground;
-Item voxel;
-Item lattice_line;
-Item lattice_plane;
-
-
-float near_plane = 0.01f, far_plane = 10000000.0f;
-
-// thread
-thread t1;
-
-//public func
-void Shader_Create();
-void Shader_Use();
-void Model_del();
-void Model_mapping();
-//private func
-void Modify_position(int x, int y, int z);
-void Shader_init(int n, bool settex);
-void ViewProjection_Create(int n);
-void Model_Floor_Create(Shader shader);
-void Model_create(Shader shader);
-void Model_create_noshadow(Shader shader);
-void Model_lightCube_create(Shader shader);
-void ourShader_model();
-void depthShader_model();
-void lightShader_model();
-glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de);
-glm::fvec3 pointTotriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n);
-glm::fvec3 crossPruduct(glm::fvec3 a, glm::fvec3 b);
-float innerProduct(glm::fvec3 a, glm::fvec3 b);
-// thread public
-void createThread();
-//thread private
-void runthreadSomIter();
-
-void Shader_Create()
+void model_cls::Shader_Create()
 {
-
-    // rawmodel.LoadFile("raw/vase01.inf", "raw/vase01.raw");
     rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
-    // rawmodel.LoadFile("raw/utah_teapot.inf", "raw/utah_teapot.raw");
-    // std::vector<glm::ivec3> voxelPosition;
+
     som.SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
     create_world(rawmodel.voxelModel);
 
@@ -80,7 +41,7 @@ void Shader_Create()
     lattice_plane = Item(world.lattice_plane);
 	Shader_init(0, true);
 }
-void Modify_position(int x, int y, int z){
+void model_cls::Modify_position(int x, int y, int z){
     // modify camera
     rate = max(max(x,y),z) / 2.0;
     camera.modifyPositionAndmoveSpeed(glm::vec3(x / -2.0, y / 2.0, z * 4.0), rate);
@@ -88,11 +49,11 @@ void Modify_position(int x, int y, int z){
     // modify light
     lightPos = glm::vec3(x, y * 1.3, z * 2.0);
 }
-void Shader_Use(){
+void model_cls::Shader_Use(){
     // som iter
     const LatData_t* latticeData = som.Lattice_get();
     if(latticeData->iter < latticeData->finalIter && startSOM){
-        // SOM_IterateOnce();
+        // som.SOM_IterateOnce();
         renew_world();
         lattice_line.renewVBO(world.lattice_line);
 		lattice_plane.renewVBO(world.lattice_plane);
@@ -111,7 +72,7 @@ void Shader_Use(){
     ViewProjection_Create(1);
     lightShader_model();
 }
-void Shader_init(int n, bool settex){
+void model_cls::Shader_init(int n, bool settex){
     if(n == 0){
         ourShader.use();
         if(settex){
@@ -131,7 +92,7 @@ void Shader_init(int n, bool settex){
         }
     }
 }
-void ViewProjection_Create(int n){
+void model_cls::ViewProjection_Create(int n){
 
     if(n == 0){
         view.Save(camera.GetViewMatrix());
@@ -158,7 +119,7 @@ void ViewProjection_Create(int n){
 
     }
 }
-void ourShader_model(){
+void model_cls::ourShader_model(){
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     tex.bindTexture(0,0);//texture
@@ -167,10 +128,10 @@ void ourShader_model(){
     Model_create(ourShader);
     Model_create_noshadow(ourShader);
 }
-void lightShader_model(){
+void model_cls::lightShader_model(){
     Model_lightCube_create(lightShader);
 }
-void depthShader_model(){
+void model_cls::depthShader_model(){
     glViewport(0, 0, tex.shadowTex.width, tex.shadowTex.height);
     glBindFramebuffer(GL_FRAMEBUFFER, tex.shadowTex.depthFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -180,7 +141,7 @@ void depthShader_model(){
 }
 
 
-void Model_Floor_Create(Shader shader){
+void model_cls::Model_Floor_Create(Shader shader){
     model.Push();
     model.Save(glm::scale(model.Top(), glm::vec3( 20000.0f, 1.0f, 20000.0f)));
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
@@ -192,7 +153,7 @@ void Model_Floor_Create(Shader shader){
     model.Pop();
 
 }
-void Model_create_noshadow(Shader shader){
+void model_cls::Model_create_noshadow(Shader shader){
     if(showLatticePlane){
         model.Push();
         model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
@@ -222,20 +183,20 @@ void Model_create_noshadow(Shader shader){
     }
 
 }
-void Model_create(Shader shader){
+void model_cls::Model_create(Shader shader){
     if(showVoxel){
         model.Push();
         model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         shader.setBool("tex",false);
-        shader.setBool("shader",true);
+        shader.setBool("shader",false);
         glBindVertexArray(voxel.VAO);
         glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
         model.Pop();
     }
 
 }
-void Model_lightCube_create(Shader shader){
+void model_cls::Model_lightCube_create(Shader shader){
 
     model.Push();
     model.Save(glm::translate(model.Top(),lightPos));
@@ -259,21 +220,11 @@ void createThread(){
 	t1 = thread(runthreadSomIter);
 
 }
-void Model_del(){
-    destroy_world();
-    cube.Item_del();
-    ground.Item_del();
-    lightcube.Item_del();
-    voxel.Item_del();
-    lattice_line.Item_del();
-    lattice_plane.Item_del();
-}
 
-void Model_mapping(){
+void model_cls::Model_mapping(){
     const LatData_t* latticeData = som.Lattice_get();
-    int shapeNum = 1;
-    if(latticeData->type == BALL) shapeNum = 5;
-    // for(int n = 2216; n < 2217; n++){// voxel
+
+    // for(int n = 5349; n < 5350; n++){// voxel
     for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
         double v_x = rawmodel.voxelModel.voxel[n].locate.x;
         double v_y = rawmodel.voxelModel.voxel[n].locate.y;
@@ -281,7 +232,7 @@ void Model_mapping(){
         double minDist = 100000;
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice
-        for(int k = 0; k < shapeNum; k++){
+        for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
             for(int j = 0; j < latticeData->height; j++){
                 for(int i = 0; i < latticeData->width; i++){
 
@@ -321,7 +272,7 @@ void Model_mapping(){
     voxel.renewVBO(world.voxel);
     log_info("end: model mapping\n");
 }
-glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){
+glm::fvec2 model_cls::findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){
 
     glm::fvec3 twoDcoord = minLatticeCoord;
 
@@ -329,6 +280,7 @@ glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::
     int impair[4][2] = {{1,1} ,{-1,1}, {-1,-1}, {1,-1}};
     // latticeData->threeDCoord[latticeData->minNum] = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
     for(int i = 0; i < 4; i++){
+        // cout << i << endl;
         // find triangle(o,a1,a2)
         if(minLatticeCoord.x+impair[i][0] < 0 || minLatticeCoord.x+impair[i][0] > latticeData->width-1 || minLatticeCoord.y+impair[i][1] < 0 || minLatticeCoord.y+impair[i][1] > latticeData->height-1){
         //    log_info("point%d in the edge!",i);
@@ -358,16 +310,6 @@ glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::
         // log_info("point%d \nvector_n: %f, %f, %f, vector_d: %f, %f, %f, dot = %f\n",
         // i, vector_n.x, vector_n.y, vector_n.z, vector_d.x, vector_d.y, vector_d.z, innerProduct(vector_p, vector_n));
 
-        // ensure the point is in the triangle
-        glm::highp_dvec3 cross1 = glm::normalize(crossPruduct(o-projp, a1-projp));
-        glm::highp_dvec3 cross2 = glm::normalize(crossPruduct(a1-projp, a2-projp));
-        glm::highp_dvec3 cross3 = glm::normalize(crossPruduct(a2-projp, o-projp));
-        // log_info("%d\ncross1 : %f, %f, %f\ncross2 : %f, %f, %f\ncross3 : %f, %f, %f",
-        // i, cross1.x, cross1.y, cross1.z, cross2.x, cross2.y, cross2.z, cross3.x, cross3.y, cross3.z);
-        if(cross1.x*cross2.x < 0.0 || cross1.x*cross3.x < 0.0 || cross2.x*cross3.x < 0.0){
-            // log_info("point%d is outof triangle\n",i);
-            continue;
-        }
         double tmpDist = vector_d.x*vector_d.x + vector_d.y*vector_d.y + vector_d.z*vector_d.z;
         if(tmpDist >= minDist) {
             // log_info("point%d is too far\n",i);
@@ -375,11 +317,18 @@ glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::
         }
         minDist = tmpDist;
         // compute dist of point to triangle
-        glm::highp_dvec3 rate = pointTotriangle(o, a1, a2, projp, vector_n);
+        glm::highp_dvec3 ratio = pointTotriangle(o, a1, a2, projp, vector_n);
 
-        twoDcoord.x = rate[0]*minLatticeCoord.x + rate[1]*(minLatticeCoord.x+impair[i][0]) + rate[2]*minLatticeCoord.x;
-        twoDcoord.y = rate[0]*minLatticeCoord.y + rate[1]*minLatticeCoord.y + rate[2]*(minLatticeCoord.y+impair[i][1]);
+        glm::fvec2 tmpCoord;
+        tmpCoord.x = ratio[0]*minLatticeCoord.x + ratio[1]*(minLatticeCoord.x+impair[i][0]) + ratio[2]*minLatticeCoord.x;
+        tmpCoord.y = ratio[0]*minLatticeCoord.y + ratio[1]*minLatticeCoord.y + ratio[2]*(minLatticeCoord.y+impair[i][1]);
 
+        if(tmpCoord.x >= 0.0 && tmpCoord.x <= latticeData->width-1 && tmpCoord.y >= 0.0 && tmpCoord.y <= latticeData->height-1 ){
+            twoDcoord.x = tmpCoord.x;
+            twoDcoord.y = tmpCoord.y;
+        }
+        // log_info("\nratio : %f, %f, %f\nminLatticeCoord : %d, %d\ntwoDcoord : %f, %f\n",
+        // ratio.x, ratio.y, ratio.z, minLatticeCoord.x, minLatticeCoord.y, twoDcoord.x, twoDcoord.y);
     }
 
 
@@ -387,19 +336,19 @@ glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::
 
 }
 
-glm::fvec3 pointTotriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n){
+glm::fvec3 model_cls::pointTotriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n){
 
     // compute center of gravity
-    glm::fvec3 rate;
-    float total_volume = abs(innerProduct(crossPruduct(a1-o, a2-o),vector_n));
-    rate[0] = abs(innerProduct(crossPruduct(a1-projp, a2-projp),vector_n)/ total_volume);
-    rate[1] = abs(innerProduct(crossPruduct(a2-projp, o-projp),vector_n)/ total_volume);
-    rate[2] = 1.0 - rate[1] - rate[0];
+    glm::fvec3 ratio;
+    float total_volume = innerProduct(crossPruduct(a1-o, a2-o),vector_n);
+    ratio[0] = innerProduct(crossPruduct(a1-projp, a2-projp),vector_n)/ total_volume;
+    ratio[1] = innerProduct(crossPruduct(a2-projp, o-projp),vector_n)/ total_volume;
+    ratio[2] = 1.0 - ratio[1] - ratio[0];
 
-    return rate;
+    return ratio;
 }
 
-glm::fvec3 crossPruduct(glm::fvec3 a, glm::fvec3 b){
+glm::fvec3 model_cls::crossPruduct(glm::fvec3 a, glm::fvec3 b){
     glm::fvec3 c;
     c.x = a.y*b.z - a.z*b.y;
     c.y = -1*(a.x*b.z - a.z*b.x);
@@ -407,101 +356,6 @@ glm::fvec3 crossPruduct(glm::fvec3 a, glm::fvec3 b){
 
     return c;
 }
-float innerProduct(glm::fvec3 a, glm::fvec3 b){
+float model_cls::innerProduct(glm::fvec3 a, glm::fvec3 b){
     return ((a.x*b.x) + (a.y*b.y) + (a.z*b.z));
 }
-/*
-
-
-    // find the 4 triangle around the minDist point
-    double leftDist = mid, rightDist = mid, topDist = mid, downDist = mid;
-    double v_x = voxelPos.x;
-    double v_y = voxelPos.y;
-    double v_z = voxelPos.z;
-    if(minLatticeCoord.x != 0){//left
-        double l_lx = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x-1].x;
-        double l_ly = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x-1].y;
-        double l_lz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x-1].z;
-        leftDist = (l_lx-v_x)*(l_lx-v_x) + (l_ly-v_y)*(l_ly-v_y) + (l_lz-v_z)*(l_lz-v_z);
-    }
-    if(minLatticeCoord.x != latticeData->width-1){//right
-        double l_rx = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+1].x;
-        double l_ry = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+1].y;
-        double l_rz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+1].z;
-        rightDist = (l_rx-v_x)*(l_rx-v_x) + (l_ry-v_y)*(l_ry-v_y) + (l_rz-v_z)*(l_rz-v_z);
-    }
-    if(minLatticeCoord.y != 0){//down
-        double l_dx = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y-1][minLatticeCoord.x].x;
-        double l_dy = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y-1][minLatticeCoord.x].y;
-        double l_dz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y-1][minLatticeCoord.x].z;
-        downDist = (l_dx-v_x)*(l_dx-v_x) + (l_dy-v_y)*(l_dy-v_y) + (l_dz-v_z)*(l_dz-v_z);
-    }
-    if(minLatticeCoord.y != latticeData->height-1){//top
-        double l_tx = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+1][minLatticeCoord.x].x;
-        double l_ty = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+1][minLatticeCoord.x].y;
-        double l_tz = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+1][minLatticeCoord.x].z;
-        topDist = (l_tx-v_x)*(l_tx-v_x) + (l_ty-v_y)*(l_ty-v_y) + (l_tz-v_z)*(l_tz-v_z);
-    }
-
-    // find which triangle is most close
-    glm::ivec3 coord = minLatticeCoord;
-    // -----
-    if(leftDist < mid){
-        coord.x -= 1;
-    }
-    if(rightDist < mid){
-        coord.x += 1;
-    }
-    // |||||
-    if(topDist < mid){
-        coord.y += 1;
-    }
-    if(downDist < mid){
-        coord.y -= 1;
-    }
-    log_info("\ncoord: %i, %i\nminCoord : %i, %i\ntop: %f, down: %f, left: %f, right: %f",
-    coord.x, coord.y, minLatticeCoord.x, minLatticeCoord.y, topDist, downDist, leftDist, rightDist);
-    // find the true point, which is mindist
-    glm::fvec2 finalcoord = {minLatticeCoord.x, minLatticeCoord.y};
-    if(coord == minLatticeCoord) return finalcoord;
-    if(coord.x == minLatticeCoord.x){
-        finalcoord.y = ((double)coord.y + (double)minLatticeCoord.y)/ 2.0;
-        return finalcoord;
-    }
-    if(coord.y == minLatticeCoord.y){
-        finalcoord.x = ((double)coord.x + (double)minLatticeCoord.x)/ 2.0;
-
-        return finalcoord;
-    }
-    // find point to triangle dist
-    int impair[4][2] = {{1,1} ,{-1,1}, {-1,-1}, {1,-1}};
-    int now_impair[2] = {0,0};
-    if(coord.x > minLatticeCoord.x && coord.y > minLatticeCoord.y){
-        now_impair[0] = impair[0][0];
-        now_impair[1] = impair[0][1];
-    }else if(coord.x < minLatticeCoord.x && coord.y > minLatticeCoord.y){
-        now_impair[0] = impair[1][0];
-        now_impair[1] = impair[1][1];
-    }else if(coord.x < minLatticeCoord.x && coord.y < minLatticeCoord.y){
-        now_impair[0] = impair[2][0];
-        now_impair[1] = impair[2][1];
-    }else if(coord.x > minLatticeCoord.x && coord.y < minLatticeCoord.y){
-        now_impair[0] = impair[3][0];
-        now_impair[1] = impair[3][1];
-    }else{
-        log_error("coord = {%f, %f, %f}, minLatticeCoord = {%f, %f, %f}\n",
-            coord.x,coord.y, coord.z, minLatticeCoord.x, minLatticeCoord.y, minLatticeCoord.z);
-    }
-
-    glm::fvec3 o = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
-    glm::fvec3 a1 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+now_impair[0]];
-    glm::fvec3 a2 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+now_impair[1]][minLatticeCoord.x];
-    glm::fvec3 p = voxelPos;
-
-    glm::fvec3 rate = pointTotriangle(o, a1, a2, p);
-
-    finalcoord.x = rate[0]*minLatticeCoord.x + rate[1]*(minLatticeCoord.x+now_impair[0]) + rate[2]*minLatticeCoord.x;
-    finalcoord.y = rate[0]*minLatticeCoord.y + rate[1]*minLatticeCoord.y + rate[2]*(minLatticeCoord.y+now_impair[1]);
-    return finalcoord;
-
-*/

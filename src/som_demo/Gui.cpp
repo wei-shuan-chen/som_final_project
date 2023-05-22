@@ -49,16 +49,13 @@ void imgui_create(){
         createThread();
     }
     if(ImGui::Button("Mapping")){
-        Model_mapping();
+        drawModel.Model_mapping();
     }
-    if(ImGui::Button("Again")){
-        startSOM = false;
-    }
+    // if(ImGui::Button("Again")){
+    //     startSOM = false;
+    // }
 
     ImGui::End();
-}
-int shape_init(){
-    return shape;
 }
 void imgui_end(){
 

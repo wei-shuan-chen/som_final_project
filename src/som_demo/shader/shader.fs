@@ -21,17 +21,18 @@ uniform float bias;
 
 vec3 gridSamplingDisk[20] = vec3[]
 (
-   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
    vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
    vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
    vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
    vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
 );
+
 float ShadowCalculation(vec3 fragPos)
 {
     // get vector between fragment position and light position
     vec3 fragToLight = fragPos - lightPos;
-    
+
     float currentDepth = length(fragToLight);
 
     float shadow = 0.0;
@@ -77,14 +78,14 @@ void main()
         vec3 diffuse = kd * Id * max(dot(L, N), 0.0);
         // specular
         vec3 V = normalize(viewPos - fs_in.FragPos);
-        vec3 R = reflect(-1*L, N);     
-        vec3 specular = ks * Is * pow(max(dot(V, R), 0.0), 256.0); 
+        vec3 R = reflect(-1*L, N);
+        vec3 specular = ks * Is * pow(max(dot(V, R), 0.0), 256.0);
 
         float shadow = ShadowCalculation(fs_in.FragPos);
 
-        
 
-        if(tex){ 
+
+        if(tex){
             vec3 texcolor = texture(texturemap, fs_in.TexCoords).rgb;
             vec3 I = vec3(ambient + (1.0 - shadow) * (diffuse + specular))*texcolor;
             FragColor = vec4(I, 1.0);
@@ -93,5 +94,5 @@ void main()
             FragColor = vec4(I, 1.0);
         }
     }
-    
-} 
+
+}
