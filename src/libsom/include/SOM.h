@@ -18,8 +18,8 @@ enum latType{
 typedef struct LatData_t {
     glm::fvec3*** lattice; // [5][h][w]
 
-    int width = 15;
-    int height = 15;
+    int width = 25;
+    int height = 25;
 
     int iter = 0;
     const int finalIter = 120000;
@@ -51,7 +51,7 @@ public:
     void SOM_Again();
 
     // debug
-    // std::vector<glm::fvec3> debugThreeCoord;
+    std::vector<glm::fvec3> debugThreeCoord;
 
 private:
     LatData_t latticeData;

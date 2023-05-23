@@ -220,24 +220,24 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
 void renew_voxel_color(SurfaceVoxModel_t voxelModel){
     world.voxel.clear();
 
-    // for(int de = 0; de < som.debugThreeCoord.size(); de++){
+    for(int de = 0; de < som.debugThreeCoord.size(); de++){
 
-    //     float r = 1.0, g = 0.0, b = (double)de/(double)som.debugThreeCoord.size();
-    //     float x = som.debugThreeCoord[de].x;
-    //     float y = som.debugThreeCoord[de].y;
-    //     float z = som.debugThreeCoord[de].z;
+        float r = 1.0, g = 0.0, b = (double)de/(double)som.debugThreeCoord.size();
+        float x = som.debugThreeCoord[de].x;
+        float y = som.debugThreeCoord[de].y;
+        float z = som.debugThreeCoord[de].z;
 
-    //     world.cube.push_back(Vertex{  { x, y, z} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
-    //     world.cube.push_back(Vertex{  { x, y+1,z} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
-    //     world.cube.push_back(Vertex{  { x, y+1, z+1} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
+        world.cube.push_back(Vertex{  { x, y, z} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
+        world.cube.push_back(Vertex{  { x, y+1,z} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
+        world.cube.push_back(Vertex{  { x, y+1, z+1} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
 
-    //     world.cube.push_back(Vertex{  { x, y+1, z+1} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
-    //     world.cube.push_back(Vertex{  { x, y, z+1} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
-    //     world.cube.push_back(Vertex{  { x, y, z} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
-    // }
+        world.cube.push_back(Vertex{  { x, y+1, z+1} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
+        world.cube.push_back(Vertex{  { x, y, z+1} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
+        world.cube.push_back(Vertex{  { x, y, z} , { 1.0f,  0.0f, 0.0f}, {r, g, b}, {0.0, 0.0} });
+    }
 
-    // for(int i = 5349; i < 5350; i++){// voxel
-    for(int i = 0; i < voxelModel.num; i++){
+    // for(int i = 2633; i < 2634; i++){// voxel
+    for(int i = 0;i < voxelModel.num; i++){
         int x = voxelModel.voxel[i].locate.x;
         int y = voxelModel.voxel[i].locate.y;
         int z = voxelModel.voxel[i].locate.z;
@@ -307,7 +307,7 @@ void renew_world(){
 
 
     // for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
-    for(int k = 4; k < 5; k++){
+    for(int k = 3; k < 4; k++){
 
         for (int y = 0; y < height-1; y++)
         {

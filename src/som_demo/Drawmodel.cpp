@@ -142,6 +142,15 @@ void model_cls::depthShader_model(){
 
 
 void model_cls::Model_Floor_Create(Shader shader){
+    // model.Push();
+    // shader.setBool("tex",false);
+    // shader.setBool("shader",false);
+    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+    // model.Save(glm::scale(model.Top(), glm::vec3( 1.0f, 1.0f, 1.0f)));
+    // shader.setMat4("model", model.Top());
+    // glBindVertexArray(cube.VAO);
+    // glDrawArrays(GL_TRIANGLES, 0, world.cube.size());
+    // model.Pop();
     model.Push();
     model.Save(glm::scale(model.Top(), glm::vec3( 20000.0f, 1.0f, 20000.0f)));
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
@@ -156,7 +165,7 @@ void model_cls::Model_Floor_Create(Shader shader){
 void model_cls::Model_create_noshadow(Shader shader){
     if(showLatticePlane){
         model.Push();
-        model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         if(texshow)
             shader.setBool("tex", true);
@@ -170,7 +179,7 @@ void model_cls::Model_create_noshadow(Shader shader){
 
     if(showLatticeLine){
         model.Push();
-        model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         if(texshow)
             shader.setBool("tex", true);
@@ -186,7 +195,7 @@ void model_cls::Model_create_noshadow(Shader shader){
 void model_cls::Model_create(Shader shader){
     if(showVoxel){
         model.Push();
-        model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         shader.setBool("tex",false);
         shader.setBool("shader",false);
@@ -224,11 +233,11 @@ void createThread(){
 void model_cls::Model_mapping(){
     const LatData_t* latticeData = som.Lattice_get();
 
-    // for(int n = 5349; n < 5350; n++){// voxel
+    // for(int n =  2633; n <  2634; n++){// voxel
     for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
-        double v_x = rawmodel.voxelModel.voxel[n].locate.x;
-        double v_y = rawmodel.voxelModel.voxel[n].locate.y;
-        double v_z = rawmodel.voxelModel.voxel[n].locate.z;
+        double v_x = rawmodel.voxelModel.voxel[n].locate.x+0.5;
+        double v_y = rawmodel.voxelModel.voxel[n].locate.y+0.5;
+        double v_z = rawmodel.voxelModel.voxel[n].locate.z+0.5;
         double minDist = 100000;
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice
@@ -250,25 +259,27 @@ void model_cls::Model_mapping(){
                 }
             }
         }
-        // double l_x = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].x;
-        // double l_y = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].y;
-        // double l_z = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].z;
+        double l_x = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].x;
+        double l_y = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].y;
+        double l_z = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].z;
         // log_info("\nminDist : %f, minLatticeCoord : %i, %i, %i\nvoxel : %f, %f, %f, lattice : %f, %f, %f",
         // minDist, minLatticeCoord.x, minLatticeCoord.y, minLatticeCoord.z, v_x, v_y, v_z, l_x, l_y, l_z);
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
-        // log_info("trueminLatticeCoord : %f, %f", trueMinLatticeCoord.x, trueMinLatticeCoord.y);
+        // log_info("trueminLatticeCoord : %f, %f, lw : %d, lh : %d",
+        // trueMinLatticeCoord.x, trueMinLatticeCoord.y, latticeData->width-1, latticeData->height-1);
         // find the color of minDist lattice
         glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
-        // log_info("trueminLatticeCoordRate : %f, %f\n\n", trueMinLatticeCoordRate.x, trueMinLatticeCoordRate.y);
-        // glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)image_height), (int)(trueMinLatticeCoordRate.y*(double)image_width)};
+        // log_info("trueminLatticeCoordRate : %f, %f, tx : %d, th : %d",
+        // trueMinLatticeCoordRate.x, trueMinLatticeCoordRate.y, tex.imageTex.width-1, tex.imageTex.height-1);
         glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(tex.imageTex.width-1)), (int)(trueMinLatticeCoordRate.y*(double)(tex.imageTex.height-1))};
-        // log_info("%f * %i\nimageRate : %i, %i\nimage: {%i, %i, %i}\n\n",
-        // trueMinLatticeCoordRate.y, image_height, imageRate.x, imageRate.y, image[imageRate.y][imageRate.x].x, image[imageRate.y][imageRate.x].y, image[imageRate.y][imageRate.x].z);
+        // log_info("\nimageRate : %i, %i\nimage: {%i, %i, %i}\n\n",
+        // imageRate.x, imageRate.y, tex.imageTex.image[imageRate.y][imageRate.x].x, tex.imageTex.image[imageRate.y][imageRate.x].y, tex.imageTex.image[imageRate.y][imageRate.x].z);
         // glm::ivec3 imageColor = image[imageRate.x][imageRate.y];
         rawmodel.voxelModel.voxel[n].color = tex.imageTex.image[imageRate.y][imageRate.x];
 
     }
     renew_voxel_color(rawmodel.voxelModel);
+    cube.renewVBO(world.cube);
     voxel.renewVBO(world.voxel);
     log_info("end: model mapping\n");
 }
@@ -277,27 +288,23 @@ glm::fvec2 model_cls::findMinDistPrecisePos(const LatData_t* latticeData, double
     glm::fvec3 twoDcoord = minLatticeCoord;
 
     double minDist = mid;
-    int impair[4][2] = {{1,1} ,{-1,1}, {-1,-1}, {1,-1}};
-    // latticeData->threeDCoord[latticeData->minNum] = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
-    for(int i = 0; i < 4; i++){
+    int impair[9][2] = {{1, 0}, {1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1}, {0,-1}, {1,-1}, {1, 0}};
+    som.debugThreeCoord.push_back(latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x]);
+
+    for(int i = 0; i < 8; i++){
         // cout << i << endl;
         // find triangle(o,a1,a2)
-        if(minLatticeCoord.x+impair[i][0] < 0 || minLatticeCoord.x+impair[i][0] > latticeData->width-1 || minLatticeCoord.y+impair[i][1] < 0 || minLatticeCoord.y+impair[i][1] > latticeData->height-1){
-        //    log_info("point%d in the edge!",i);
-           continue;
-        }
-        glm::highp_dvec3 a1 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x+impair[i][0]];
-        glm::highp_dvec3 a2 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+impair[i][1]][minLatticeCoord.x];
+        if(minLatticeCoord.x+impair[i][0] < 0 || minLatticeCoord.x+impair[i][0] > latticeData->width-1 ) continue;
+        if( minLatticeCoord.y+impair[i][1] < 0 || minLatticeCoord.y+impair[i][1] > latticeData->height-1) continue;
+        if(minLatticeCoord.x+impair[i+1][0] < 0 || minLatticeCoord.x+impair[i+1][0] > latticeData->width-1 ) continue;
+        if( minLatticeCoord.y+impair[i+1][1] < 0 || minLatticeCoord.y+impair[i+1][1] > latticeData->height-1) continue;
+        glm::highp_dvec3 a1 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+impair[i][1]][minLatticeCoord.x+impair[i][0]];
+        glm::highp_dvec3 a2 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y+impair[i+1][1]][minLatticeCoord.x+impair[i+1][0]];
         glm::highp_dvec3 o = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
         glm::highp_dvec3 p = voxelPos;
 
         // Project the point p onto the plane where the triangle is located
-        glm::highp_dvec3 vector_n;
-        if(i == 0 || i == 2){
-            vector_n = glm::normalize(crossPruduct(a1-o, a2-o));
-        }else{
-            vector_n = glm::normalize(crossPruduct(a2-o, a1-o));
-        }
+        glm::highp_dvec3 vector_n = glm::normalize(crossPruduct(a1-o, a2-o));
         glm::highp_dvec3 vector_p = p-o;
 
         glm::highp_dvec3 vector_d;
@@ -306,11 +313,19 @@ glm::fvec2 model_cls::findMinDistPrecisePos(const LatData_t* latticeData, double
         vector_d.z = (-1*innerProduct(vector_p, vector_n))*vector_n.z;
 
         glm::highp_dvec3 projp = p + vector_d;
-
-        // log_info("point%d \nvector_n: %f, %f, %f, vector_d: %f, %f, %f, dot = %f\n",
-        // i, vector_n.x, vector_n.y, vector_n.z, vector_d.x, vector_d.y, vector_d.z, innerProduct(vector_p, vector_n));
-
+         // ensure the point is in the triangle
+        glm::highp_dvec3 cross1 = glm::normalize(crossPruduct(o-projp, a1-projp));
+        glm::highp_dvec3 cross2 = glm::normalize(crossPruduct(a1-projp, a2-projp));
+        glm::highp_dvec3 cross3 = glm::normalize(crossPruduct(a2-projp, o-projp));
+        // log_info("%d\ncross1 : %f, %f, %f\ncross2 : %f, %f, %f\ncross3 : %f, %f, %f",
+        // i, cross1.x, cross1.y, cross1.z, cross2.x, cross2.y, cross2.z, cross3.x, cross3.y, cross3.z);
+        if(cross1.x*cross2.x < 0.0 || cross1.x*cross3.x < 0.0 || cross2.x*cross3.x < 0.0){
+            // log_info("point%d is outof triangle\n",i);
+            continue;
+        }
+        // log_info("\nprojp: %f, %f, %f", projp.x, projp.y, projp.z);
         double tmpDist = vector_d.x*vector_d.x + vector_d.y*vector_d.y + vector_d.z*vector_d.z;
+        // log_info("nowDist : %f, minDist : %f", tmpDist, minDist);
         if(tmpDist >= minDist) {
             // log_info("point%d is too far\n",i);
             continue;
@@ -320,17 +335,19 @@ glm::fvec2 model_cls::findMinDistPrecisePos(const LatData_t* latticeData, double
         glm::highp_dvec3 ratio = pointTotriangle(o, a1, a2, projp, vector_n);
 
         glm::fvec2 tmpCoord;
-        tmpCoord.x = ratio[0]*minLatticeCoord.x + ratio[1]*(minLatticeCoord.x+impair[i][0]) + ratio[2]*minLatticeCoord.x;
-        tmpCoord.y = ratio[0]*minLatticeCoord.y + ratio[1]*minLatticeCoord.y + ratio[2]*(minLatticeCoord.y+impair[i][1]);
+        tmpCoord.x = ratio[0]*minLatticeCoord.x + ratio[1]*(minLatticeCoord.x+impair[i][0]) + ratio[2]*(minLatticeCoord.x+impair[i+1][0]);
+        tmpCoord.y = ratio[0]*minLatticeCoord.y + ratio[1]*(minLatticeCoord.y+impair[i][1]) + ratio[2]*(minLatticeCoord.y+impair[i+1][1]);
 
         if(tmpCoord.x >= 0.0 && tmpCoord.x <= latticeData->width-1 && tmpCoord.y >= 0.0 && tmpCoord.y <= latticeData->height-1 ){
             twoDcoord.x = tmpCoord.x;
             twoDcoord.y = tmpCoord.y;
+            som.debugThreeCoord.pop_back();
+            som.debugThreeCoord.push_back(projp);
         }
-        // log_info("\nratio : %f, %f, %f\nminLatticeCoord : %d, %d\ntwoDcoord : %f, %f\n",
-        // ratio.x, ratio.y, ratio.z, minLatticeCoord.x, minLatticeCoord.y, twoDcoord.x, twoDcoord.y);
+        // glm::fvec3 t = ratio[0] * o + ratio[1] * a1 + ratio[2] * a2;
+        // log_info("\nratio : %f, %f, %f\nminLatticeCoord : %d, %d\ntwoDcoord : %f, %f\nratioprojp : %f, %f, %f\n",
+        // ratio.x, ratio.y, ratio.z, minLatticeCoord.x, minLatticeCoord.y, twoDcoord.x, twoDcoord.y, t.x, t.y, t.z);
     }
-
 
     return twoDcoord;
 
