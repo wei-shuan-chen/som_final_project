@@ -39,6 +39,7 @@ void model_cls::Shader_Create()
     voxel = Item(world.voxel);
     lattice_line = Item(world.lattice_line);
     lattice_plane = Item(world.lattice_plane);
+    axis = Item(world.axis);
 	Shader_init(0, true);
 }
 void model_cls::Modify_position(int x, int y, int z){
@@ -142,6 +143,17 @@ void model_cls::depthShader_model(){
 
 
 void model_cls::Model_Floor_Create(Shader shader){
+    // axis
+    model.Push();
+    shader.setBool("tex",false);
+    shader.setBool("shader",false);
+    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+    model.Save(glm::scale(model.Top(), glm::vec3( 20.0f, 20.0f, 20.0f)));
+    shader.setMat4("model", model.Top());
+    glBindVertexArray(axis.VAO);
+    glDrawArrays(GL_LINES, 0, world.axis.size());
+    model.Pop();
+    // floor
     model.Push();
     model.Save(glm::scale(model.Top(), glm::vec3( 20000.0f, 1.0f, 20000.0f)));
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
@@ -156,7 +168,7 @@ void model_cls::Model_Floor_Create(Shader shader){
 void model_cls::Model_create_noshadow(Shader shader){
     if(showLatticePlane){
         model.Push();
-        model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         if(texshow)
             shader.setBool("tex", true);
@@ -170,7 +182,7 @@ void model_cls::Model_create_noshadow(Shader shader){
 
     if(showLatticeLine){
         model.Push();
-        model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         if(texshow)
             shader.setBool("tex", true);
@@ -186,7 +198,7 @@ void model_cls::Model_create_noshadow(Shader shader){
 void model_cls::Model_create(Shader shader){
     if(showVoxel){
         model.Push();
-        model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         shader.setBool("tex",false);
         shader.setBool("shader",false);
@@ -223,7 +235,6 @@ void createThread(){
 
 void model_cls::Model_mapping(){
     const LatData_t* latticeData = som.Lattice_get();
-    cout << rawmodel.voxelModel.num << endl;
     for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
         double v_x = rawmodel.voxelModel.voxel[n].locate.x+0.5;
         double v_y = rawmodel.voxelModel.voxel[n].locate.y+0.5;

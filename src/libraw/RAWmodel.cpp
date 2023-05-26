@@ -202,13 +202,13 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 void RAWmodel_cls::SetVoxelData(){
 
     int num = 0;
-    for(int i = 0; i < infdata.resolution[2]; i++){
-        for(int j = 0; j < infdata.resolution[1]; j++){
-            for(int k = 0; k < infdata.resolution[0]; k++){
-                if(rawData[i][j][k] == 255){
-                    voxelModel.voxel.push_back(USVoxData_t{{j,i,k},{}});
-                    setMaxbounder(j, i, k);
-                    findSurfaceVoxel(i,j,k, num);
+    for(int y = 0; y < infdata.resolution[2]; y++){
+        for(int x = 0; x < infdata.resolution[1]; x++){
+            for(int z = 0; z < infdata.resolution[0]; z++){
+                if(rawData[y][x][z] == 255){
+                    voxelModel.voxel.push_back(USVoxData_t{{x,y,z},{}});
+                    setMaxbounder(x, y, z);
+                    findSurfaceVoxel(y,x,z, num);
                     num++;
                 }
             }
@@ -221,35 +221,35 @@ void RAWmodel_cls::setMaxbounder(int i, int j, int k){
     if(voxelModel.size[1] < j) voxelModel.size[1] = j;
     if(voxelModel.size[2] < k) voxelModel.size[2] = k;
 }
-void RAWmodel_cls::findSurfaceVoxel(int z, int y, int x, int num){
+void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num){
 
-    if(x+1 < infdata.resolution[0]){
-        if(rawData[z][y][x+1] != 0){
+    if(z+1 < infdata.resolution[0]){
+        if(rawData[y][x][z+1] != 0){
             voxelModel.voxel[num].faceAir[0] = true;
         }
     }
-    if(x-1 >= 0){
-        if(rawData[z][y][x-1] != 0){
+    if(z-1 >= 0){
+        if(rawData[y][x][z-1] != 0){
             voxelModel.voxel[num].faceAir[1] = true;
         }
     }
-    if(y+1 < infdata.resolution[1]){
-        if(rawData[z][y+1][x] != 0){
+    if(x+1 < infdata.resolution[1]){
+        if(rawData[y][x+1][z] != 0){
             voxelModel.voxel[num].faceAir[2] = true;
         }
     }
-    if(y-1 >= 0){
-        if(rawData[z][y-1][x] != 0){
+    if(x-1 >= 0){
+        if(rawData[y][x-1][z] != 0){
             voxelModel.voxel[num].faceAir[3] = true;
         }
     }
-    if(z+1 < infdata.resolution[2]){
-        if(rawData[z+1][y][x] != 0){
+    if(y+1 < infdata.resolution[2]){
+        if(rawData[y+1][x][z] != 0){
             voxelModel.voxel[num].faceAir[4] = true;
         }
     }
-    if(z-1 >= 0){
-        if(rawData[z-1][y][x] != 0){
+    if(y-1 >= 0){
+        if(rawData[y-1][x][z] != 0){
             voxelModel.voxel[num].faceAir[5] = true;
         }
     }

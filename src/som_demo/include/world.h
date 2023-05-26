@@ -21,6 +21,7 @@ struct World {
     std::vector<Vertex> voxel; // voxel model
     std::vector<Vertex> lattice_line; // lattice
     std::vector<Vertex> lattice_plane; // plane of texture
+    std::vector<Vertex> axis;
 };
 
 void create_world(SurfaceVoxModel_t  voxelModel);

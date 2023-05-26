@@ -72,6 +72,7 @@ private:
     Shader depthShader;
 
     Item cube;
+    Item axis;
     Item lightcube;
     Item ground;
     Item voxel;
