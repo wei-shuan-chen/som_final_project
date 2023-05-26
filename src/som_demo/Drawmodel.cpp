@@ -201,7 +201,7 @@ void model_cls::Model_create(Shader shader){
         // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
         shader.setMat4("model", model.Top());
         shader.setBool("tex",false);
-        shader.setBool("shader",false);
+        shader.setBool("shader",true);
         glBindVertexArray(voxel.VAO);
         glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
         model.Pop();
@@ -236,9 +236,9 @@ void createThread(){
 void model_cls::Model_mapping(){
     const LatData_t* latticeData = som.Lattice_get();
     for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
-        double v_x = rawmodel.voxelModel.voxel[n].locate.x+0.5;
-        double v_y = rawmodel.voxelModel.voxel[n].locate.y+0.5;
-        double v_z = rawmodel.voxelModel.voxel[n].locate.z+0.5;
+        double v_x = rawmodel.voxelModel.voxel[n].locate.x;
+        double v_y = rawmodel.voxelModel.voxel[n].locate.y;
+        double v_z = rawmodel.voxelModel.voxel[n].locate.z;
         double minDist = 100000;
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice

@@ -17,11 +17,6 @@
 #include "camera.h"
 #include "Gui.h"
 
-typedef struct matrix_t{
-
-}matrix_t;
-
-
 class model_cls{
 public:
     model_cls();
