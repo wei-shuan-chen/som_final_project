@@ -261,6 +261,8 @@ void model_cls::Model_mapping(){
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // find the color of minDist lattice
         glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
+        rawmodel.voxelModel.voxel[n].texcoord = trueMinLatticeCoordRate;
+
         glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(tex.imageTex.width-1)), (int)(trueMinLatticeCoordRate.y*(double)(tex.imageTex.height-1))};
 
         rawmodel.voxelModel.voxel[n].color = tex.imageTex.image[imageRate.y][imageRate.x];
