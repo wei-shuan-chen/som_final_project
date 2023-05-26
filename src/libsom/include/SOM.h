@@ -30,7 +30,7 @@ typedef struct LatData_t {
     double radius = width/2.0;
     const double initRadius = width/2.0;
 
-    int type = 3;// 0 plane, 1 cylinder, 2 donut, 3 ball
+    int type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
     int typeNum[4] = {1,1,1,6};
 }LatData_t;
 
