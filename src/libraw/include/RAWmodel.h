@@ -15,8 +15,8 @@ typedef struct InfData_t {
 	char sampleType[15];
 	float voxelSize[3];
 	char endian[10];
-	float min[3];
-	float max[3];
+	// float min[3];
+	// float max[3];
     int type; // 0 unsigned char, 1 float, 2 double
 }InfData_t;
 

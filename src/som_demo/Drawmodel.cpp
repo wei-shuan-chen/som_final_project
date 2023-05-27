@@ -22,7 +22,7 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/vase01.inf", "raw/vase01.raw");
+    rawmodel.LoadFile("raw/ball67_dist.inf", "raw/ball67_dist.raw");
 
     som.SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
     create_world(rawmodel.voxelModel);
