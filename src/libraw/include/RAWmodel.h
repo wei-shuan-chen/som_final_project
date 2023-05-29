@@ -43,7 +43,7 @@ private:
     bool ReadRawFile(FILE *file);
 
     void SetVoxelData();
-    void findSurfaceVoxel(int z, int y, int x, int num);
+    void findSurfaceVoxel(int z, int y, int x, int num, int draw);
 
     void checkComputerEndian();
     void setMaxbounder(int i, int j, int k);

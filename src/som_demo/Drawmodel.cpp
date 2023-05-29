@@ -22,7 +22,8 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/ball67_dist.inf", "raw/ball67_dist.raw");
+    // rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
+    rawmodel.LoadFile("raw/dist/ball67_dist.inf", "raw/dist/ball67_dist.raw");
 
     som.SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
     create_world(rawmodel.voxelModel);
@@ -235,6 +236,7 @@ void createThread(){
 
 void model_cls::Model_mapping(){
     const LatData_t* latticeData = som.Lattice_get();
+
     for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
         double v_x = rawmodel.voxelModel.voxel[n].locate.x;
         double v_y = rawmodel.voxelModel.voxel[n].locate.y;

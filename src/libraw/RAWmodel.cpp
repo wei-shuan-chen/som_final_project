@@ -158,9 +158,6 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
                     rawData[i][j][k] = uc_voxelData[num];
-                    if(rawData[i][j][k] == 0){
-                        // voxelModel.num++;
-                    }
                 }
             }
         }
@@ -172,10 +169,12 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
                     rawData[i][j][k] = f_voxelData[num];
-                    if(rawData[i][j][k] == 0){
-                        // voxelModel.num++;
-                    }
+                    // if(rawData[i][j][k] < 0.0) {
+                    //     cout << i <<", " << j << ", " << k<< " : " <<f_voxelData[num] <<endl;
+                    // }
+                    // cout << rawData[i][j][k] << ", ";
                 }
+                // cout << "\n";
             }
         }
         return true;
@@ -186,9 +185,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
                     rawData[i][j][k] = d_voxelData[num];
-                    if(rawData[i][j][k] == 0){
-                        // voxelModel.num++;
-                    }
+
                 }
             }
         }
@@ -200,22 +197,39 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 
 void RAWmodel_cls::SetVoxelData(){
     bool inner = false;
-    int num = 0;
-    for(int y = 0; y < infdata.resolution[2]; y++){
-        for(int x = 0; x < infdata.resolution[1]; x++){
-            for(int z = 0, inner = false; z < infdata.resolution[0]; z++){
+    for(int y = 1; y < infdata.resolution[2]-1; y++){
+        for(int x = 1; x < infdata.resolution[1]-1; x++){
+            bool allinair = true;
+            for(int z = 1, inner = false; z < infdata.resolution[0]-1; z++){
                 if(rawData[y][x][z] == 0){
                     inner = true;
+                    allinair = false;
+                }
+                if(inner) rawData[y][x][z] *= -1;
+            }
+            for(int z = infdata.resolution[0]-2, inner = false; z > 0; z--){
+                if(allinair){
+                    rawData[y][x][z] *= -1;
+                }else{
+                    if(rawData[y][x][z] == 0) inner = true;
+                    if(inner) rawData[y][x][z] *= -1;
+                }
+            }
+
+            for(int z = 1; z < infdata.resolution[0]-1; z++){
+                // cout << "( "<<rawData[y][x][z] << " : ";
+                if(rawData[y][x][z] == 0){
                     voxelModel.voxel.push_back(USVoxData_t{{x,y,z},{}});
                     setMaxbounder(x, y, z);
-                    // findSurfaceVoxel(y,x,z, num);
+                    findSurfaceVoxel(y,x,z, voxelModel.num, 0);
                     voxelModel.num++;
                 }
-                if(!inner) rawData[y][x][z] = -1;
-                // if(rawData[y][x][z] == 1){
-                    
-                // }
+                if(rawData[y][x][z] == 3){
+
+                }
+                // cout << rawData[y][x][z] << "), ";
             }
+            // cout << "\n\n";
         }
     }
     // std::cout << bounderMaxLocate[0] << ", " << bounderMaxLocate[1] << ", " << bounderMaxLocate[2] << std::endl;
@@ -225,35 +239,40 @@ void RAWmodel_cls::setMaxbounder(int i, int j, int k){
     if(voxelModel.size[1] < j) voxelModel.size[1] = j;
     if(voxelModel.size[2] < k) voxelModel.size[2] = k;
 }
-void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num){
+void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int draw){
+
+    // for(int air = 0; air < 6; air++){
+    //     voxelModel.voxel[num].faceAir[air] = true;
+    //     // cout << "voxelnum : " << num << ", faceair : "<<air << ", "<< voxelModel.voxel[num].faceAir[air]<<endl;
+    // }
 
     if(z+1 < infdata.resolution[0]){
-        if(rawData[y][x][z+1] != 0){
+        if(rawData[y][x][z+1] != draw-1){
             voxelModel.voxel[num].faceAir[0] = true;
         }
     }
     if(z-1 >= 0){
-        if(rawData[y][x][z-1] != 0){
+        if(rawData[y][x][z-1] != draw-1){
             voxelModel.voxel[num].faceAir[1] = true;
         }
     }
     if(x+1 < infdata.resolution[1]){
-        if(rawData[y][x+1][z] != 0){
+        if(rawData[y][x+1][z] != draw-1){
             voxelModel.voxel[num].faceAir[2] = true;
         }
     }
     if(x-1 >= 0){
-        if(rawData[y][x-1][z] != 0){
+        if(rawData[y][x-1][z] != draw-1){
             voxelModel.voxel[num].faceAir[3] = true;
         }
     }
     if(y+1 < infdata.resolution[2]){
-        if(rawData[y+1][x][z] != 0){
+        if(rawData[y+1][x][z] != draw-1){
             voxelModel.voxel[num].faceAir[4] = true;
         }
     }
     if(y-1 >= 0){
-        if(rawData[y-1][x][z] != 0){
+        if(rawData[y-1][x][z] != draw-1){
             voxelModel.voxel[num].faceAir[5] = true;
         }
     }
