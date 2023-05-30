@@ -137,6 +137,12 @@ void processInput(GLFWwindow *window)
 void keyPressFun(GLFWwindow* window, int key, int scancode, int action, int mods){
 
 	// show
+	if(key == GLFW_KEY_0 && action == GLFW_PRESS)
+		drawModel.showOutSomIn[0] = !drawModel.showOutSomIn[0];
+	if(key == GLFW_KEY_1 && action == GLFW_PRESS)
+		drawModel.showOutSomIn[1] = !drawModel.showOutSomIn[1];
+	if(key == GLFW_KEY_2 && action == GLFW_PRESS)
+		drawModel.showOutSomIn[2] = !drawModel.showOutSomIn[2];
 	if(key == GLFW_KEY_Z && action == GLFW_PRESS)
 		drawModel.showVoxel = !drawModel.showVoxel;
 	if(key == GLFW_KEY_X && action == GLFW_PRESS)

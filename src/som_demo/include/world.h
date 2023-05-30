@@ -18,6 +18,8 @@ struct World {
     std::vector<Vertex> square;// floor
     std::vector<Vertex> cube; // test
     std::vector<Vertex> lightcube; // light
+    std::vector<Vertex> outerVoxel;
+    std::vector<Vertex> innerVoxel;
     std::vector<Vertex> voxel; // voxel model
     std::vector<Vertex> lattice_line; // lattice
     std::vector<Vertex> lattice_plane; // plane of texture

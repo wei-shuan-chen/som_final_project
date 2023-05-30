@@ -30,7 +30,7 @@ public:
 
     // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
-    std::vector<glm::ivec3> Voxel_Position();
+    std::vector<glm::ivec3> Voxel_Position(int layer);
 
 private:
     int*** rawData; // 0 air, 1 bounder, 2 inside
@@ -41,16 +41,19 @@ private:
 
     bool LoadRAWfile(const char*rawFileName);
     bool ReadRawFile(FILE *file);
+    void GiveSpaceLocate();
 
     void SetVoxelData();
-    void findSurfaceVoxel(int z, int y, int x, int num, int draw);
+    void findSurfaceVoxel(int z, int y, int x, int num, int layer, int voxelType);
 
     void checkComputerEndian();
-    void setMaxbounder(int i, int j, int k);
+    void setMaxbounder(int i, int j, int k, int layer);
 
     BYTE* uc_voxelData;
     float* f_voxelData;
     double* d_voxelData;
+
+    int layernum = 0;
 
 };
 extern RAWmodel_cls rawmodel;

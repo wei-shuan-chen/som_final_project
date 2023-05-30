@@ -30,7 +30,7 @@ typedef struct LatData_t {
     double radius = width/2.0;
     const double initRadius = width/2.0;
 
-    int type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
+    int type = 3;// 0 plane, 1 cylinder, 2 donut, 3 ball
     int typeNum[4] = {1,1,1,6};
 }LatData_t;
 
@@ -46,7 +46,7 @@ public:
     ~som_cls();
 
     LatData_t* Lattice_get();
-    void SOM_Create(std::vector<glm::ivec3>  voxelPos, int voxelNum, glm::ivec3 max);
+    void SOM_Create(std::vector<glm::ivec3>  voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min);
     void SOM_IterateOnce();
     void SOM_Again();
 
@@ -60,7 +60,7 @@ private:
     int ballneighber[6][4] = {{4,3,2,1},{4,0,2,5},{0,3,5,1},{4,0,2,5,},{0,3,5,1},{4,3,2,1}};
 
     // som create
-    glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max);
+    glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min);
     glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);
     // som iterate
     double computeLearningRate();
@@ -72,7 +72,6 @@ private:
         int computDelta(int edge, int tmp);
         double computeScale(double sigma, double dist);
         void updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 update, double scale, double learningRate);
-
 
     glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu);
     glm::ivec3 computeHalfballDist(glm::ivec3 p0);

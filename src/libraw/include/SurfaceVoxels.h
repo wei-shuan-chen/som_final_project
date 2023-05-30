@@ -5,17 +5,25 @@
 
 typedef struct UnitSurfaceVoxData_t {
 
-    glm::ivec3 locate = {0,0,0}; // only bounder voxel's locate(x,y,z)
-    bool faceAir[6] = {true, true, true, true, true, true};
+    glm::ivec3 locate = {0, 0, 0}; // only bounder voxel's locate(x,y,z)
+    bool faceAir[6] = {false, false, false, false, false, false};
     glm::fvec3 color = {0.8, 0.0, 1.0};
     glm::fvec2 texcoord = {0.0, 0.0};
 
 }USVoxData_t;
 
 typedef struct SurfaceVoxModel_t {
-    std::vector<USVoxData_t> voxel;
-    int num = 0;
-    glm::ivec3 size = {0, 0, 0};
+
+    std::vector<USVoxData_t> outerVoxel;// layer 0
+    std::vector<USVoxData_t> innerVoxel;// layer somInitLayer+somChioceLayerNum
+
+    USVoxData_t** somVoxel;
+    int *num;
+    glm::ivec3 *maxsize;
+    glm::ivec3 *minsize;
+
+    int somChioceLayerNum = 1;
+    int somInitLayer = 9;
 
 }svoxModel_t;
 

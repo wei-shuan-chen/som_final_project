@@ -15,13 +15,13 @@ som_cls::~som_cls(){
 }
 
 
-void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 size)
+void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min)
 {
     srand(time(NULL));
     // 1. Create input dataset
     inputData.input = createInputDataset(voxelPos, voxelNum);
     // 2. Create lattice
-    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, size);
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
     inputData.num = voxelNum;
 }
 
@@ -88,9 +88,12 @@ glm::fvec3 * som_cls::createInputDataset(std::vector<glm::ivec3> voxelPos, int v
 
     return dataset;
 }
-glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size)
+glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min)
 {
-
+    cout << "max : " << max.x << ", " << max.y << ", " << max.z << endl;
+    cout << "min : " << min.x << ", " << min.y << ", " << min.z << endl;
+    glm::ivec3 size = max-min;
+    cout << "size : " << size.x << ", " << size.y << ", " << size.z << endl;
     glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * 6);
     for (int j = 0; j < 6; j++)
     {
@@ -109,14 +112,16 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
                 double ratio_w = (double)w / (double)(width - 1);
                 double ratio_h = (double)h / (double)(height - 1);
 
-                i0 = (double)size[0] * ratio_w;
-                j0 = size[1];
-                k0 = (double)size[2] * ratio_h;
+                i0 = (double)size[0] * ratio_w + min[0];
+                j0 = size[1] + min[1];
+                k0 = (double)size[2] * ratio_h + min[2];
 
                 lattice[0][h][w] = {i0, j0, k0};
             }
         }
     }else if(latticeData.type == CYLINDER){
+
+
         for (int h = 0; h < height; h++)
         {
             for (int w = 0; w < width; w++)
@@ -126,9 +131,9 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
                 double ratio_w = (double)w / (double)(width - 1);
                 double ratio_h = (double)h / (double)(height - 1);
 
-                i0 = ((double)size[0] / 2.0) * cos(2 * PI * ratio_w) + (size[0] / 2);
-                j0 = ratio_h * (double)size[1];
-                k0 = ((double)size[2] / 2.0) * sin(2 * PI * ratio_w) + (size[2] / 2);
+                i0 = ((double)size[0] / 2.0) * cos(2 * PI * ratio_w) + (size[0] / 2) + min[0];
+                j0 = ratio_h * (double)size[1] + min[1];
+                k0 = ((double)size[2] / 2.0) * sin(2 * PI * ratio_w) + (size[2] / 2) + min[2];
                 // std::cout << i0 << ", " << size[0]<<std::endl;
                 lattice[0][h][w] = {i0, j0, k0};
             }
@@ -143,9 +148,9 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
                 double fi =  2 * PI * (double)w / (double)(width - 1);
                 double theta =  2 * PI * (double)h / (double)(height - 1);
 
-                double i0 = r * cos(theta) + ((double)size[0] / 2.0);
-                double j0 =  cos(fi)* ( R + r*sin(theta)) + ((double)size[1] / 2.0);
-                double k0 = sin(fi)* ( R + r*sin(theta)) + ((double)size[2] / 2.0);
+                double i0 = r * cos(theta) + ((double)size[0] / 2.0) + min[0];
+                double j0 =  cos(fi)* ( R + r*sin(theta)) + ((double)size[1] / 2.0) + min[1];
+                double k0 = sin(fi)* ( R + r*sin(theta)) + ((double)size[2] / 2.0) + min[2];
                 lattice[0][h][w] = {i0, j0, k0};
             }
         }
@@ -155,7 +160,6 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
         // 2 0 4   left  top  right
         //   3          front
         // We need curly brackets because there are variable declarations
-
         double i0, j0, k0;
         for (int h = 0; h < height; h++)
         {
@@ -164,39 +168,39 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 size
                 double ratio_w = (double)w / (double)(width - 1);
                 double ratio_h = (double)h / (double)(height - 1);
                 // 0 x-z plane up
-                i0 = size[0] * ratio_w;
-                j0 = size[1];
-                k0 = size[2] * ratio_h;
+                i0 = size[0] * ratio_w + min[0];
+                j0 = size[1] + min[1];
+                k0 = size[2] * ratio_h + min[2];
                 lattice[0][h][w] = {i0, j0, k0};
 
                 // 1 x-y plane back
-                i0 = size[0] * ratio_w;
-                j0 = size[1] * ratio_h;
-                k0 = 0;
+                i0 = size[0] * ratio_w + min[0];
+                j0 = size[1] * ratio_h + min[1];
+                k0 = 0 + min[2];
                 lattice[1][h][w] = {i0, j0, k0};
 
                 // 2 y-z plane left
-                i0 = 0;
-                j0 = size[1] * ratio_w;
-                k0 = size[2] * ratio_h;
+                i0 = 0 + min[0];
+                j0 = size[1] * ratio_w + min[1];
+                k0 = size[2] * ratio_h + min[2];
                 lattice[2][h][w] = {i0, j0, k0};
 
                 // 3 x-y plane front
-                i0 = size[0] * ratio_w;
-                j0 = size[1] * ratio_h;
-                k0 = size[2];
+                i0 = size[0] * ratio_w + min[0];
+                j0 = size[1] * ratio_h + min[1];
+                k0 = size[2] + min[2];
                 lattice[3][h][w] = {i0, j0, k0};
 
                 // 4 y-z plane right
-                i0 = size[0];
-                j0 = size[1] * ratio_w;
-                k0 = size[2] * ratio_h;
+                i0 = size[0] + min[0];
+                j0 = size[1] * ratio_w + min[1];
+                k0 = size[2] * ratio_h + min[2];
                 lattice[4][h][w] = {i0, j0, k0};
 
                 // 5 x-z plane down
-                i0 = size[0] * ratio_w;
-                j0 = 0;
-                k0 = size[2] * ratio_h;
+                i0 = size[0] * ratio_w + min[0];
+                j0 = 0 + min[1];
+                k0 = size[2] * ratio_h + min[2];
                 lattice[5][h][w] = {i0, j0, k0};
 
             }

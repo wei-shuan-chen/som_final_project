@@ -29,12 +29,12 @@ void RAWmodel_cls::LoadFile(const char* infFileName,const char* rawFileName){
     LoadRAWfile(rawFileName);
 
 }
-std::vector<glm::ivec3> RAWmodel_cls::Voxel_Position(){
+std::vector<glm::ivec3> RAWmodel_cls::Voxel_Position(int layer){
 
     std::vector<glm::ivec3> voxelPosition;
 
-    for(int i = 0; i < voxelModel.voxel.size(); i++){
-        voxelPosition.push_back(voxelModel.voxel[i].locate);
+    for(int i = 0; i < voxelModel.num[layer]; i++){
+        voxelPosition.push_back(voxelModel.somVoxel[layer][i].locate);
     }
 
     return voxelPosition;
@@ -149,8 +149,8 @@ bool RAWmodel_cls::LoadRAWfile(const char* rawFileName){
 }
 
 bool RAWmodel_cls::ReadRawFile(FILE *file){
+
     int size = infdata.resolution[0] * infdata.resolution[1] * infdata.resolution[2];
-    voxelModel.num = 0;
     if(infdata.type == 0){
         fread(uc_voxelData, sizeof(BYTE),size, file);
         for(int i = 1; i < infdata.resolution[2]-1; i++){
@@ -169,12 +169,10 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
                     rawData[i][j][k] = f_voxelData[num];
-                    // if(rawData[i][j][k] < 0.0) {
-                    //     cout << i <<", " << j << ", " << k<< " : " <<f_voxelData[num] <<endl;
-                    // }
-                    // cout << rawData[i][j][k] << ", ";
+                    if(rawData[i][j][k] == voxelModel.somInitLayer){
+                        layernum++;
+                    }
                 }
-                // cout << "\n";
             }
         }
         return true;
@@ -185,7 +183,6 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
                     rawData[i][j][k] = d_voxelData[num];
-
                 }
             }
         }
@@ -197,6 +194,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 
 void RAWmodel_cls::SetVoxelData(){
     bool inner = false;
+    GiveSpaceLocate();
     for(int y = 1; y < infdata.resolution[2]-1; y++){
         for(int x = 1; x < infdata.resolution[1]-1; x++){
             bool allinair = true;
@@ -217,63 +215,139 @@ void RAWmodel_cls::SetVoxelData(){
             }
 
             for(int z = 1; z < infdata.resolution[0]-1; z++){
-                // cout << "( "<<rawData[y][x][z] << " : ";
+                // outer voxel type = 0
                 if(rawData[y][x][z] == 0){
-                    voxelModel.voxel.push_back(USVoxData_t{{x,y,z},{}});
-                    setMaxbounder(x, y, z);
-                    findSurfaceVoxel(y,x,z, voxelModel.num, 0);
-                    voxelModel.num++;
+                    voxelModel.outerVoxel.push_back(USVoxData_t{{x,y,z},{}});
+                    findSurfaceVoxel(y, x, z, voxelModel.outerVoxel.size()-1, 0, 0);
                 }
-                if(rawData[y][x][z] == 3){
+                // inner voxel type = 1
+                if(rawData[y][x][z] == voxelModel.somInitLayer+voxelModel.somChioceLayerNum){
+                    voxelModel.innerVoxel.push_back(USVoxData_t{{x,y,z},{}});
+                    findSurfaceVoxel(y, x, z, voxelModel.innerVoxel.size()-1, 0, 1);
+                }
+                // som voxel type = 2
+                for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
 
+                    if(rawData[y][x][z] == voxelModel.somInitLayer+layer){
+                        voxelModel.somVoxel[layer][voxelModel.num[layer]].locate = {x, y, z};
+                        setMaxbounder(x, y, z, layer);
+                        findSurfaceVoxel(y,x,z, voxelModel.num[layer], layer, 2);
+                        voxelModel.num[layer]++;
+                    }
                 }
-                // cout << rawData[y][x][z] << "), ";
             }
-            // cout << "\n\n";
         }
     }
-    // std::cout << bounderMaxLocate[0] << ", " << bounderMaxLocate[1] << ", " << bounderMaxLocate[2] << std::endl;
 }
-void RAWmodel_cls::setMaxbounder(int i, int j, int k){
-    if(voxelModel.size[0] < i) voxelModel.size[0] = i;
-    if(voxelModel.size[1] < j) voxelModel.size[1] = j;
-    if(voxelModel.size[2] < k) voxelModel.size[2] = k;
-}
-void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int draw){
+void RAWmodel_cls::GiveSpaceLocate(){
+    voxelModel.num = (int*)malloc(voxelModel.somChioceLayerNum*sizeof(int));
+    voxelModel.maxsize = (glm::ivec3*)malloc(voxelModel.somChioceLayerNum*sizeof(glm::ivec3));
+    voxelModel.minsize = (glm::ivec3*)malloc(voxelModel.somChioceLayerNum*sizeof(glm::ivec3));
 
-    // for(int air = 0; air < 6; air++){
-    //     voxelModel.voxel[num].faceAir[air] = true;
-    //     // cout << "voxelnum : " << num << ", faceair : "<<air << ", "<< voxelModel.voxel[num].faceAir[air]<<endl;
-    // }
+    voxelModel.somVoxel = (USVoxData_t**)malloc(voxelModel.somChioceLayerNum*sizeof(USVoxData_t*));
+
+    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+        voxelModel.somVoxel[layer] = (USVoxData_t*)malloc(layernum*sizeof(USVoxData_t));
+        voxelModel.num[layer] = 0;
+        voxelModel.maxsize[layer] = {0, 0, 0};
+        voxelModel.minsize[layer] = {10000, 10000, 10000};
+        for(int j = 0; j < layernum; j++){
+            voxelModel.somVoxel[layer][j].color = {0.8, 1.0, 0.0};
+            voxelModel.somVoxel[layer][j].locate = {0.0, 0.0, 0.0};
+            voxelModel.somVoxel[layer][j].texcoord = {0.0, 0.0};
+        }
+
+    }
+
+}
+void RAWmodel_cls::setMaxbounder(int i, int j, int k, int layer){
+    if(voxelModel.maxsize[layer][0] < i) voxelModel.maxsize[layer][0] = i;
+    if(voxelModel.minsize[layer][0] > i) voxelModel.minsize[layer][0] = i;
+    if(voxelModel.maxsize[layer][1] < j) voxelModel.maxsize[layer][1] = j;
+    if(voxelModel.minsize[layer][1] > j) voxelModel.minsize[layer][1] = j;
+    if(voxelModel.maxsize[layer][2] < k) voxelModel.maxsize[layer][2] = k;
+    if(voxelModel.minsize[layer][2] > k) voxelModel.minsize[layer][2] = k;
+}
+void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int voxelType){
 
     if(z+1 < infdata.resolution[0]){
-        if(rawData[y][x][z+1] != draw-1){
-            voxelModel.voxel[num].faceAir[0] = true;
+
+        if(rawData[y][x][z+1] != layer-1){
+            if(voxelType == 0){
+                voxelModel.outerVoxel[num].faceAir[0] = true;
+            }
+            if(voxelType == 1){
+                voxelModel.innerVoxel[num].faceAir[0] = true;
+            }
+            if(voxelType == 2){
+                voxelModel.somVoxel[layer][num].faceAir[0] = true;
+            }
         }
+
     }
     if(z-1 >= 0){
-        if(rawData[y][x][z-1] != draw-1){
-            voxelModel.voxel[num].faceAir[1] = true;
+        if(rawData[y][x][z-1] != layer-1){
+            if(voxelType == 0){
+                voxelModel.outerVoxel[num].faceAir[1] = true;
+            }
+            if(voxelType == 1){
+                voxelModel.innerVoxel[num].faceAir[1] = true;
+            }
+            if(voxelType == 2){
+                voxelModel.somVoxel[layer][num].faceAir[1] = true;
+            }
         }
     }
     if(x+1 < infdata.resolution[1]){
-        if(rawData[y][x+1][z] != draw-1){
-            voxelModel.voxel[num].faceAir[2] = true;
+        if(rawData[y][x+1][z] != layer-1){
+            if(voxelType == 0){
+                voxelModel.outerVoxel[num].faceAir[2] = true;
+            }
+            if(voxelType == 1){
+                voxelModel.innerVoxel[num].faceAir[2] = true;
+            }
+            if(voxelType == 2){
+                voxelModel.somVoxel[layer][num].faceAir[2] = true;
+            }
         }
     }
     if(x-1 >= 0){
-        if(rawData[y][x-1][z] != draw-1){
-            voxelModel.voxel[num].faceAir[3] = true;
+        if(rawData[y][x-1][z] != layer-1){
+            if(voxelType == 0){
+                voxelModel.outerVoxel[num].faceAir[3] = true;
+            }
+            if(voxelType == 1){
+                voxelModel.innerVoxel[num].faceAir[3] = true;
+            }
+            if(voxelType == 2){
+                voxelModel.somVoxel[layer][num].faceAir[3] = true;
+            }
         }
     }
     if(y+1 < infdata.resolution[2]){
-        if(rawData[y+1][x][z] != draw-1){
-            voxelModel.voxel[num].faceAir[4] = true;
+        if(rawData[y+1][x][z] != layer-1){
+            if(voxelType == 0){
+                voxelModel.outerVoxel[num].faceAir[4] = true;
+            }
+            if(voxelType == 1){
+                voxelModel.innerVoxel[num].faceAir[4] = true;
+            }
+            if(voxelType == 2){
+                voxelModel.somVoxel[layer][num].faceAir[4] = true;
+            }
         }
     }
     if(y-1 >= 0){
-        if(rawData[y-1][x][z] != draw-1){
-            voxelModel.voxel[num].faceAir[5] = true;
+        if(rawData[y-1][x][z] != layer-1){
+            if(voxelType == 0){
+                voxelModel.outerVoxel[num].faceAir[5] = true;
+            }
+            if(voxelType == 1){
+                voxelModel.innerVoxel[num].faceAir[5] = true;
+            }
+            if(voxelType == 2){
+                voxelModel.somVoxel[layer][num].faceAir[5] = true;
+            }
         }
     }
 

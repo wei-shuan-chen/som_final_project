@@ -32,11 +32,13 @@ public:
     const unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
     float rate;
     bool showVoxel = true;
+    bool showOutSomIn[3] = {true, true, true};
     bool showLatticePlane = true;
     bool showLatticeLine = true;
 
 
 private:
+
     void Modify_position(int x, int y, int z);
     void Shader_init(int n, bool settex);
     void ViewProjection_Create(int n);
@@ -71,6 +73,8 @@ private:
     Item lightcube;
     Item ground;
     Item voxel;
+    Item innerVoxel;
+    Item outerVoxel;
     Item lattice_line;
     Item lattice_plane;
 

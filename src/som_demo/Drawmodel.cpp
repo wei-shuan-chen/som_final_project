@@ -16,6 +16,8 @@ model_cls::~model_cls(){
     ground.Item_del();
     lightcube.Item_del();
     voxel.Item_del();
+    innerVoxel.Item_del();
+    outerVoxel.Item_del();
     lattice_line.Item_del();
     lattice_plane.Item_del();
 }
@@ -25,7 +27,8 @@ void model_cls::Shader_Create()
     // rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
     rawmodel.LoadFile("raw/dist/ball67_dist.inf", "raw/dist/ball67_dist.raw");
 
-    som.SOM_Create(rawmodel.Voxel_Position(), rawmodel.voxelModel.num, rawmodel.voxelModel.size);
+    int somNum = 0;
+    som.SOM_Create(rawmodel.Voxel_Position(somNum), rawmodel.voxelModel.num[somNum], rawmodel.voxelModel.maxsize[somNum], rawmodel.voxelModel.minsize[somNum]);
     create_world(rawmodel.voxelModel);
 
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
@@ -38,10 +41,13 @@ void model_cls::Shader_Create()
     ground = Item((world.square));
     lightcube = Item(world.lightcube);
     voxel = Item(world.voxel);
+    innerVoxel = Item(world.innerVoxel);
+    outerVoxel = Item(world.outerVoxel);
     lattice_line = Item(world.lattice_line);
     lattice_plane = Item(world.lattice_plane);
     axis = Item(world.axis);
 	Shader_init(0, true);
+
 }
 void model_cls::Modify_position(int x, int y, int z){
     // modify camera
@@ -198,14 +204,36 @@ void model_cls::Model_create_noshadow(Shader shader){
 }
 void model_cls::Model_create(Shader shader){
     if(showVoxel){
-        model.Push();
-        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-        shader.setMat4("model", model.Top());
-        shader.setBool("tex",false);
-        shader.setBool("shader",true);
-        glBindVertexArray(voxel.VAO);
-        glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
-        model.Pop();
+        if(showOutSomIn[0]){
+            model.Push();
+            // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+            shader.setMat4("model", model.Top());
+            shader.setBool("tex",false);
+            shader.setBool("shader",true);
+            glBindVertexArray(outerVoxel.VAO);
+            glDrawArrays(GL_TRIANGLES, 0, world.outerVoxel.size());
+            model.Pop();
+        }
+        if(showOutSomIn[1]){
+            model.Push();
+            // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+            shader.setMat4("model", model.Top());
+            shader.setBool("tex",false);
+            shader.setBool("shader",true);
+            glBindVertexArray(voxel.VAO);
+            glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
+            model.Pop();
+        }
+        if(showOutSomIn[2]){
+            model.Push();
+            // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+            shader.setMat4("model", model.Top());
+            shader.setBool("tex",false);
+            shader.setBool("shader",true);
+            glBindVertexArray(innerVoxel.VAO);
+            glDrawArrays(GL_TRIANGLES, 0, world.innerVoxel.size());
+            model.Pop();
+        }
     }
 
 }
@@ -236,11 +264,11 @@ void createThread(){
 
 void model_cls::Model_mapping(){
     const LatData_t* latticeData = som.Lattice_get();
-
-    for(int n = 0; n < rawmodel.voxelModel.num; n++){// voxel
-        double v_x = rawmodel.voxelModel.voxel[n].locate.x;
-        double v_y = rawmodel.voxelModel.voxel[n].locate.y;
-        double v_z = rawmodel.voxelModel.voxel[n].locate.z;
+    int somNum = 0;
+    for(int n = 0; n < rawmodel.voxelModel.num[somNum]; n++){// voxel
+        double v_x = rawmodel.voxelModel.somVoxel[somNum][n].locate.x;
+        double v_y = rawmodel.voxelModel.somVoxel[somNum][n].locate.y;
+        double v_z = rawmodel.voxelModel.somVoxel[somNum][n].locate.z;
         double minDist = 100000;
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice
@@ -263,11 +291,11 @@ void model_cls::Model_mapping(){
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // find the color of minDist lattice
         glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
-        rawmodel.voxelModel.voxel[n].texcoord = trueMinLatticeCoordRate;
+        rawmodel.voxelModel.somVoxel[somNum][n].texcoord = trueMinLatticeCoordRate;
 
         glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(tex.imageTex.width-1)), (int)(trueMinLatticeCoordRate.y*(double)(tex.imageTex.height-1))};
 
-        rawmodel.voxelModel.voxel[n].color = tex.imageTex.image[imageRate.y][imageRate.x];
+        rawmodel.voxelModel.somVoxel[somNum][n].color = tex.imageTex.image[imageRate.y][imageRate.x];
     }
     renew_voxel_color(rawmodel.voxelModel);
     voxel.renewVBO(world.voxel);
