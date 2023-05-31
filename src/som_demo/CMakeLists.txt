@@ -18,6 +18,7 @@ target_sources(som-demo PRIVATE
     "stb_image.cpp"
     "textureMap.cpp"
     "logger.c"
+    "carve.cpp"
 )
 
 

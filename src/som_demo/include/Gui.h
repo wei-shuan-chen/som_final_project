@@ -6,7 +6,6 @@
 #include<iostream>
 
 #include "Drawmodel.h"
-#include "SOM.h"
 
 using namespace std;
 

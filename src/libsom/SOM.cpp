@@ -15,8 +15,9 @@ som_cls::~som_cls(){
 }
 
 
-void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min)
+void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type)
 {
+    latticeData.type = type;
     srand(time(NULL));
     // 1. Create input dataset
     inputData.input = createInputDataset(voxelPos, voxelNum);
@@ -238,6 +239,7 @@ const glm::fvec3 som_cls::getInput()
 
     return inputData.input[i];
 }
+
 const glm::ivec3 som_cls::findBmu(glm::fvec3 nowInput){
     double minDist = -1.0;
     glm::ivec3 bmu;
@@ -270,6 +272,7 @@ const glm::ivec3 som_cls::findBmu(glm::fvec3 nowInput){
     }
     return bmu;
 }
+/*
 void som_cls::findBmuNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu){
     int radius = latticeData.radius;
     for(int r = 0; r < radius; r++){
@@ -416,6 +419,8 @@ int som_cls::computDelta(int edge, int tmp){
 
     return delta;
 }
+*/
+
 double som_cls::computeScale(double radius, double dist)
 {
     double scale = exp((-1 * dist) / (2 * pow(radius, 2)));
@@ -430,8 +435,6 @@ void som_cls::updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 
     lattice[z][y][x].y = lattice[z][y][x].y + scale * learningRate * (nowInput.y - lattice[z][y][x].y);
     lattice[z][y][x].z = lattice[z][y][x].z + scale * learningRate * (nowInput.z - lattice[z][y][x].z);
 }
-
-
 
 glm::ivec3 som_cls::computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
 {
