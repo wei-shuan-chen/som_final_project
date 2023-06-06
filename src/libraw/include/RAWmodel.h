@@ -20,6 +20,18 @@ typedef struct InfData_t {
     int type; // 0 unsigned char, 1 float, 2 double
 }InfData_t;
 
+typedef struct RawData_l
+{
+    int layer;
+    RawData_l *p_x;
+    RawData_l *n_x;
+    RawData_l *p_y;
+    RawData_l *n_y;
+    RawData_l *p_z;
+    RawData_l *n_z;
+}RawData_l;
+
+
 class RAWmodel_cls{
 public:
     RAWmodel_cls();
@@ -34,6 +46,7 @@ public:
 
 private:
     int*** rawData; // 0 air, 1 bounder, 2 inside
+    RawData_l* head;
     bool LoadINFfile(const char* infFileName);
     bool SetSampleType(const char* type);
 
@@ -42,6 +55,7 @@ private:
     bool LoadRAWfile(const char*rawFileName);
     bool ReadRawFile(FILE *file);
     void GiveSpaceLocate();
+    void initLinkList();
 
     void SetVoxelData();
     void findSurfaceVoxel(int z, int y, int x, int num, int layer, int voxelType);

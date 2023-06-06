@@ -193,25 +193,61 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 }
 
 void RAWmodel_cls::SetVoxelData(){
-    bool inner = false;
+
     GiveSpaceLocate();
+    initLinkList();
+    bool inner = false, allinair = true, exist0 = true;
     for(int y = 1; y < infdata.resolution[2]-1; y++){
         for(int x = 1; x < infdata.resolution[1]-1; x++){
-            bool allinair = true;
-            for(int z = 1, inner = false; z < infdata.resolution[0]-1; z++){
-                if(rawData[y][x][z] == 0){
-                    inner = true;
-                    allinair = false;
-                }
-                if(inner) rawData[y][x][z] *= -1;
-            }
-            for(int z = infdata.resolution[0]-2, inner = false; z > 0; z--){
-                if(allinair){
-                    rawData[y][x][z] *= -1;
-                }else{
-                    if(rawData[y][x][z] == 0) inner = true;
+            int left = 1, right = infdata.resolution[0]-2, inverse = 0;
+            exist0 = true;
+            while(left < right){
+                int newleft = left, newright = right, init0 = 0, final0 = 0, num0 = 0, locate0 = 0;
+                allinair = true, inner = false;
+                for(int z = left; z < right+1; z+=1){
+                    if((rawData[y][x][z-1] == 1 || rawData[y][x][z-1] == -1) && rawData[y][x][z] == 0) init0 = z;
+                    if(rawData[y][x][z-1] == 0 && rawData[y][x][z] == 1) final0 = z-1;
+                    if(final0 > init0){
+                        if(num0 < final0 - init0){
+                            locate0 = init0;
+                            num0 = final0 - init0+1;
+                        }
+                    }
+                    if(rawData[y][x][z] == 0){
+                        inner = true;
+                        allinair = false;
+                    }
                     if(inner) rawData[y][x][z] *= -1;
+                    if((rawData[y][x][z] == -1 || rawData[y][x][z] == 1)&& newleft == left && inner == true){
+                        newleft = z;
+                    }
                 }
+                for(int z = right, inner = false; z > left-1; z--){
+                    if(allinair){
+                        rawData[y][x][z] *= -1;
+                        newright = 0;
+                    }else{
+                        if(rawData[y][x][z] == 0) inner = true;
+                        if(inner) rawData[y][x][z] *= -1;
+                        if(rawData[y][x][z] == -1 && newright == right && inner == true) newright = 0;
+                        if(rawData[y][x][z] == 1 && newright == right && inner == true) newright = z;
+                    }
+                }
+
+                if(num0 > 8 && exist0){
+                    if(locate0 < newleft) newleft = locate0-1;
+                    if(locate0 > newright) newright = locate0+1+num0;
+                }
+                if(inverse >= 1){
+                    for(int z = left; z < right+1; z+=1) rawData[y][x][z] *= -1;
+
+                }
+                if(left == newleft && right == newright) break;
+
+                left = newleft;
+                right = newright;
+                exist0 = false;
+                inverse++;
             }
 
             for(int z = 1; z < infdata.resolution[0]-1; z++){
@@ -238,6 +274,16 @@ void RAWmodel_cls::SetVoxelData(){
             }
         }
     }
+}
+void RAWmodel_cls::initLinkList(){
+    head = (RawData_l*)malloc(sizeof(RawData_l));
+    head->n_x = NULL;
+    head->n_y = NULL;
+    head->n_z = NULL;
+    head->p_x = NULL;
+    head->p_y = NULL;
+    head->p_z = NULL;
+    head->layer = -1;
 }
 void RAWmodel_cls::GiveSpaceLocate(){
     voxelModel.num = (int*)malloc(voxelModel.somChioceLayerNum*sizeof(int));
