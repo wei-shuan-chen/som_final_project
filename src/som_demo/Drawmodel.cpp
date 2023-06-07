@@ -25,7 +25,7 @@ model_cls::~model_cls(){
 void model_cls::Shader_Create()
 {
     // rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
-    rawmodel.LoadFile("raw/dist/bunny_dist.inf", "raw/dist/bunny_dist.raw");
+    rawmodel.LoadFile("raw/dist/ball67_dist.inf", "raw/dist/ball67_dist.raw");
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
         int voxelNum = rawmodel.voxelModel.num[layer];

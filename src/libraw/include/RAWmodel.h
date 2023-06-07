@@ -22,7 +22,9 @@ typedef struct InfData_t {
 
 typedef struct RawData_l
 {
-    int layer;
+    short int layer;
+    short int x,y,z;
+    bool air = false;
     RawData_l *p_x;
     RawData_l *n_x;
     RawData_l *p_y;
@@ -30,6 +32,14 @@ typedef struct RawData_l
     RawData_l *p_z;
     RawData_l *n_z;
 }RawData_l;
+
+typedef struct RawDataY_l
+{
+    short int y;
+    RawData_l *p_y;
+    RawData_l *n_y;
+}RawDataY_l;
+
 
 
 class RAWmodel_cls{
@@ -56,6 +66,7 @@ private:
     bool ReadRawFile(FILE *file);
     void GiveSpaceLocate();
     void initLinkList();
+    void FindOutterLayer(RawData_l* node);
 
     void SetVoxelData();
     void findSurfaceVoxel(int z, int y, int x, int num, int layer, int voxelType);
