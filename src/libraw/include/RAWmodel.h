@@ -23,7 +23,6 @@ typedef struct InfData_t {
 typedef struct RawData_l
 {
     short int layer;
-    short int x,y,z;
     bool air = false;
     RawData_l *p_x;
     RawData_l *n_x;
@@ -40,6 +39,11 @@ typedef struct RawDataY_l
     RawData_l *n_y;
 }RawDataY_l;
 
+typedef struct RawData_t
+{
+    short int layer;
+    bool air;
+}RawData_t;
 
 
 class RAWmodel_cls{
@@ -55,7 +59,7 @@ public:
     std::vector<glm::ivec3> Voxel_Position(int layer);
 
 private:
-    int*** rawData; // 0 air, 1 bounder, 2 inside
+    RawData_t*** rawData; // 0 air, 1 bounder, 2 inside
     RawData_l* head;
     bool LoadINFfile(const char* infFileName);
     bool SetSampleType(const char* type);
@@ -65,8 +69,7 @@ private:
     bool LoadRAWfile(const char*rawFileName);
     bool ReadRawFile(FILE *file);
     void GiveSpaceLocate();
-    void initLinkList();
-    void FindOutterLayer(RawData_l* node);
+    void FindOutterLayer(short int x, short int y, short int z);
 
     void SetVoxelData();
     void findSurfaceVoxel(int z, int y, int x, int num, int layer, int voxelType);

@@ -24,8 +24,9 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    // rawmodel.LoadFile("raw/somtest.inf", "raw/somtest.raw");
-    rawmodel.LoadFile("raw/dist/ball67_dist.inf", "raw/dist/ball67_dist.raw");
+    // rawmodel.LoadFile("raw/donut.inf", "raw/donut.raw");
+    rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
+    // rawmodel.LoadFile("raw/dist/teapot.inf", "raw/dist/teapot.raw");
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
         int voxelNum = rawmodel.voxelModel.num[layer];

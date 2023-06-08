@@ -75,15 +75,6 @@ bool RAWmodel_cls::LoadINFfile(const char* infFileName){
     sscanf(buffer, "endian=%s",infdata.endian);
     // std::cout << infdata.endian << std::endl;
 
-    // fgets(buffer, sizeof(buffer), file);//Min=XXX:XXX:XXX
-    // sscanf(buffer, "Min=%f:%f:%f",&infdata.min[0],&infdata.min[1],&infdata.min[2]);
-    // std::cout << "min : "<<infdata.min[0] << ", " << infdata.min[1] << ", " << infdata.min[2] << std::endl;
-
-    // fgets(buffer, sizeof(buffer), file);//Max=XXX:XXX:XXX
-    // sscanf(buffer, "Max=%f:%f:%f",&infdata.max[0],&infdata.max[1],&infdata.max[2]);
-    // std::cout <<"max : "<< infdata.max[0] << ", " << infdata.max[1] << ", " << infdata.max[2] << std::endl;
-
-
     if (feof(file))
     {
         std::cout << "End of file reached!" << std::endl;
@@ -109,13 +100,14 @@ void RAWmodel_cls::CreateRawData(){
         d_voxelData = (double*)malloc(sizeof(double)* rawSize);
     }
 
-    rawData = (int***)malloc(sizeof(int**) * infdata.resolution[2]);
+    rawData = (RawData_t***)malloc(sizeof(RawData_t**) * infdata.resolution[2]);
     for(int i = 0; i < infdata.resolution[2]; i++){
-        rawData[i] = (int**)malloc(sizeof(int*) * infdata.resolution[1]);
+        rawData[i] = (RawData_t**)malloc(sizeof(RawData_t*) * infdata.resolution[1]);
         for(int j = 0; j < infdata.resolution[1]; j++){
-            rawData[i][j] = (int*)malloc(sizeof(int) * infdata.resolution[0]);
+            rawData[i][j] = (RawData_t*)malloc(sizeof(RawData_t) * infdata.resolution[0]);
             for(int k = 0; k < infdata.resolution[0]; k++){
-                rawData[i][j][k] = -1;
+                rawData[i][j][k].layer = -1;
+                rawData[i][j][k].air = false;
             }
         }
     }
@@ -157,12 +149,15 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
-                    rawData[i][j][k] = uc_voxelData[num];
-                    if(rawData[i][j][k] == voxelModel.somInitLayer){
+                    rawData[i][j][k].layer = uc_voxelData[num];
+
+                    if(rawData[i][j][k].layer == voxelModel.somInitLayer){
                         layernum++;
                     }
                 }
+
             }
+
         }
         return true;
     }else if(infdata.type == 1){
@@ -171,12 +166,15 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
-                    rawData[i][j][k] = f_voxelData[num];
-                    if(rawData[i][j][k] == voxelModel.somInitLayer){
+                    rawData[i][j][k].layer = (short int)f_voxelData[num];
+                    // cout << rawData[i][j][k].layer << ", ";
+                    if(rawData[i][j][k].layer == voxelModel.somInitLayer){
                         layernum++;
                     }
                 }
+                // cout << "\n";
             }
+            // cout << "\n\n";
         }
         return true;
     }else if(infdata.type == 2){
@@ -185,8 +183,8 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
-                    rawData[i][j][k] = d_voxelData[num];
-                    if(rawData[i][j][k] == voxelModel.somInitLayer){
+                    rawData[i][j][k].layer = (short int)d_voxelData[num];
+                    if(rawData[i][j][k].layer == voxelModel.somInitLayer){
                         layernum++;
                     }
                 }
@@ -201,92 +199,40 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 void RAWmodel_cls::SetVoxelData(){
 
     GiveSpaceLocate();
-    initLinkList();
-    RawData_l *tmpz, *tmpx, *tmpy;
-    for(tmpy = head; tmpy != NULL; tmpy = tmpy->p_y){
-        FindOutterLayer(tmpy);
-            // // cout << x<<", " << y<<", " << z << endl;
-        // for(tmpx = tmpy; tmpx != NULL; tmpx = tmpx->p_x){
-        //     for(tmpz = tmpx; tmpz != NULL; tmpz = tmpz->p_z){
-        //         if(tmpz->layer < 0)
-        //             cout << tmpz->layer << " ";
-        //         else
-        //             cout << " "<<tmpz->layer << " ";
-        //     }
-        //     cout << "\n";
-        // }
-        // cout << "\n\n";
+
+    if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
+        for(short int z = 0, x = 1,y = 1; z < infdata.resolution[0]; z++){
+            FindOutterLayer(x, y, z);
+        }
+    }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
+        for(short int x = 0, z = 1,y = 1; x < infdata.resolution[1]; x++){
+            FindOutterLayer(x, y, z);
+        }
+    }else{
+        for(short int y = 0, x = 1,z = 1; y < infdata.resolution[2]; y++){
+            FindOutterLayer(x, y, z);
+        }
     }
 
     bool inner = false, allinair = true, exist0 = true;
     for(int y = 1; y < infdata.resolution[2]-1; y++){
         for(int x = 1; x < infdata.resolution[1]-1; x++){
-            // int left = 1, right = infdata.resolution[0]-2, inverse = 0;
-            // exist0 = true;
-            // while(left < right){
-            //     int newleft = left, newright = right, init0 = 0, final0 = 0, num0 = 0, locate0 = 0;
-            //     allinair = true, inner = false;
-            //     for(int z = left; z < right+1; z+=1){
-            //         if((rawData[y][x][z-1] == 1 || rawData[y][x][z-1] == -1) && rawData[y][x][z] == 0) init0 = z;
-            //         if(rawData[y][x][z-1] == 0 && rawData[y][x][z] == 1) final0 = z-1;
-            //         if(final0 > init0){
-            //             if(num0 < final0 - init0){
-            //                 locate0 = init0;
-            //                 num0 = final0 - init0+1;
-            //             }
-            //         }
-            //         if(rawData[y][x][z] == 0){
-            //             inner = true;
-            //             allinair = false;
-            //         }
-            //         if(inner) rawData[y][x][z] *= -1;
-            //         if((rawData[y][x][z] == -1 || rawData[y][x][z] == 1)&& newleft == left && inner == true){
-            //             newleft = z;
-            //         }
-            //     }
-            //     for(int z = right, inner = false; z > left-1; z--){
-            //         if(allinair){
-            //             rawData[y][x][z] *= -1;
-            //             newright = 0;
-            //         }else{
-            //             if(rawData[y][x][z] == 0) inner = true;
-            //             if(inner) rawData[y][x][z] *= -1;
-            //             if(rawData[y][x][z] == -1 && newright == right && inner == true) newright = 0;
-            //             if(rawData[y][x][z] == 1 && newright == right && inner == true) newright = z;
-            //         }
-            //     }
-
-            //     if(num0 > 8 && exist0){
-            //         if(locate0 < newleft) newleft = locate0-1;
-            //         if(locate0 > newright) newright = locate0+1+num0;
-            //     }
-            //     if(inverse >= 1){
-            //         for(int z = left; z < right+1; z+=1) rawData[y][x][z] *= -1;
-
-            //     }
-            //     if(left == newleft && right == newright) break;
-
-            //     left = newleft;
-            //     right = newright;
-            //     exist0 = false;
-            //     inverse++;
-            // }
 
             for(int z = 1; z < infdata.resolution[0]-1; z++){
                 // outer voxel type = 0
-                if(rawData[y][x][z] == 0){
+                if(rawData[y][x][z].layer == 0){
                     voxelModel.outerVoxel.push_back(USVoxData_t{{x,y,z},{}});
                     findSurfaceVoxel(y, x, z, voxelModel.outerVoxel.size()-1, 0, 0);
                 }
                 // inner voxel type = 1
-                if(rawData[y][x][z] == voxelModel.somInitLayer+voxelModel.somChioceLayerNum){
+                if(rawData[y][x][z].layer == voxelModel.somInitLayer+voxelModel.somChioceLayerNum){
                     voxelModel.innerVoxel.push_back(USVoxData_t{{x,y,z},{}});
                     findSurfaceVoxel(y, x, z, voxelModel.innerVoxel.size()-1, 0, 1);
                 }
                 // som voxel type = 2
                 for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
 
-                    if(rawData[y][x][z] == voxelModel.somInitLayer+layer){
+                    if(rawData[y][x][z].layer == voxelModel.somInitLayer+layer){
                         voxelModel.somVoxel[layer][voxelModel.num[layer]].locate = {x, y, z};
                         setMaxbounder(x, y, z, layer);
                         findSurfaceVoxel(y,x,z, voxelModel.num[layer], layer, 2);
@@ -297,208 +243,33 @@ void RAWmodel_cls::SetVoxelData(){
         }
     }
 }
-void RAWmodel_cls::initLinkList(){
 
-    RawData_l *tmp, *tmpx, *tmpxHead, *tmpy, *tmpyHead, *tmpz;
-    for(int y = 0; y < infdata.resolution[2]; y++){
-        for(int x = 0; x < infdata.resolution[1]; x++){
-            for(int z = 0; z < infdata.resolution[0]; z++){
-                if(x == 0 && y == 0 && z == 0){
-                    tmp = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmp->layer = (short int)rawData[y][x][z];
-                    tmp->x = (short int)x;
-                    tmp->y = (short int)y;
-                    tmp->z = (short int)z;
-                    tmp->air = false;
-                    tmp->n_x = NULL;
-                    tmp->n_y = NULL;
-                    tmp->n_z = NULL;
-                    tmp->p_x = NULL;
-                    tmp->p_y = NULL;
-                    tmp->p_z = NULL;
-                    head = tmpx = tmpxHead = tmpy = tmpyHead = tmpz = tmp;
-                    continue;
-                }
-                if(x == 0 && y == 0){
-                    RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmpNext->layer = (short int)rawData[y][x][z];
-                    tmpNext->x = (short int)x;
-                    tmpNext->y = (short int)y;
-                    tmpNext->z = (short int)z;
-                    tmpNext->air = false;
-                    tmpNext->n_x = NULL;
-                    tmpNext->n_y = NULL;
-                    tmpNext->n_z = tmp;
-                    tmpNext->p_x = NULL;
-                    tmpNext->p_y = NULL;
-                    tmpNext->p_z = NULL;
-
-                    tmp->p_z = tmpNext;
-
-                    tmp = tmpNext;
-                    continue;
-                }
-                if(x == 0 && z == 0){
-                    tmp = tmpx = tmpxHead = tmpy = tmpyHead;
-
-                    RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmpNext->layer = (short int)rawData[y][x][z];
-                    tmpNext->x = (short int)x;
-                    tmpNext->y = (short int)y;
-                    tmpNext->z = (short int)z;
-                    tmpNext->air = false;
-                    tmpNext->n_x = NULL;
-                    tmpNext->n_y = tmp;
-                    tmpNext->n_z = NULL;
-                    tmpNext->p_x = NULL;
-                    tmpNext->p_y = NULL;
-                    tmpNext->p_z = NULL;
-
-                    tmp->p_y = tmpNext;
-
-                    tmp = tmpxHead = tmpx = tmpyHead = tmpNext;
-                    tmpy = tmpy->p_z;
-                    continue;
-                }
-                if(y == 0 && z == 0){
-                    tmp = tmpx = tmpxHead;
-
-                    RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmpNext->layer = (short int)rawData[y][x][z];
-                    tmpNext->x = (short int)x;
-                    tmpNext->y = (short int)y;
-                    tmpNext->z = (short int)z;
-                    tmpNext->air = false;
-                    tmpNext->n_x = tmp;
-                    tmpNext->n_y = NULL;
-                    tmpNext->n_z = NULL;
-                    tmpNext->p_x = NULL;
-                    tmpNext->p_y = NULL;
-                    tmpNext->p_z = NULL;
-
-                    tmp->p_x = tmpNext;
-
-                    tmp = tmpxHead = tmpNext;
-                    tmpx = tmpx->p_z;
-                    continue;
-                }
-                if(y == 0){
-                    RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmpNext->layer = (short int)rawData[y][x][z];
-                    tmpNext->x = (short int)x;
-                    tmpNext->y = (short int)y;
-                    tmpNext->z = (short int)z;
-                    tmpNext->air = false;
-                    tmpNext->n_x = tmpx;
-                    tmpNext->n_y = NULL;
-                    tmpNext->n_z = tmp;
-                    tmpNext->p_x = NULL;
-                    tmpNext->p_y = NULL;
-                    tmpNext->p_z = NULL;
-
-                    tmp->p_z = tmpx->p_x = tmpNext;
-
-                    tmpx = tmpx->p_z;
-                    tmp = tmpNext;
-                    continue;
-                }
-                if(x == 0){
-                    RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmpNext->layer = (short int)rawData[y][x][z];
-                    tmpNext->x = (short int)x;
-                    tmpNext->y = (short int)y;
-                    tmpNext->z = (short int)z;
-                    tmpNext->air = false;
-                    tmpNext->n_x = NULL;
-                    tmpNext->n_y = tmpy;
-                    tmpNext->n_z = tmp;
-                    tmpNext->p_x = NULL;
-                    tmpNext->p_y = NULL;
-                    tmpNext->p_z = NULL;
-
-                    tmp->p_z = tmpy->p_y = tmpNext;
-
-                    tmpy = tmpy->p_z;
-                    tmp = tmpNext;
-                    continue;
-                }
-                if(z == 0){
-                    tmpy = tmpxHead->n_y->p_x;
-                    tmp = tmpx = tmpxHead;
-
-                    RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                    tmpNext->layer = (short int)rawData[y][x][z];
-                    tmpNext->x = (short int)x;
-                    tmpNext->y = (short int)y;
-                    tmpNext->z = (short int)z;
-                    tmpNext->air = false;
-                    tmpNext->n_x = tmp;
-                    tmpNext->n_y = tmpy;
-                    tmpNext->n_z = NULL;
-                    tmpNext->p_x = NULL;
-                    tmpNext->p_y = NULL;
-                    tmpNext->p_z = NULL;
-
-                    tmp->p_x = tmpy->p_y = tmpNext;
-
-                    tmpxHead = tmp = tmpNext;
-                    tmpx = tmpx->p_z;
-                    tmpy = tmpy->p_z;
-                    continue;
-                }
-
-                RawData_l *tmpNext = (RawData_l*)malloc(sizeof(RawData_l));
-                tmpNext->layer = (short int)rawData[y][x][z];
-                tmpNext->x = (short int)x;
-                tmpNext->y = (short int)y;
-                tmpNext->z = (short int)z;
-                tmpNext->air = false;
-                tmpNext->n_x = tmpx;
-                tmpNext->n_y = tmpy;
-                tmpNext->n_z = tmp;
-                tmpNext->p_x = NULL;
-                tmpNext->p_y = NULL;
-                tmpNext->p_z = NULL;
-
-                tmp->p_z = tmpy->p_y = tmpx->p_x = tmpNext;
-
-                tmp = tmpNext;
-                tmpy = tmpy->p_z;
-                tmpx = tmpx->p_z;
-            }
-        }
-    }
-    // for(tmpy = tmpz; tmpy != NULL; tmpy = tmpy->p_y){
-        // for(tmpx = head->p_y->p_y->p_y->p_y; tmpx != NULL; tmpx = tmpx->p_x){
-        //     for(tmpz = tmpx; tmpz != NULL; tmpz = tmpz->p_z){
-        //         cout << tmpz->layer << " ";
-        //     }
-        //     cout << "\n";
-        // }
-        //             cout << "\n";
-        // cout << "\n";
-    // }
-}
-void RAWmodel_cls::FindOutterLayer(RawData_l* node){
+void RAWmodel_cls::FindOutterLayer(short int x, short int y, short int z){
     // 先用2D 測試
-    if(node == NULL) return;
-    if(node->air || node->layer == 0){
+    if(x < 0 || x >= infdata.resolution[1]) return;
+    if(y < 0 || y >= infdata.resolution[2]) return;
+    if(z < 0 || z >= infdata.resolution[0]) return;
+
+    if(rawData[y][x][z].air || rawData[y][x][z].layer == 0){
         return;
     }
 
-    node->air = true;
-    if(node->layer != -1) node->layer *= -1;
-    int x = node->x;
-    int y = node->y;
-    int z = node->z;
-    rawData[y][x][z] *= -1;
+    rawData[y][x][z].air = true;
+    if(rawData[y][x][z].layer != -1) rawData[y][x][z].layer *= -1;
 
-    FindOutterLayer(node->p_z);
-    FindOutterLayer(node->p_x);
-    FindOutterLayer(node->n_z);
-    FindOutterLayer(node->n_x);
-    // FindOutterLayer(node->p_y);
-    // FindOutterLayer(node->n_y);
+
+    if(infdata.resolution[0] < infdata.resolution[1] || infdata.resolution[0] < infdata.resolution[2]){
+        FindOutterLayer(x, y, z+1);
+        FindOutterLayer(x, y, z-1);
+    }
+    if(infdata.resolution[1] < infdata.resolution[0] || infdata.resolution[1] < infdata.resolution[2]){
+        FindOutterLayer(x+1, y, z);
+        FindOutterLayer(x-1, y, z);
+    }
+    if(infdata.resolution[2] < infdata.resolution[0] || infdata.resolution[2] < infdata.resolution[1]){
+        FindOutterLayer(x, y+1, z);
+        FindOutterLayer(x, y-1, z);
+    }
 
 }
 void RAWmodel_cls::GiveSpaceLocate(){
@@ -534,7 +305,7 @@ void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int
 
     if(z+1 < infdata.resolution[0]){
 
-        if(rawData[y][x][z+1] != layer-1){
+        if(rawData[y][x][z+1].layer != layer-1){
             if(voxelType == 0){
                 voxelModel.outerVoxel[num].faceAir[0] = true;
             }
@@ -548,7 +319,7 @@ void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int
 
     }
     if(z-1 >= 0){
-        if(rawData[y][x][z-1] != layer-1){
+        if(rawData[y][x][z-1].layer != layer-1){
             if(voxelType == 0){
                 voxelModel.outerVoxel[num].faceAir[1] = true;
             }
@@ -561,7 +332,7 @@ void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int
         }
     }
     if(x+1 < infdata.resolution[1]){
-        if(rawData[y][x+1][z] != layer-1){
+        if(rawData[y][x+1][z].layer != layer-1){
             if(voxelType == 0){
                 voxelModel.outerVoxel[num].faceAir[2] = true;
             }
@@ -574,7 +345,7 @@ void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int
         }
     }
     if(x-1 >= 0){
-        if(rawData[y][x-1][z] != layer-1){
+        if(rawData[y][x-1][z].layer != layer-1){
             if(voxelType == 0){
                 voxelModel.outerVoxel[num].faceAir[3] = true;
             }
@@ -587,7 +358,7 @@ void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int
         }
     }
     if(y+1 < infdata.resolution[2]){
-        if(rawData[y+1][x][z] != layer-1){
+        if(rawData[y+1][x][z].layer != layer-1){
             if(voxelType == 0){
                 voxelModel.outerVoxel[num].faceAir[4] = true;
             }
@@ -600,7 +371,7 @@ void RAWmodel_cls::findSurfaceVoxel(int y, int x, int z, int num, int layer, int
         }
     }
     if(y-1 >= 0){
-        if(rawData[y-1][x][z] != layer-1){
+        if(rawData[y-1][x][z].layer != layer-1){
             if(voxelType == 0){
                 voxelModel.outerVoxel[num].faceAir[5] = true;
             }
