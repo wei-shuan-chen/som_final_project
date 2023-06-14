@@ -185,7 +185,6 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
 
     for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
         world.voxel.clear();
-        // cout << layer << " : " <<voxelModel.num[layer] << endl;
         for(int i = 0; i < voxelModel.num[layer]; i++){
             int x = voxelModel.somVoxel[layer][i].locate.x;
             int y = voxelModel.somVoxel[layer][i].locate.y;

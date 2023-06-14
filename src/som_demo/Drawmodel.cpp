@@ -18,8 +18,6 @@ model_cls::model_cls(){
     for(int layer = 0; layer < layerNum; layer++){
         showEachLayer[layer] = true;
     }
-    // startSOM = (bool*)malloc(sizeof(bool) * layerNum);
-
 }
 model_cls::~model_cls(){
     destroy_world();
@@ -39,7 +37,6 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    // rawmodel.LoadFile("raw/donut.inf", "raw/donut.raw");
     rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
     create_mutli_som(rawmodel.voxelModel.somChioceLayerNum);
 
@@ -48,7 +45,6 @@ void model_cls::Shader_Create()
         glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
         glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
         som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, 1, layer);
-
     }
     create_world(rawmodel.voxelModel);
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
@@ -57,11 +53,9 @@ void model_cls::Shader_Create()
     lightShader = Shader("shader/lightShader.vs", "shader/lightShader.fs");
     depthShader = Shader("shader/depthShader.vs", "shader/depthShader.fs", "shader/depthShader.gs");
 
-
     cube = Item(world.cube);
     ground = Item((world.square));
     lightcube = Item(world.lightcube);
-    // voxel = Item(world.voxel);
     innerVoxel = Item(world.innerVoxel);
     outerVoxel = Item(world.outerVoxel);
     axis = Item(world.axis);
@@ -210,7 +204,7 @@ void model_cls::Model_create_noshadow(Shader shader){
                     shader.setBool("tex", false);
                 shader.setBool("shader",false);
                 glBindVertexArray(lattice_plane[layer].VAO);
-                glDrawArrays(GL_TRIANGLES, 0, world.lattice_plane.size());
+                glDrawArrays(GL_TRIANGLES, 0, world.l_lattice_plane[layer].size());
                 model.Pop();
             }
         }
@@ -228,7 +222,7 @@ void model_cls::Model_create_noshadow(Shader shader){
                     shader.setBool("tex", false);
                 shader.setBool("shader",false);
                 glBindVertexArray(lattice_line[layer].VAO);
-                glDrawArrays(GL_LINES, 0, world.lattice_line.size());
+                glDrawArrays(GL_LINES, 0, world.l_lattice_line[layer].size());
                 model.Pop();
             }
         }
@@ -256,7 +250,7 @@ void model_cls::Model_create(Shader shader){
                     shader.setBool("tex",false);
                     shader.setBool("shader",true);
                     glBindVertexArray(somVoxel[layer].VAO);
-                    glDrawArrays(GL_TRIANGLES, 0, world.voxel.size());
+                    glDrawArrays(GL_TRIANGLES, 0, world.somVoxel[layer].size());
                     model.Pop();
 
                 }
@@ -265,9 +259,7 @@ void model_cls::Model_create(Shader shader){
         if(showOutSomIn[2]){
             model.Push();
             // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-            // cout << "ll" << endl;
             shader.setMat4("model", model.Top());
-            // cout << "ll" << endl;
             shader.setBool("tex",false);
             shader.setBool("shader",true);
             glBindVertexArray(innerVoxel.VAO);

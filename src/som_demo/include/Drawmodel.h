@@ -67,7 +67,6 @@ private:
     Item axis;
     Item lightcube;
     Item ground;
-    // Item voxel;
     Item* somVoxel;
     Item innerVoxel;
     Item outerVoxel;

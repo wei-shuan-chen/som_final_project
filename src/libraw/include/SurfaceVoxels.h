@@ -22,7 +22,7 @@ typedef struct SurfaceVoxModel_t {
     glm::ivec3 *maxsize;
     glm::ivec3 *minsize;
 
-    int somChioceLayerNum = 5;
+    int somChioceLayerNum = 3;
     int somInitLayer = 3;
 
 }svoxModel_t;
