@@ -149,15 +149,15 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
-                    rawData[i][j][k].layer = uc_voxelData[num];
-
+                    rawData[i][j][k].layer = (short int)uc_voxelData[num];
+                    // cout << (int)uc_voxelData[num] << ", ";
                     if(rawData[i][j][k].layer == voxelModel.somInitLayer){
                         layernum++;
                     }
                 }
-
+                // cout << "\n";
             }
-
+            // cout << "\n\n";
         }
         return true;
     }else if(infdata.type == 1){
@@ -174,7 +174,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 }
                 // cout << "\n";
             }
-            // cout << "\n\n";
+
         }
         return true;
     }else if(infdata.type == 2){

@@ -23,7 +23,7 @@ void imgui_init(GLFWwindow *window){
 void imgui_create(){
 
 
-    const LatData_t* latticeData = som.Lattice_get();
+    const LatData_t* latticeData = som[0].Lattice_get();
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 
@@ -64,6 +64,7 @@ void imgui_create(){
             const char* shapes[4] = { "Layer 0", "Layer 1", "Layer 2", "Layer 3"};
             for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
                 ImGui::Selectable(shapes[layer],&selection[layer]);
+                drawModel.showEachLayer[layer] = selection[layer];
             }
 
             ImGui::EndTabItem();

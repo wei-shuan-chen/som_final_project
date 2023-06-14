@@ -4,7 +4,7 @@ carve_cls::carve_cls(){}
 carve_cls::~carve_cls(){}
 
 void carve_cls::voxel_mapping(){
-    const LatData_t* latticeData = som.Lattice_get();
+    const LatData_t* latticeData = som[0].Lattice_get();
     int somNum = 0;
     for(int n = 0; n < rawmodel.voxelModel.num[somNum]; n++){// voxel
         double v_x = rawmodel.voxelModel.somVoxel[somNum][n].locate.x;
@@ -45,7 +45,6 @@ glm::fvec2 carve_cls::findMinDistPrecisePos(const LatData_t* latticeData, double
 
     double minDist = mid;
     int impair[9][2] = {{1, 0}, {1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1}, {0,-1}, {1,-1}, {1, 0}};
-    som.debugThreeCoord.push_back(latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x]);
 
     for(int i = 0; i < 8; i++){
         // find triangle(o,a1,a2)
@@ -95,9 +94,6 @@ glm::fvec2 carve_cls::findMinDistPrecisePos(const LatData_t* latticeData, double
         if(twoDcoord.x > latticeData->width-1) twoDcoord.x = latticeData->width-1;
         if(twoDcoord.y < 0.0) twoDcoord.y = 0.0;
         if(twoDcoord.y > latticeData->height-1) twoDcoord.y = latticeData->height-1;
-
-        som.debugThreeCoord.pop_back();
-        som.debugThreeCoord.push_back(projp);
 
         }
 

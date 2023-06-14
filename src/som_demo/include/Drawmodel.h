@@ -36,6 +36,7 @@ public:
     bool showOutSomIn[3] = {true, true, true};
     bool showLatticePlane = true;
     bool showLatticeLine = true;
+    bool* showEachLayer;
 
 
 private:
@@ -53,8 +54,6 @@ private:
     void depthShader_model();
     void lightShader_model();
 
-
-
     MatrixStack model;
     MatrixStack view;
     MatrixStack projection;
@@ -68,11 +67,12 @@ private:
     Item axis;
     Item lightcube;
     Item ground;
-    Item voxel;
+    // Item voxel;
+    Item* somVoxel;
     Item innerVoxel;
     Item outerVoxel;
-    Item lattice_line;
-    Item lattice_plane;
+    Item* lattice_line;
+    Item* lattice_plane;
 
     float near_plane = 0.01f, far_plane = 10000000.0f;
 };

@@ -3,7 +3,10 @@
 #include <iostream>
 
 #include "SOM.h"
-som_cls som;
+som_cls* som;
+void create_mutli_som(int num){
+    som = (som_cls*)malloc(sizeof(som_cls)*num);
+}
 
 som_cls::som_cls(){}
 
@@ -15,9 +18,11 @@ som_cls::~som_cls(){
 }
 
 
-void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type)
+void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, int layer)
 {
+    som_init(layer);
     latticeData.type = type;
+    cout << som[0].latticeData.width << endl;
     srand(time(NULL));
     // 1. Create input dataset
     inputData.input = createInputDataset(voxelPos, voxelNum);
@@ -25,7 +30,25 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
     latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
     inputData.num = voxelNum;
 }
+void som_cls::som_init(int layer){
+    som[layer].latticeData.width = 25;
+    som[layer].latticeData.height = 25;
 
+    som[layer].latticeData.iter = 0;
+    som[layer].latticeData.finalIter = 120000;
+
+    som[layer].latticeData.learningRate = 0.005;
+    som[layer].latticeData.initLearningRate = 0.005;
+
+    som[layer].latticeData.radius = som[layer].latticeData.width/2.0;
+    som[layer].latticeData.initRadius = som[layer].latticeData.width/2.0;
+
+    som[layer].latticeData.type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
+    som[layer].latticeData.typeNum[0] = 1;
+    som[layer].latticeData.typeNum[1] = 1;
+    som[layer].latticeData.typeNum[2] = 1;
+    som[layer].latticeData.typeNum[3] = 6;
+}
 void som_cls::SOM_IterateOnce()
 {
     // 1. Get one input from the dataset

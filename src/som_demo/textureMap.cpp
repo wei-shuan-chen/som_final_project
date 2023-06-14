@@ -17,7 +17,7 @@ void texture_cls::createTexture(){
     // load image, create texture and generate mipmaps
     int nrChannels;
     // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-    imageTex.data = stbi_load("texture/hive.png", &imageTex.width, &imageTex.height, &nrChannels, 0);
+    imageTex.data = stbi_load("texture/hive1.png", &imageTex.width, &imageTex.height, &nrChannels, 0);
 
     if (imageTex.data)
     {

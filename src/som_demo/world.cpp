@@ -183,7 +183,8 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
         }
     }
 
-    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+    for(int layer = 1; layer < voxelModel.somChioceLayerNum; layer++){
+        world.voxel.clear();
         for(int i = 0; i < voxelModel.num[layer]; i++){
             int x = voxelModel.somVoxel[layer][i].locate.x;
             int y = voxelModel.somVoxel[layer][i].locate.y;
@@ -246,58 +247,66 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
             }
 
         }
-
+        world.somVoxel.push_back(world.voxel);
     }
 
-    const LatData_t* latticeData = som.Lattice_get();
+    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+        world.lattice_line.clear();
+        world.lattice_plane.clear();
 
-    float r = 1.0, g = 1.0, b = 1.0;
-    float height = latticeData->height;
-    float width = latticeData->width;
-    for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
-        for (int y = 0; y < height-1; y++)
-        {
-            for (int x = 0; x < width-1; x++)
+        const LatData_t* latticeData = som[layer].Lattice_get();
+        float r = 1.0, g = 1.0, b = 1.0;
+        float height = latticeData->height;
+        float width = latticeData->width;
+        for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
+            for (int y = 0; y < height-1; y++)
             {
-                float x_tex, x1_tex, y_tex, y1_tex;
-                glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
+                for (int x = 0; x < width-1; x++)
+                {
+                    float x_tex, x1_tex, y_tex, y1_tex;
+                    glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
 
-                x_tex = (float)x/(float)(width-1);
-                x1_tex = (float)(x+1)/(float)(width-1);
-                y_tex = (float)y/(float)(height-1);
-                y1_tex = (float)(y+1)/(float)(height-1);
+                    x_tex = (float)x/(float)(width-1);
+                    x1_tex = (float)(x+1)/(float)(width-1);
+                    y_tex = (float)y/(float)(height-1);
+                    y1_tex = (float)(y+1)/(float)(height-1);
 
-                l_pos = latticeData->lattice[k][y][x];
-                l_x_pos = latticeData->lattice[k][y][x+1];
-                l_y_pos = latticeData->lattice[k][y+1][x];
-                l_xy_pos = latticeData->lattice[k][y+1][x+1];
+                    l_pos = latticeData->lattice[k][y][x];
+                    l_x_pos = latticeData->lattice[k][y][x+1];
+                    l_y_pos = latticeData->lattice[k][y+1][x];
+                    l_xy_pos = latticeData->lattice[k][y+1][x+1];
+                    // cout << l_pos.x << ", " << l_pos.y << ", " << l_pos.z << endl;
 
-                // line
-                world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                    // line
+                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
 
-                world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
 
-                world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
 
-                world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
 
-                // plane
+                    // plane
 
-                world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
 
-                world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+
+                }
 
             }
-
         }
+
+        world.l_lattice_line.push_back(world.lattice_line);
+        world.l_lattice_plane.push_back(world.lattice_plane);
     }
 
     world.lightcube = {
@@ -356,8 +365,10 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
 
 }
 void renew_voxel_color(SurfaceVoxModel_t voxelModel){
-    world.voxel.clear();
-    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+    world.somVoxel.clear();
+
+    for(int layer = 1; layer < voxelModel.somChioceLayerNum; layer++){
+        world.voxel.clear();
         for(int i = 0;i < voxelModel.num[layer]; i++){
             int x = voxelModel.somVoxel[layer][i].locate.x;
             int y = voxelModel.somVoxel[layer][i].locate.y;
@@ -368,7 +379,7 @@ void renew_voxel_color(SurfaceVoxModel_t voxelModel){
 
             float tx = voxelModel.somVoxel[layer][i].texcoord.x;
             float ty = voxelModel.somVoxel[layer][i].texcoord.y;
-            // cout << i << " : " << r << endl;
+
             if(voxelModel.somVoxel[layer][i].faceAir[0] && r >= 0.5){//0
                 //                              position                             normal                 color
                 world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
@@ -420,73 +431,84 @@ void renew_voxel_color(SurfaceVoxModel_t voxelModel){
             }
 
         }
+        world.somVoxel.push_back(world.voxel);
+
     }
 
 }
-void renew_world(){
-    world.lattice_line.clear();
-    world.lattice_plane.clear();
-    const LatData_t* latticeData = som.Lattice_get();
+void renew_world(int layerNum){
+    world.l_lattice_line.clear();
+    world.l_lattice_plane.clear();
+    for(int layer = 0; layer < layerNum; layer++){
+        world.lattice_line.clear();
+        world.lattice_plane.clear();
 
-    float r = 1.0, g = 1.0, b = 1.0;
-    float height = latticeData->height;
-    float width = latticeData->width;
+        const LatData_t* latticeData = som[layer].Lattice_get();
 
-
-    for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
-        for (int y = 0; y < height-1; y++)
-        {
-            for (int x = 0; x < width-1; x++)
+        float r = 1.0, g = 1.0, b = 1.0;
+        float height = latticeData->height;
+        float width = latticeData->width;
+        for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
+            for (int y = 0; y < height-1; y++)
             {
-                float x_tex, x1_tex, y_tex, y1_tex;
-                glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
+                for (int x = 0; x < width-1; x++)
+                {
+                    float x_tex, x1_tex, y_tex, y1_tex;
+                    glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
 
-                x_tex = (float)x/(float)(width-1);
-                x1_tex = (float)(x+1)/(float)(width-1);
-                y_tex = (float)y/(float)(height-1);
-                y1_tex = (float)(y+1)/(float)(height-1);
+                    x_tex = (float)x/(float)(width-1);
+                    x1_tex = (float)(x+1)/(float)(width-1);
+                    y_tex = (float)y/(float)(height-1);
+                    y1_tex = (float)(y+1)/(float)(height-1);
 
-                l_pos = latticeData->lattice[k][y][x];
-                l_x_pos = latticeData->lattice[k][y][x+1];
-                l_y_pos = latticeData->lattice[k][y+1][x];
-                l_xy_pos = latticeData->lattice[k][y+1][x+1];
+                    l_pos = latticeData->lattice[k][y][x];
+                    l_x_pos = latticeData->lattice[k][y][x+1];
+                    l_y_pos = latticeData->lattice[k][y+1][x];
+                    l_xy_pos = latticeData->lattice[k][y+1][x+1];
 
-                // line
-                world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                    // line
+                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
 
-                world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
 
-                world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
 
-                world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
 
-                // plane
+                    // plane
 
-                world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
 
-                world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+
+                }
 
             }
-
         }
+
+        world.l_lattice_line.push_back(world.lattice_line);
+        world.l_lattice_plane.push_back(world.lattice_plane);
     }
 }
 void destroy_world() {
     world.square.clear();
     world.voxel.clear();
+    world.somVoxel.clear();
     world.innerVoxel.clear();
     world.outerVoxel.clear();
     world.lightcube.clear();
     world.cube.clear();
     world.lattice_line.clear();
+    world.l_lattice_line.clear();
     world.lattice_plane.clear();
+    world.l_lattice_plane.clear();
     world.axis.clear();
 }

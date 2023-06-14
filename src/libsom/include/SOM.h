@@ -22,13 +22,13 @@ typedef struct LatData_t {
     int height = 25;
 
     int iter = 0;
-    const int finalIter = 120000;
+    int finalIter = 120000;
 
     double learningRate = 0.005;
-    const double initLearningRate = 0.005;
+    double initLearningRate = 0.005;
 
     double radius = width/2.0;
-    const double initRadius = width/2.0;
+    double initRadius = width/2.0;
 
     int type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
     int typeNum[4] = {1,1,1,6};
@@ -46,12 +46,10 @@ public:
     ~som_cls();
 
     LatData_t* Lattice_get();
-    void SOM_Create(std::vector<glm::ivec3>  voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type);
+    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, int layer);
     void SOM_IterateOnce();
     void SOM_Again();
 
-    // debug
-    std::vector<glm::fvec3> debugThreeCoord;
 
 private:
     LatData_t latticeData;
@@ -59,6 +57,8 @@ private:
     // glm::ivec2 bmuMove[9] = {{1, 1},{0, 1},{-1, 1},{-1, 0},{-1, -1},{0, -1},{1, -1},{1, 0},{1, 1}};
     // int ballneighber[6][4] = {{4,3,2,1},{4,0,2,5},{0,3,5,1},{4,0,2,5,},{0,3,5,1},{4,3,2,1}};
 
+    // som init
+    void som_init(int layer);
     // som create
     glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min);
     glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);
@@ -81,7 +81,9 @@ private:
     void destroyDataset(glm::fvec3 *arr, int datasteNum);
 };
 
-extern som_cls som;
+void create_mutli_som(int num);
+
+extern som_cls* som;
 
 // enum Alphabet : int {
 //     A,
