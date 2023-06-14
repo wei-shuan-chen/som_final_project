@@ -3,13 +3,13 @@ carve_cls carve;
 carve_cls::carve_cls(){}
 carve_cls::~carve_cls(){}
 
-void carve_cls::voxel_mapping(){
-    const LatData_t* latticeData = som[0].Lattice_get();
-    int somNum = 0;
-    for(int n = 0; n < rawmodel.voxelModel.num[somNum]; n++){// voxel
-        double v_x = rawmodel.voxelModel.somVoxel[somNum][n].locate.x;
-        double v_y = rawmodel.voxelModel.somVoxel[somNum][n].locate.y;
-        double v_z = rawmodel.voxelModel.somVoxel[somNum][n].locate.z;
+void carve_cls::voxel_mapping(int layer){
+    const LatData_t* latticeData = som[layer].Lattice_get();
+
+    for(int n = 0; n < rawmodel.voxelModel.num[layer]; n++){// voxel
+        double v_x = rawmodel.voxelModel.somVoxel[layer][n].locate.x;
+        double v_y = rawmodel.voxelModel.somVoxel[layer][n].locate.y;
+        double v_z = rawmodel.voxelModel.somVoxel[layer][n].locate.z;
         double minDist = 100000;
         glm::ivec3 minLatticeCoord = {0,0,0};
         //lattice
@@ -32,11 +32,11 @@ void carve_cls::voxel_mapping(){
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // find the color of minDist lattice
         glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
-        rawmodel.voxelModel.somVoxel[somNum][n].texcoord = trueMinLatticeCoordRate;
+        rawmodel.voxelModel.somVoxel[layer][n].texcoord = trueMinLatticeCoordRate;
 
         glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(tex.imageTex.width-1)), (int)(trueMinLatticeCoordRate.y*(double)(tex.imageTex.height-1))};
 
-        rawmodel.voxelModel.somVoxel[somNum][n].color = tex.imageTex.image[imageRate.y][imageRate.x];
+        rawmodel.voxelModel.somVoxel[layer][n].color = tex.imageTex.image[imageRate.y][imageRate.x];
     }
 }
 glm::fvec2 carve_cls::findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){

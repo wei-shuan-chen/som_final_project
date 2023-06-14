@@ -183,8 +183,9 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
         }
     }
 
-    for(int layer = 1; layer < voxelModel.somChioceLayerNum; layer++){
+    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
         world.voxel.clear();
+        // cout << layer << " : " <<voxelModel.num[layer] << endl;
         for(int i = 0; i < voxelModel.num[layer]; i++){
             int x = voxelModel.somVoxel[layer][i].locate.x;
             int y = voxelModel.somVoxel[layer][i].locate.y;
@@ -367,7 +368,7 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
 void renew_voxel_color(SurfaceVoxModel_t voxelModel){
     world.somVoxel.clear();
 
-    for(int layer = 1; layer < voxelModel.somChioceLayerNum; layer++){
+    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
         world.voxel.clear();
         for(int i = 0;i < voxelModel.num[layer]; i++){
             int x = voxelModel.somVoxel[layer][i].locate.x;

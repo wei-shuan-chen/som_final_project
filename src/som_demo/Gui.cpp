@@ -60,8 +60,8 @@ void imgui_create(){
 
             ImGui::Text("\nsom_layer");
 
-            static bool selection[4] = { true, true, true, true};
-            const char* shapes[4] = { "Layer 0", "Layer 1", "Layer 2", "Layer 3"};
+            static bool selection[8] = { true, true, true, true, true, true, true, true};
+            const char* shapes[8] = { "Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6", "Layer 7"};
             for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
                 ImGui::Selectable(shapes[layer],&selection[layer]);
                 drawModel.showEachLayer[layer] = selection[layer];

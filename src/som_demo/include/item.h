@@ -13,7 +13,7 @@ public:
     unsigned int VAO;
     unsigned int VBO;
     unsigned int EBO;
-    
+
     Item(){
 
     }
@@ -54,7 +54,7 @@ public:
         // this->EBO = model.EBO;
     }
     Item& operator= (const Item& model){
-        
+
         unsigned int newVAO;
 
         glGenVertexArrays(1,&newVAO);
@@ -81,7 +81,7 @@ public:
         // tex attribute
         glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(9 * sizeof(float)));
         glEnableVertexAttribArray(3);
-        
+
         this->VAO = newVAO;
         this->VBO = model.VBO;
         this->EBO = model.EBO;
@@ -92,19 +92,19 @@ public:
 
     }
     void renewVBO(const std::vector<Vertex>& vertices){
-    glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &VBO);
 
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, position));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(float)));
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(9 * sizeof(float)));
-    // glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size()*sizeof(Vertex), vertices.data());
+        glBindVertexArray(VAO);
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, position));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(float)));
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(9 * sizeof(float)));
+        // glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size()*sizeof(Vertex), vertices.data());
     }
-    
+
     void Item_del(){
         glDeleteBuffers(1, &VBO);
         if (EBO != 0) {

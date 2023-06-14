@@ -26,18 +26,21 @@ model_cls::~model_cls(){
     cube.Item_del();
     ground.Item_del();
     lightcube.Item_del();
-    // voxel.Item_del();
     innerVoxel.Item_del();
     outerVoxel.Item_del();
-    // lattice_line.Item_del();
-    // lattice_plane.Item_del();
 
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    for(int layer = 0; layer < layerNum; layer++){
+        somVoxel[layer].Item_del();
+        lattice_line[layer].Item_del();
+        lattice_plane[layer].Item_del();
+    }
 }
 
 void model_cls::Shader_Create()
 {
     // rawmodel.LoadFile("raw/donut.inf", "raw/donut.raw");
-    rawmodel.LoadFile("raw/dist/ball67_dist.inf", "raw/dist/ball67_dist.raw");
+    rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
     create_mutli_som(rawmodel.voxelModel.somChioceLayerNum);
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
@@ -48,12 +51,12 @@ void model_cls::Shader_Create()
 
     }
     create_world(rawmodel.voxelModel);
-
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
 
     ourShader = Shader("shader/shader.vs", "shader/shader.fs");
     lightShader = Shader("shader/lightShader.vs", "shader/lightShader.fs");
     depthShader = Shader("shader/depthShader.vs", "shader/depthShader.fs", "shader/depthShader.gs");
+
 
     cube = Item(world.cube);
     ground = Item((world.square));
@@ -262,9 +265,9 @@ void model_cls::Model_create(Shader shader){
         if(showOutSomIn[2]){
             model.Push();
             // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-            cout << "ll" << endl;
+            // cout << "ll" << endl;
             shader.setMat4("model", model.Top());
-            cout << "ll" << endl;
+            // cout << "ll" << endl;
             shader.setBool("tex",false);
             shader.setBool("shader",true);
             glBindVertexArray(innerVoxel.VAO);
@@ -302,12 +305,11 @@ void createThread(){
 }
 
 void model_cls::Model_mapping(){
-        carve.voxel_mapping();
+    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
+        carve.voxel_mapping(layer);
 
         renew_voxel_color(rawmodel.voxelModel);
-    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
         somVoxel[layer].renewVBO(world.somVoxel[layer]);
-        cout << world.somVoxel[layer].size()<<endl;
     }
     log_info("end: model mapping\n");
 }

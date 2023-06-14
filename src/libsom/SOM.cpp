@@ -22,7 +22,6 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
 {
     som_init(layer);
     latticeData.type = type;
-    cout << som[0].latticeData.width << endl;
     srand(time(NULL));
     // 1. Create input dataset
     inputData.input = createInputDataset(voxelPos, voxelNum);
@@ -31,23 +30,23 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
     inputData.num = voxelNum;
 }
 void som_cls::som_init(int layer){
-    som[layer].latticeData.width = 25;
-    som[layer].latticeData.height = 25;
+    latticeData.width = 25;
+    latticeData.height = 25;
 
-    som[layer].latticeData.iter = 0;
-    som[layer].latticeData.finalIter = 120000;
+    latticeData.iter = 0;
+    latticeData.finalIter = 120000;
 
-    som[layer].latticeData.learningRate = 0.005;
-    som[layer].latticeData.initLearningRate = 0.005;
+    latticeData.learningRate = 0.005;
+    latticeData.initLearningRate = 0.005;
 
-    som[layer].latticeData.radius = som[layer].latticeData.width/2.0;
-    som[layer].latticeData.initRadius = som[layer].latticeData.width/2.0;
+    latticeData.radius = som[layer].latticeData.width/2.0;
+    latticeData.initRadius = som[layer].latticeData.width/2.0;
 
-    som[layer].latticeData.type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
-    som[layer].latticeData.typeNum[0] = 1;
-    som[layer].latticeData.typeNum[1] = 1;
-    som[layer].latticeData.typeNum[2] = 1;
-    som[layer].latticeData.typeNum[3] = 6;
+    latticeData.type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
+    latticeData.typeNum[0] = 1;
+    latticeData.typeNum[1] = 1;
+    latticeData.typeNum[2] = 1;
+    latticeData.typeNum[3] = 6;
 }
 void som_cls::SOM_IterateOnce()
 {

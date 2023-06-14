@@ -65,7 +65,7 @@ bool RAWmodel_cls::LoadINFfile(const char* infFileName){
         std::cout << "Failed to set sample type" << std::endl;
         return false;;
     }
-    // std::cout << infdata.sampleType << std::endl;
+    std::cout << infdata.sampleType << std::endl;
 
     fgets(buffer, sizeof(buffer), file);//voxel-size=XXX:XXX:XXX
     sscanf(buffer, "voxel-size=%f:%f:%f", &infdata.voxelSize[0], &infdata.voxelSize[1], &infdata.voxelSize[2]);
@@ -99,7 +99,6 @@ void RAWmodel_cls::CreateRawData(){
     }else if(infdata.type == 2){
         d_voxelData = (double*)malloc(sizeof(double)* rawSize);
     }
-
     rawData = (RawData_t***)malloc(sizeof(RawData_t**) * infdata.resolution[2]);
     for(int i = 0; i < infdata.resolution[2]; i++){
         rawData[i] = (RawData_t**)malloc(sizeof(RawData_t*) * infdata.resolution[1]);
@@ -199,7 +198,6 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 void RAWmodel_cls::SetVoxelData(){
 
     GiveSpaceLocate();
-
     if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
         for(short int z = 0, x = 1,y = 1; z < infdata.resolution[0]; z++){
             FindOutterLayer(x, y, z);
@@ -214,7 +212,6 @@ void RAWmodel_cls::SetVoxelData(){
         }
     }
 
-    bool inner = false, allinair = true, exist0 = true;
     for(int y = 1; y < infdata.resolution[2]-1; y++){
         for(int x = 1; x < infdata.resolution[1]-1; x++){
 
@@ -230,13 +227,13 @@ void RAWmodel_cls::SetVoxelData(){
                     findSurfaceVoxel(y, x, z, voxelModel.innerVoxel.size()-1, 0, 1);
                 }
                 // som voxel type = 2
-                for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+                for(int layern = 0; layern < voxelModel.somChioceLayerNum; layern++){
 
-                    if(rawData[y][x][z].layer == voxelModel.somInitLayer+layer){
-                        voxelModel.somVoxel[layer][voxelModel.num[layer]].locate = {x, y, z};
-                        setMaxbounder(x, y, z, layer);
-                        findSurfaceVoxel(y,x,z, voxelModel.num[layer], layer, 2);
-                        voxelModel.num[layer]++;
+                    if(rawData[y][x][z].layer == voxelModel.somInitLayer+layern){
+                        voxelModel.somVoxel[layern][voxelModel.num[layern]].locate = {x, y, z};
+                        setMaxbounder(x, y, z, layern);
+                        findSurfaceVoxel(y,x,z, voxelModel.num[layern], layern, 2);
+                        voxelModel.num[layern]++;
                     }
                 }
             }

@@ -51,8 +51,8 @@ public:
     void SOM_Again();
 
 
-private:
     LatData_t latticeData;
+private:
     InputData_t inputData;
     // glm::ivec2 bmuMove[9] = {{1, 1},{0, 1},{-1, 1},{-1, 0},{-1, -1},{0, -1},{1, -1},{1, 0},{1, 1}};
     // int ballneighber[6][4] = {{4,3,2,1},{4,0,2,5},{0,3,5,1},{4,0,2,5,},{0,3,5,1},{4,3,2,1}};
