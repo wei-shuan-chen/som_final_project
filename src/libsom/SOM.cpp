@@ -30,8 +30,8 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
     inputData.num = voxelNum;
 }
 void som_cls::som_init(int layer){
-    latticeData.width = 25;
-    latticeData.height = 25;
+    latticeData.width = 30;
+    latticeData.height = 30;
 
     latticeData.iter = 0;
     latticeData.finalIter = 120000;

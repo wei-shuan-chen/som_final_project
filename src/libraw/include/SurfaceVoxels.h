@@ -9,7 +9,7 @@ typedef struct UnitSurfaceVoxData_t {
     bool faceAir[6] = {false, false, false, false, false, false};
     glm::fvec3 color = {0.8, 0.0, 1.0};
     glm::fvec2 texcoord = {0.0, 0.0};
-
+    int textype = 0;
 }USVoxData_t;
 
 typedef struct SurfaceVoxModel_t {
@@ -22,8 +22,10 @@ typedef struct SurfaceVoxModel_t {
     glm::ivec3 *maxsize;
     glm::ivec3 *minsize;
 
-    int somChioceLayerNum = 3;
+    int somChioceLayerNum = 1;
     int somInitLayer = 3;
+
+    int texTypeNum = 3;
 
 }svoxModel_t;
 

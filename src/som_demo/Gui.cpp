@@ -23,34 +23,29 @@ void imgui_init(GLFWwindow *window){
 void imgui_create(){
 
 
-    const LatData_t* latticeData = som[0].Lattice_get();
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
     ImGui::Begin("SOM_3D_voxel");
-    if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
-    {
-        if (ImGui::BeginTabItem("information"))
-        {
-            ImGui::Text("iter : %d",latticeData->iter);
-            ImGui::Text("radius, %f", latticeData->radius);
-            ImGui::Text("learning_rate, %f", latticeData->learningRate);
-
+    // if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+    // {
+        // if (ImGui::BeginTabItem("information"))
+        // {
             if(ImGui::Button("Start")) {
                 startSOM = true;
                 cout << "start" << endl;
                 createThread();
             }
+
+            ImGui::SameLine();
             if(ImGui::Button("curve")){
                 drawModel.Model_mapping();
             }
-            ImGui::EndTabItem();
-        }
 
-        if (ImGui::BeginTabItem("adjustment"))
-        {
+            ImGui::SameLine();
             static int texnum = 0;
             const char* tex_types[2] = { "false", "true"};
             const char* tex_type = (texnum >= 0 && texnum < 2) ? tex_types[texnum] : "Unknown";
@@ -58,26 +53,41 @@ void imgui_create(){
             if(texnum == 0) texshow = false;
             else texshow = true;
 
-            ImGui::Text("\nsom_layer");
-
             static bool selection[8] = { true, true, true, true, true, true, true, true};
             const char* shapes[8] = { "Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6", "Layer 7"};
+            static int* tex = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
             for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
                 ImGui::Selectable(shapes[layer],&selection[layer]);
+
+                const LatData_t* latticeData = som[layer].Lattice_get();
+                if (ImGui::CollapsingHeader(shapes[layer]))
+                {
+                    // SurfaceVoxel.h    texTypeNum = 3
+                    ImGui::RadioButton("hive", &tex[layer], 0); ImGui::SameLine();
+                    ImGui::RadioButton("thin hive", &tex[layer], 1); ImGui::SameLine();
+                    ImGui::RadioButton("wb", &tex[layer], 2);
+
+                    ImGui::Text("iter : %d",latticeData->iter);
+                    ImGui::Text("radius, %f", latticeData->radius);
+                    ImGui::Text("learning_rate, %f", latticeData->learningRate);
+
+                    rawmodel.voxelModel.somVoxel[layer]->textype = tex[layer];
+                }
                 drawModel.showEachLayer[layer] = selection[layer];
             }
 
-            ImGui::EndTabItem();
-        }
+        //     ImGui::EndTabItem();
+        // }
 
-        ImGui::EndTabBar();
-    }
+        // if (ImGui::BeginTabItem("adjustment"))
+        // {
 
-    // ImGui::Combo("init lattice shape", &shape, shapes, IM_ARRAYSIZE(shapes));
+        //     ImGui::EndTabItem();
+        // }
 
-    // if(ImGui::Button("Again")){
-    //     startSOM = false;
+        // ImGui::EndTabBar();
     // }
+
 
     ImGui::End();
 }

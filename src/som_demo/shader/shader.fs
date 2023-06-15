@@ -13,7 +13,10 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform bool tex;
 uniform bool shader;
-uniform sampler2D texturemap;
+uniform int texType;
+uniform sampler2D texturemap0;
+uniform sampler2D texturemap1;
+uniform sampler2D texturemap2;
 uniform samplerCube shadowMap;
 uniform float far_plane;
 uniform float bias;
@@ -27,7 +30,6 @@ vec3 gridSamplingDisk[20] = vec3[]
    vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
    vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
 );
-
 float ShadowCalculation(vec3 fragPos)
 {
     // get vector between fragment position and light position
@@ -50,14 +52,17 @@ float ShadowCalculation(vec3 fragPos)
 
     return shadow;
 }
-
-
 // function prototypes
 void main()
 {
     if(!shader){
         if(tex){
-            FragColor = texture(texturemap, fs_in.TexCoords);
+            if(texType == 0)
+                FragColor = texture(texturemap0, fs_in.TexCoords);
+            if(texType == 1)
+                FragColor = texture(texturemap1, fs_in.TexCoords);
+            if(texType == 2)
+                FragColor = texture(texturemap2, fs_in.TexCoords);
         }else{
             FragColor = vec4(fs_in.Color, 1.0);;
         }
@@ -86,7 +91,14 @@ void main()
 
 
         if(tex){
-            vec3 texcolor = texture(texturemap, fs_in.TexCoords).rgb;
+            vec3 texcolor = vec3(1.0, 1.0, 1.0);
+            if(texType == 0)
+                texcolor = texture(texturemap0, fs_in.TexCoords).rgb;
+            if(texType == 1)
+                texcolor = texture(texturemap1, fs_in.TexCoords).rgb;
+            if(texType == 2)
+                texcolor = texture(texturemap2, fs_in.TexCoords).rgb;
+
             vec3 I = vec3(ambient + (1.0 - shadow) * (diffuse + specular))*texcolor;
             FragColor = vec4(I, 1.0);
         }else{

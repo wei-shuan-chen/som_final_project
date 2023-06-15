@@ -103,8 +103,10 @@ void model_cls::Shader_init(int n, bool settex){
     if(n == 0){
         ourShader.use();
         if(settex){
-            ourShader.setInt("texturemap", 0);
-            ourShader.setInt("shadowMap", 1);
+            ourShader.setInt("texturemap0", 0);
+            ourShader.setInt("texturemap1", 1);
+            ourShader.setInt("texturemap2", 2);
+            ourShader.setInt("shadowMap", 3);
             ourShader.setFloat("bias", 1.0);
         }
     }else if(n == 1){
@@ -149,8 +151,8 @@ void model_cls::ViewProjection_Create(int n){
 void model_cls::ourShader_model(){
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    tex.bindTexture(0,0);//texture
-    tex.bindTexture(1,1);//depthtexture
+    tex.bindTexture(2);//texture
+    tex.bindTexture(3);//depthtexture
     Model_Floor_Create(ourShader);
     Model_create(ourShader);
     Model_create_noshadow(ourShader);
@@ -162,7 +164,7 @@ void model_cls::depthShader_model(){
     glViewport(0, 0, tex.shadowTex.width, tex.shadowTex.height);
     glBindFramebuffer(GL_FRAMEBUFFER, tex.shadowTex.depthFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        tex.bindTexture(0,0);
+        tex.bindTexture(2);
         Model_create(depthShader);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -194,6 +196,10 @@ void model_cls::Model_Floor_Create(Shader shader){
 void model_cls::Model_create_noshadow(Shader shader){
     if(showLatticePlane){
         for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
+            int texType = rawmodel.voxelModel.somVoxel[layer]->textype;
+            tex.bindTexture(texType);//texture
+            shader.setInt("texType", texType);
+
             if(showEachLayer[layer]){
                 model.Push();
                 // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
@@ -212,6 +218,10 @@ void model_cls::Model_create_noshadow(Shader shader){
 
     if(showLatticeLine){
         for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
+            int texType = rawmodel.voxelModel.somVoxel[layer]->textype;
+            tex.bindTexture(texType);//texture
+            shader.setInt("texType", texType);
+
             if(showEachLayer[layer]){
                 model.Push();
                 // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
@@ -247,8 +257,8 @@ void model_cls::Model_create(Shader shader){
                     model.Push();
                     // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
                     shader.setMat4("model", model.Top());
-                    shader.setBool("tex",false);
-                    shader.setBool("shader",true);
+                    shader.setBool("tex",true);
+                    shader.setBool("shader",false);
                     glBindVertexArray(somVoxel[layer].VAO);
                     glDrawArrays(GL_TRIANGLES, 0, world.somVoxel[layer].size());
                     model.Pop();

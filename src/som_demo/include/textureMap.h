@@ -10,7 +10,11 @@
 #include "logger.h"
 
 using namespace std;
-
+enum texType{
+    HIVE,
+    THINHIVE,
+    WB
+};
 typedef struct imageTex_t{
     int width, height;
     unsigned int texture;
@@ -31,11 +35,12 @@ public:
     ~texture_cls();
     void createTexture();
     void createdepthTexture();
-    void bindTexture(int act, int bind);
-    imageTex_t imageTex;
+    void bindTexture(int bind);
+    imageTex_t imageTex[3];
     shadowTex_t shadowTex;
 private:
-    void texture1Dto2D(int nrChannels);
+    const char* texName[3] = {"texture/hive.png", "texture/stru.png", "texture/wb.png"};
+    void texture1Dto2D(int nrChannels, int t);
 };
 
 extern texture_cls tex;

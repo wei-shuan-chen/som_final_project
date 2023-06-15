@@ -255,17 +255,21 @@ void RAWmodel_cls::FindOutterLayer(short int x, short int y, short int z){
     if(rawData[y][x][z].layer != -1) rawData[y][x][z].layer *= -1;
 
 
-    if(infdata.resolution[0] < infdata.resolution[1] || infdata.resolution[0] < infdata.resolution[2]){
-        FindOutterLayer(x, y, z+1);
-        FindOutterLayer(x, y, z-1);
-    }
-    if(infdata.resolution[1] < infdata.resolution[0] || infdata.resolution[1] < infdata.resolution[2]){
+    if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
         FindOutterLayer(x+1, y, z);
         FindOutterLayer(x-1, y, z);
-    }
-    if(infdata.resolution[2] < infdata.resolution[0] || infdata.resolution[2] < infdata.resolution[1]){
         FindOutterLayer(x, y+1, z);
         FindOutterLayer(x, y-1, z);
+    }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
+        FindOutterLayer(x, y, z+1);
+        FindOutterLayer(x, y, z-1);
+        FindOutterLayer(x, y+1, z);
+        FindOutterLayer(x, y-1, z);
+    }else{
+        FindOutterLayer(x, y, z+1);
+        FindOutterLayer(x, y, z-1);
+        FindOutterLayer(x+1, y, z);
+        FindOutterLayer(x-1, y, z);
     }
 
 }
@@ -285,6 +289,7 @@ void RAWmodel_cls::GiveSpaceLocate(){
             voxelModel.somVoxel[layer][j].color = {0.8, 1.0, 0.0};
             voxelModel.somVoxel[layer][j].locate = {0.0, 0.0, 0.0};
             voxelModel.somVoxel[layer][j].texcoord = {0.0, 0.0};
+            voxelModel.somVoxel[layer][j].textype = 0;
         }
 
     }
