@@ -47,9 +47,9 @@ public:
 
     LatData_t* Lattice_get();
     void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, int layer);
+    void SOM_New_Lattice( glm::ivec3 max, glm::ivec3 min, int type);
     void SOM_IterateOnce();
     void SOM_Again();
-
 
     LatData_t latticeData;
 private:

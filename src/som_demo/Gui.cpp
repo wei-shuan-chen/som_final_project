@@ -56,6 +56,7 @@ void imgui_create(){
             static bool selection[8] = { true, true, true, true, true, true, true, true};
             const char* shapes[8] = { "Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6", "Layer 7"};
             static int* tex = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
+            static int* lat = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
             for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
                 ImGui::Selectable(shapes[layer],&selection[layer]);
 
@@ -63,16 +64,26 @@ void imgui_create(){
                 if (ImGui::CollapsingHeader(shapes[layer]))
                 {
                     // SurfaceVoxel.h    texTypeNum = 3
+                    ImGui::Text("texture");
                     ImGui::RadioButton("hive", &tex[layer], 0); ImGui::SameLine();
-                    ImGui::RadioButton("thin hive", &tex[layer], 1); ImGui::SameLine();
+                    ImGui::RadioButton("small hive", &tex[layer], 1); ImGui::SameLine();
                     ImGui::RadioButton("wb", &tex[layer], 2);
+
+                    ImGui::Text("lattice");
+                    ImGui::RadioButton("plane", &lat[layer], 0); ImGui::SameLine();
+                    ImGui::RadioButton("cylinder", &lat[layer], 1); ImGui::SameLine();
+                    ImGui::RadioButton("donut", &lat[layer], 2); ImGui::SameLine();
+                    ImGui::RadioButton("ball", &lat[layer], 3);
 
                     ImGui::Text("iter : %d",latticeData->iter);
                     ImGui::Text("radius, %f", latticeData->radius);
                     ImGui::Text("learning_rate, %f", latticeData->learningRate);
 
-                    rawmodel.voxelModel.somVoxel[layer]->textype = tex[layer];
                 }
+                if(lat[layer] != som[layer].latticeData.type){
+                    drawModel.Lattice_renew(lat[layer], layer);
+                }
+                rawmodel.voxelModel.somVoxel[layer]->textype = tex[layer];
                 drawModel.showEachLayer[layer] = selection[layer];
             }
 

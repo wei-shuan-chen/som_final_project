@@ -26,12 +26,13 @@ public:
     void Shader_Create();
     void Shader_Use();
     void Model_mapping();
-
+    void Lattice_renew(int type, int layer);
 
     Camera camera;
     glm::vec3 lightPos;
     const unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
     float rate;
+
     bool showVoxel = true;
     bool showOutSomIn[3] = {true, true, true};
     bool showLatticePlane = true;

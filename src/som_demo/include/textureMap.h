@@ -39,7 +39,7 @@ public:
     imageTex_t imageTex[3];
     shadowTex_t shadowTex;
 private:
-    const char* texName[3] = {"texture/hive.png", "texture/stru.png", "texture/wb.png"};
+    const char* texName[3] = {"texture/stru.png", "texture/stru_ball.png", "texture/wb.png"};
     void texture1Dto2D(int nrChannels, int t);
 };
 

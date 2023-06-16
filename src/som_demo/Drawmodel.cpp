@@ -44,7 +44,7 @@ void model_cls::Shader_Create()
         int voxelNum = rawmodel.voxelModel.num[layer];
         glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
         glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
-        som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, 1, layer);
+        som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, 0, layer);
     }
     create_world(rawmodel.voxelModel);
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
@@ -98,6 +98,16 @@ void model_cls::Shader_Use(){
     Shader_init(1, false);
     ViewProjection_Create(1);
     lightShader_model();
+}
+void model_cls::Lattice_renew(int type, int layer){
+    int voxelNum = rawmodel.voxelModel.num[layer];
+    glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
+    glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
+    som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, type, layer);
+
+    renew_world(rawmodel.voxelModel.somChioceLayerNum);
+    lattice_line[layer].renewVBO(world.l_lattice_line[layer]);
+    lattice_plane[layer].renewVBO(world.l_lattice_plane[layer]);
 }
 void model_cls::Shader_init(int n, bool settex){
     if(n == 0){
@@ -257,8 +267,8 @@ void model_cls::Model_create(Shader shader){
                     model.Push();
                     // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
                     shader.setMat4("model", model.Top());
-                    shader.setBool("tex",true);
-                    shader.setBool("shader",false);
+                    shader.setBool("tex",false);
+                    shader.setBool("shader",true);
                     glBindVertexArray(somVoxel[layer].VAO);
                     glDrawArrays(GL_TRIANGLES, 0, world.somVoxel[layer].size());
                     model.Pop();
