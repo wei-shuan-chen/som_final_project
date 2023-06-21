@@ -173,7 +173,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 }
                 // cout << "\n";
             }
-
+        // cout << "\n\n";
         }
         return true;
     }else if(infdata.type == 2){
@@ -198,19 +198,19 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
 void RAWmodel_cls::SetVoxelData(){
 
     GiveSpaceLocate();
-    if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
-        for(short int z = 0, x = 1,y = 1; z < infdata.resolution[0]; z++){
-            FindOutterLayer(x, y, z);
-        }
-    }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
-        for(short int x = 0, z = 1,y = 1; x < infdata.resolution[1]; x++){
-            FindOutterLayer(x, y, z);
-        }
-    }else{
-        for(short int y = 0, x = 1,z = 1; y < infdata.resolution[2]; y++){
-            FindOutterLayer(x, y, z);
-        }
-    }
+    // if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
+    //     for(short int z = 0, x = 1,y = 1; z < infdata.resolution[0]; z++){
+    //         FindOutterLayer(x, y, z);
+    //     }
+    // }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
+    //     for(short int x = 0, z = 1,y = 1; x < infdata.resolution[1]; x++){
+    //         FindOutterLayer(x, y, z);
+    //     }
+    // }else{
+    //     for(short int y = 0, x = 1,z = 1; y < infdata.resolution[2]; y++){
+    //         FindOutterLayer(x, y, z);
+    //     }
+    // }
 
     for(int y = 1; y < infdata.resolution[2]-1; y++){
         for(int x = 1; x < infdata.resolution[1]-1; x++){

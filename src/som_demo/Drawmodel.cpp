@@ -7,7 +7,7 @@ bool startSOM = false;
 
 
 model_cls::model_cls(){
-    glm::vec3 lightPos = glm::vec3(50.0,50.0,50.0);
+    glm::vec3 lightPos = glm::vec3(camera.Position.x,camera.Position.x,camera.Position.x);
     Camera camera(glm::vec3(0.0f, 5.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
     somVoxel = (Item*)malloc(sizeof(Item) * layerNum);
@@ -37,14 +37,15 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
+    // rawmodel.LoadFile("raw/input/teapot_dist.inf", "raw/input/teapot_df.raw");
+    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw");
     create_mutli_som(rawmodel.voxelModel.somChioceLayerNum);
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
         int voxelNum = rawmodel.voxelModel.num[layer];
         glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
         glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
-        som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, 0, layer);
+        som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, 0);
     }
     create_world(rawmodel.voxelModel);
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
@@ -75,7 +76,7 @@ void model_cls::Modify_position(int x, int y, int z){
     // modify light
     lightPos = glm::vec3(x, y * 1.3, z * 2.0);
 }
-void model_cls::Shader_Use(){
+void model_cls::Shader_Use(GLFWwindow *window){
     // som iter
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
         const LatData_t* latticeData = som[layer].Lattice_get();
@@ -89,21 +90,17 @@ void model_cls::Shader_Use(){
     //depth shader
     ViewProjection_Create(2);
     Shader_init(2, true);
-    depthShader_model();
+    depthShader_model(window);
     //our shader
     Shader_init(0, false);
     ViewProjection_Create(0);
-    ourShader_model();
+    ourShader_model(window);
     //light shader
     Shader_init(1, false);
     ViewProjection_Create(1);
     lightShader_model();
 }
-void model_cls::Lattice_renew(int type, int layer){
-    int voxelNum = rawmodel.voxelModel.num[layer];
-    glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
-    glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
-    som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, type, layer);
+void model_cls::Lattice_renew( int layer){
 
     renew_world(rawmodel.voxelModel.somChioceLayerNum);
     lattice_line[layer].renewVBO(world.l_lattice_line[layer]);
@@ -158,7 +155,8 @@ void model_cls::ViewProjection_Create(int n){
 
     }
 }
-void model_cls::ourShader_model(){
+void model_cls::ourShader_model(GLFWwindow *window){
+    glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     tex.bindTexture(2);//texture
@@ -170,7 +168,8 @@ void model_cls::ourShader_model(){
 void model_cls::lightShader_model(){
     Model_lightCube_create(lightShader);
 }
-void model_cls::depthShader_model(){
+void model_cls::depthShader_model(GLFWwindow *window){
+    glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
     glViewport(0, 0, tex.shadowTex.width, tex.shadowTex.height);
     glBindFramebuffer(GL_FRAMEBUFFER, tex.shadowTex.depthFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -302,7 +301,8 @@ void model_cls::Model_lightCube_create(Shader shader){
 }
 void runthreadSomIter(){
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        const LatData_t* latticeData = som[layer].Lattice_get();
+        LatData_t* latticeData = som[layer].Lattice_get();
+        latticeData->iter = 0;
         while(latticeData->iter < latticeData->finalIter && startSOM){
             som[layer].SOM_IterateOnce();
         }

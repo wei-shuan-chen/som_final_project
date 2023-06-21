@@ -3,7 +3,6 @@
 void imgui_init(GLFWwindow *window);
 void imgui_create();
 void imgui_end();
-static int shape = -1;
 bool texshow = false;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
@@ -57,16 +56,19 @@ void imgui_create(){
             const char* shapes[8] = { "Layer 0", "Layer 1", "Layer 2", "Layer 3", "Layer 4", "Layer 5", "Layer 6", "Layer 7"};
             static int* tex = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
             static int* lat = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
+            static int* resolution = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
+            static int* iter = (int*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(int));
+            static float* radius = (float*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(float));
+            static float* rate = (float*)calloc(rawmodel.voxelModel.somChioceLayerNum, sizeof(float));
             for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
                 ImGui::Selectable(shapes[layer],&selection[layer]);
-
                 const LatData_t* latticeData = som[layer].Lattice_get();
                 if (ImGui::CollapsingHeader(shapes[layer]))
                 {
                     // SurfaceVoxel.h    texTypeNum = 3
                     ImGui::Text("texture");
                     ImGui::RadioButton("hive", &tex[layer], 0); ImGui::SameLine();
-                    ImGui::RadioButton("small hive", &tex[layer], 1); ImGui::SameLine();
+                    ImGui::RadioButton("pattern", &tex[layer], 1); ImGui::SameLine();
                     ImGui::RadioButton("wb", &tex[layer], 2);
 
                     ImGui::Text("lattice");
@@ -75,13 +77,36 @@ void imgui_create(){
                     ImGui::RadioButton("donut", &lat[layer], 2); ImGui::SameLine();
                     ImGui::RadioButton("ball", &lat[layer], 3);
 
-                    ImGui::Text("iter : %d",latticeData->iter);
-                    ImGui::Text("radius, %f", latticeData->radius);
-                    ImGui::Text("learning_rate, %f", latticeData->learningRate);
+                    ImGui::InputInt("input lattice size", &resolution[layer]);
+                    ImGui::Text("iter : %d",latticeData->iter); ImGui::SameLine();
+                    ImGui::InputInt("input finalIter", &iter[layer]);
+                    ImGui::Text("radius: %f", latticeData->radius); ImGui::SameLine();
+                    ImGui::InputFloat("input initRadius", &radius[layer]);
+                    ImGui::Text("learning_rate: %f", latticeData->learningRate); ImGui::SameLine();
+                    ImGui::InputFloat("input initRate", &rate[layer]);
+
 
                 }
-                if(lat[layer] != som[layer].latticeData.type){
-                    drawModel.Lattice_renew(lat[layer], layer);
+                if(resolution[layer] == 0) resolution[layer] = latticeData->width;
+                if(iter[layer] == 0) iter[layer] = latticeData->finalIter;
+                if(radius[layer] == 0) radius[layer] = latticeData->initRadius;
+                if(rate[layer] == 0) rate[layer] = latticeData->initLearningRate;
+
+
+                if(iter[layer] != latticeData->finalIter) som[layer].Lattice_iter_set(iter[layer]);
+                if(radius[layer] != latticeData->initRadius) som[layer].Lattice_radius_set(radius[layer]);
+                if(rate[layer] != latticeData->initLearningRate) som[layer].Lattice_rate_set(rate[layer]);
+                if(resolution[layer] != latticeData->width){
+                    glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
+                    glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
+                    som[layer].Lattice_resolution_set(resolution[layer], voxelMaxsize, voxelMinsize);
+                    drawModel.Lattice_renew(layer);
+                }
+                if(lat[layer] != latticeData->type){
+                    glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
+                    glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
+                    som[layer].Lattice_tex_set(lat[layer], voxelMaxsize, voxelMinsize);
+                    drawModel.Lattice_renew(layer);
                 }
                 rawmodel.voxelModel.somVoxel[layer]->textype = tex[layer];
                 drawModel.showEachLayer[layer] = selection[layer];

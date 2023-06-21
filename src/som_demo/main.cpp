@@ -26,6 +26,7 @@ void keyPressFun(GLFWwindow* window, int key, int scancode, int action, int mods
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+
 int main()
 {
 	// glfw: initialize and configure
@@ -78,11 +79,11 @@ int main()
 		lastFrame = currentFrame;
 		// input
 		processInput(window);
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		imgui_create();
 
-		drawModel.Shader_Use();
+		drawModel.Shader_Use(window);
 
 		imgui_end();
 		glfwSwapBuffers(window);
@@ -120,7 +121,12 @@ void processInput(GLFWwindow *window)
 		drawModel.camera.ProcessKeyboard(YAWUP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
 		drawModel.camera.ProcessKeyboard(YAWDOWN, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+		drawModel.camera.ProcessMouseScroll(1);
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+		drawModel.camera.ProcessMouseScroll(-1);
 
+	// drawModel.lightPos = drawModel.camera.Position;
 	// light
 	float v = drawModel.rate*deltaTime;
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)

@@ -45,20 +45,26 @@ public:
     som_cls();
     ~som_cls();
 
-    LatData_t* Lattice_get();
-    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, int layer);
-    void SOM_New_Lattice( glm::ivec3 max, glm::ivec3 min, int type);
+    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type);
     void SOM_IterateOnce();
     void SOM_Again();
 
-    LatData_t latticeData;
+    LatData_t* Lattice_get();
+
+    void Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min);
+    void Lattice_iter_set(int finalIter);
+    void Lattice_radius_set(float initradius);
+    void Lattice_rate_set(float initrate);
+    void Lattice_tex_set(int type, glm::ivec3 max, glm::ivec3 min);
+
 private:
+    LatData_t latticeData;
     InputData_t inputData;
     // glm::ivec2 bmuMove[9] = {{1, 1},{0, 1},{-1, 1},{-1, 0},{-1, -1},{0, -1},{1, -1},{1, 0},{1, 1}};
     // int ballneighber[6][4] = {{4,3,2,1},{4,0,2,5},{0,3,5,1},{4,0,2,5,},{0,3,5,1},{4,3,2,1}};
 
     // som init
-    void som_init(int layer);
+    void som_init();
     // som create
     glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min);
     glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);

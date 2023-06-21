@@ -24,13 +24,13 @@ public:
     ~model_cls();
 
     void Shader_Create();
-    void Shader_Use();
+    void Shader_Use(GLFWwindow *window);
     void Model_mapping();
-    void Lattice_renew(int type, int layer);
+    void Lattice_renew(int layer);
 
     Camera camera;
     glm::vec3 lightPos;
-    const unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
+    int SCR_WIDTH = 800, SCR_HEIGHT = 600;
     float rate;
 
     bool showVoxel = true;
@@ -51,8 +51,8 @@ private:
     void Model_create_noshadow(Shader shader);
     void Model_lightCube_create(Shader shader);
 
-    void ourShader_model();
-    void depthShader_model();
+    void ourShader_model(GLFWwindow *window);
+    void depthShader_model(GLFWwindow *window);
     void lightShader_model();
 
     MatrixStack model;

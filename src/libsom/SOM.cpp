@@ -17,10 +17,9 @@ som_cls::~som_cls(){
     destroyDataset(inputData.input, inputData.num);
 }
 
-
-void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, int layer)
+void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type)
 {
-    som_init(layer);
+    som_init();
     latticeData.type = type;
     srand(time(NULL));
     // 1. Create input dataset
@@ -29,7 +28,7 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
     latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
     inputData.num = voxelNum;
 }
-void som_cls::som_init(int layer){
+void som_cls::som_init(){
     latticeData.width = 30;
     latticeData.height = 30;
 
@@ -39,14 +38,32 @@ void som_cls::som_init(int layer){
     latticeData.learningRate = 0.005;
     latticeData.initLearningRate = 0.005;
 
-    latticeData.radius = som[layer].latticeData.width/2.0;
-    latticeData.initRadius = som[layer].latticeData.width/2.0;
+    latticeData.radius = latticeData.width/2.0;
+    latticeData.initRadius = latticeData.width/2.0;
 
     latticeData.type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
     latticeData.typeNum[0] = 1;
     latticeData.typeNum[1] = 1;
     latticeData.typeNum[2] = 1;
     latticeData.typeNum[3] = 6;
+}
+void som_cls::Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min){
+    latticeData.width = resolution;
+    latticeData.height = resolution;
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
+}
+void som_cls::Lattice_iter_set(int finalIter){
+    latticeData.finalIter = finalIter;
+}
+void som_cls::Lattice_radius_set(float initradius){
+    latticeData.initRadius = initradius;
+}
+void som_cls::Lattice_rate_set(float initrate){
+    latticeData.initLearningRate = initrate;
+}
+void som_cls::Lattice_tex_set(int type, glm::ivec3 max, glm::ivec3 min){
+    latticeData.type = type;
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
 }
 void som_cls::SOM_IterateOnce()
 {

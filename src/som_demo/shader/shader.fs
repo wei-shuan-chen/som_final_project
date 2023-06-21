@@ -70,13 +70,13 @@ void main()
     else{
 
         // ka,kd,ks   ia,id,is
-        float ka = 0.3, kd = 0.8, ks = 0.5;
-        vec3 Ia = vec3(0.3, 0.3, 0.3);
-        vec3 Id = vec3(0.8, 0.8, 0.8);
-        vec3 Is = vec3(0.8, 0.8, 0.8);
+        float ka = 0.4, kd = 0.8, ks = 0.4;
+        vec3 Ia = vec3(0.6, 0.6, 0.0);
+        vec3 Id = vec3(0.8, 0.8, 0.0);
+        vec3 Is = vec3(0.4, 0.4, 0.4);
 
         // ambient
-        vec3 ambient = ka * Id;
+        vec3 ambient = ka * Ia;
         // diffuse
         vec3 L = normalize(lightPos - fs_in.FragPos);
         vec3 N = normalize(fs_in.Normal);
