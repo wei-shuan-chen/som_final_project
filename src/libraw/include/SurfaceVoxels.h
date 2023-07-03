@@ -14,16 +14,21 @@ typedef struct UnitSurfaceVoxData_t {
 
 typedef struct SurfaceVoxModel_t {
 
+    // layer by layer
+    int somChioceLayerNum = 1;// max 8
+    int somInitLayer = 1;
+    // same layer
+    int blockNum = 1;// max 5
+    int *blockLocate;
+    char* blockOrientation;
+
     std::vector<USVoxData_t> outerVoxel;// layer 0
     std::vector<USVoxData_t> innerVoxel;// layer somInitLayer+somChioceLayerNum
 
-    USVoxData_t** somVoxel;
-    int *num;
-    glm::ivec3 *maxsize;
-    glm::ivec3 *minsize;
-
-    int somChioceLayerNum = 1;
-    int somInitLayer = 2;
+    USVoxData_t*** somVoxel;
+    int **num; // voxel num
+    glm::ivec3 **maxsize;
+    glm::ivec3 **minsize;
 
     int texTypeNum = 3;
 

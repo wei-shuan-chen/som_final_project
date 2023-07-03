@@ -2,7 +2,17 @@
 
 struct World world = {};
 
-
+glm::fvec2 compute_texture(MatrixStack tex, glm::fvec4 texCoord){
+    glm::fvec2 newTexCoord = {0.0, 0.0};
+    for(int texNum = 0; texNum < 2; texNum++){
+        float tmp = 0.0;
+        for(int t = 0; t < 4; t++){
+            tmp += tex.Top()[t][texNum]*texCoord[t];
+        }
+        newTexCoord[texNum] = tmp;
+    }
+    return newTexCoord;
+}
 
 void create_world(SurfaceVoxModel_t  voxelModel) {
     world.cube = {
@@ -183,130 +193,141 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
         }
     }
 
-    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
-        world.voxel.clear();
-        for(int i = 0; i < voxelModel.num[layer]; i++){
-            int x = voxelModel.somVoxel[layer][i].locate.x;
-            int y = voxelModel.somVoxel[layer][i].locate.y;
-            int z = voxelModel.somVoxel[layer][i].locate.z;
-            float r = voxelModel.somVoxel[layer][i].color.r;
-            float g = voxelModel.somVoxel[layer][i].color.g;
-            float b = voxelModel.somVoxel[layer][i].color.b;
 
-            float tx = voxelModel.somVoxel[layer][i].texcoord.x;
-            float ty = voxelModel.somVoxel[layer][i].texcoord.y;
+    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
+        world.d_voxel.clear();
+        for(int block = 0; block < rawmodel.voxelModel.blockNum; block++){
+            world.voxel.clear();
+            for(int i = 0;i < voxelModel.num[layer][block]; i++){
+                int x = voxelModel.somVoxel[layer][block][i].locate.x;
+                int y = voxelModel.somVoxel[layer][block][i].locate.y;
+                int z = voxelModel.somVoxel[layer][block][i].locate.z;
+                float r = (voxelModel.somVoxel[layer][block][i].color.r);
+                float g = (voxelModel.somVoxel[layer][block][i].color.g);
+                float b = (voxelModel.somVoxel[layer][block][i].color.b);
 
-            if(voxelModel.somVoxel[layer][i].faceAir[0]){//0
-                //                              position                             normal                 color
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[1]){//1
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[5]){//5
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[4]){//4
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[2]){//2
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[3]){//3
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-
-        }
-        world.somVoxel.push_back(world.voxel);
-    }
-
-    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
-        world.lattice_line.clear();
-        world.lattice_plane.clear();
-
-        const LatData_t* latticeData = som[layer].Lattice_get();
-        float r = 1.0, g = 1.0, b = 1.0;
-        float height = latticeData->height;
-        float width = latticeData->width;
-        for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
-            for (int y = 0; y < height-1; y++)
-            {
-                for (int x = 0; x < width-1; x++)
-                {
-                    float x_tex, x1_tex, y_tex, y1_tex;
-                    glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
-
-                    x_tex = (float)x/(float)(width-1);
-                    x1_tex = (float)(x+1)/(float)(width-1);
-                    y_tex = (float)y/(float)(height-1);
-                    y1_tex = (float)(y+1)/(float)(height-1);
-
-                    l_pos = latticeData->lattice[k][y][x];
-                    l_x_pos = latticeData->lattice[k][y][x+1];
-                    l_y_pos = latticeData->lattice[k][y+1][x];
-                    l_xy_pos = latticeData->lattice[k][y+1][x+1];
-                    // cout << l_pos.x << ", " << l_pos.y << ", " << l_pos.z << endl;
-
-                    // line
-                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-
-                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-
-                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-
-                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-
-                    // plane
-
-                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-
-                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-
+                float tx = voxelModel.somVoxel[layer][block][i].texcoord.x;
+                float ty = voxelModel.somVoxel[layer][block][i].texcoord.y;
+                if(voxelModel.somVoxel[layer][block][i].faceAir[0] && r >= 0.5){//0
+                                                //  position                             normal                 color
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[1] && r >= 0.5){//1
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[5] && r >= 0.5){//5
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[4] && r >= 0.5){//4
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[2] && r >= 0.5){//2
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[3] && r >= 0.5){//3
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
                 }
 
             }
+            world.d_voxel.push_back(world.voxel);
         }
 
-        world.l_lattice_line.push_back(world.lattice_line);
-        world.l_lattice_plane.push_back(world.lattice_plane);
+        world.somVoxel.push_back(world.d_voxel);
+    }
+
+    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+        world.d_lattice_line.clear();
+        world.d_lattice_plane.clear();
+        for(int block = 0; block < rawmodel.voxelModel.blockNum; block++){
+            world.lattice_line.clear();
+            world.lattice_plane.clear();
+
+            const LatData_t* latticeData = som[layer][block].Lattice_get();
+            float r = 1.0, g = 1.0, b = 1.0;
+            float height = latticeData->height;
+            float width = latticeData->width;
+            for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
+                for (int y = 0; y < height-1; y++)
+                {
+                    for (int x = 0; x < width-1; x++)
+                    {
+                        float x_tex, x1_tex, y_tex, y1_tex;
+                        glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
+
+                        x_tex = (float)x/(float)(width-1);
+                        x1_tex = (float)(x+1)/(float)(width-1);
+                        y_tex = (float)y/(float)(height-1);
+                        y1_tex = (float)(y+1)/(float)(height-1);
+
+                        l_pos = latticeData->lattice[k][y][x];
+                        l_x_pos = latticeData->lattice[k][y][x+1];
+                        l_y_pos = latticeData->lattice[k][y+1][x];
+                        l_xy_pos = latticeData->lattice[k][y+1][x+1];
+
+
+                        // line
+                        world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+
+                        world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+
+                        world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+
+                        world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+
+                        // plane
+
+                        world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+
+                        world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+
+                    }
+
+                }
+            }
+            world.d_lattice_line.push_back(world.lattice_line);
+            world.d_lattice_plane.push_back(world.lattice_plane);
+
+        }
+        world.l_lattice_line.push_back(world.d_lattice_line);
+        world.l_lattice_plane.push_back(world.d_lattice_plane);
     }
 
     world.lightcube = {
@@ -364,151 +385,176 @@ void create_world(SurfaceVoxModel_t  voxelModel) {
     };
 
 }
-void renew_voxel_color(SurfaceVoxModel_t voxelModel){
+void renew_voxel(SurfaceVoxModel_t voxelModel){
     world.somVoxel.clear();
 
-    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        world.voxel.clear();
-        for(int i = 0;i < voxelModel.num[layer]; i++){
-            int x = voxelModel.somVoxel[layer][i].locate.x;
-            int y = voxelModel.somVoxel[layer][i].locate.y;
-            int z = voxelModel.somVoxel[layer][i].locate.z;
-            float r = (voxelModel.somVoxel[layer][i].color.r)/256.0;
-            float g = (voxelModel.somVoxel[layer][i].color.g)/256.0;
-            float b = (voxelModel.somVoxel[layer][i].color.b)/256.0;
+    for(int layer = 0; layer < voxelModel.somChioceLayerNum; layer++){
+        world.d_voxel.clear();
+        for(int block = 0; block < voxelModel.blockNum; block++){
+            world.voxel.clear();
+            cout << layer << ", " << block << " : " << rawmodel.voxelModel.num[layer][block]<<endl;
+            for(int i = 0;i < voxelModel.num[layer][block]; i++){
+                int x = voxelModel.somVoxel[layer][block][i].locate.x;
+                int y = voxelModel.somVoxel[layer][block][i].locate.y;
+                int z = voxelModel.somVoxel[layer][block][i].locate.z;
+                float r = (voxelModel.somVoxel[layer][block][i].color.r);
+                float g = (voxelModel.somVoxel[layer][block][i].color.g);
+                float b = (voxelModel.somVoxel[layer][block][i].color.b);
 
-            float tx = voxelModel.somVoxel[layer][i].texcoord.x;
-            float ty = voxelModel.somVoxel[layer][i].texcoord.y;
+                float tx = voxelModel.somVoxel[layer][block][i].texcoord.x;
+                float ty = voxelModel.somVoxel[layer][block][i].texcoord.y;
 
-            if(voxelModel.somVoxel[layer][i].faceAir[0] && r >= 0.5){//0
-                //                              position                             normal                 color
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[1] && r >= 0.5){//1
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[5] && r >= 0.5){//5
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[4] && r >= 0.5){//4
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[2] && r >= 0.5){//2
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
-            if(voxelModel.somVoxel[layer][i].faceAir[3] && r >= 0.5){//3
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-                world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
-            }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[0] && r >= 0.5){//0
+                    //                              position                             normal                 color
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f,  0.0f, -1.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[1] && r >= 0.5){//1
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f,  0.0f,  1.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[5] && r >= 0.5){//5
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , { 0.0f,  1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[4] && r >= 0.5){//4
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , { 0.0f, -1.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[2] && r >= 0.5){//2
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  0.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  0.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 0.0f + x,  1.0f + y,  1.0f + z, } , {-1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
+                if(voxelModel.somVoxel[layer][block][i].faceAir[3] && r >= 0.5){//3
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  0.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  0.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                    world.voxel.push_back(Vertex{  { 1.0f + x,  1.0f + y,  1.0f + z, } , { 1.0f,  0.0f,  0.0f}, { r, g, b}, {tx, ty} });
+                }
 
+            }
+            world.d_voxel.push_back(world.voxel);
         }
-        world.somVoxel.push_back(world.voxel);
+        world.somVoxel.push_back(world.d_voxel);
 
     }
 
 }
-void renew_world(int layerNum){
+void renew_world(int layerNum, int blockNum, MatrixStack tex){
     world.l_lattice_line.clear();
     world.l_lattice_plane.clear();
+
+    tex.Save(glm::translate(tex.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
+
+
     for(int layer = 0; layer < layerNum; layer++){
-        world.lattice_line.clear();
-        world.lattice_plane.clear();
+        world.d_lattice_line.clear();
+        world.d_lattice_plane.clear();
+        for(int block = 0; block < blockNum; block++){
+            world.lattice_line.clear();
+            world.lattice_plane.clear();
 
-        const LatData_t* latticeData = som[layer].Lattice_get();
-
-        float r = 1.0, g = 1.0, b = 1.0;
-        float height = latticeData->height;
-        float width = latticeData->width;
-        for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
-            for (int y = 0; y < height-1; y++)
-            {
-                for (int x = 0; x < width-1; x++)
+            const LatData_t* latticeData = som[layer][block].Lattice_get();
+            float r = 1.0, g = 1.0, b = 1.0;
+            float height = latticeData->height;
+            float width = latticeData->width;
+            for(int k = 0; k < latticeData->typeNum[latticeData->type]; k++){
+                for (int y = 0; y < height-1; y++)
                 {
-                    float x_tex, x1_tex, y_tex, y1_tex;
-                    glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
+                    // cout << "\n";
+                    for (int x = 0; x < width-1; x++)
+                    {
+                        float x_tex, x1_tex, y_tex, y1_tex;
+                        glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
 
-                    x_tex = (float)x/(float)(width-1);
-                    x1_tex = (float)(x+1)/(float)(width-1);
-                    y_tex = (float)y/(float)(height-1);
-                    y1_tex = (float)(y+1)/(float)(height-1);
+                        x_tex = (float)x/(float)(width-1);
+                        x1_tex = (float)(x+1)/(float)(width-1);
+                        y_tex = (float)y/(float)(height-1);
+                        y1_tex = (float)(y+1)/(float)(height-1);
 
-                    l_pos = latticeData->lattice[k][y][x];
-                    l_x_pos = latticeData->lattice[k][y][x+1];
-                    l_y_pos = latticeData->lattice[k][y+1][x];
-                    l_xy_pos = latticeData->lattice[k][y+1][x+1];
+                        l_pos = latticeData->lattice[k][y][x];
+                        l_x_pos = latticeData->lattice[k][y][x+1];
+                        l_y_pos = latticeData->lattice[k][y+1][x];
+                        l_xy_pos = latticeData->lattice[k][y+1][x+1];
 
-                    // line
-                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                        glm::fvec2 texCoord = compute_texture(tex, glm::fvec4(x_tex, y_tex, 0.0, 1.0));
+                        glm::fvec2 texCoord_n = compute_texture(tex, glm::fvec4(x1_tex, y1_tex, 0.0, 1.0));
+                        x_tex = texCoord[0];
+                        y_tex = texCoord[1];
+                        x1_tex = texCoord_n[0];
+                        y1_tex = texCoord_n[1];
 
-                    world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                        // line
+                        world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
 
-                    world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
 
-                    world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                    world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
 
-                    // plane
+                        world.lattice_line.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                        world.lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
 
-                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                        // plane
 
-                    world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
-                    world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+
+                        world.lattice_plane.push_back(Vertex{ {l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y1_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x1_tex, y_tex}});
+                        world.lattice_plane.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex}});
+
+                    }
 
                 }
-
             }
-        }
+            world.d_lattice_line.push_back(world.lattice_line);
+            world.d_lattice_plane.push_back(world.lattice_plane);
 
-        world.l_lattice_line.push_back(world.lattice_line);
-        world.l_lattice_plane.push_back(world.lattice_plane);
+        }
+        world.l_lattice_line.push_back(world.d_lattice_line);
+        world.l_lattice_plane.push_back(world.d_lattice_plane);
     }
 }
 void destroy_world() {
     world.square.clear();
     world.voxel.clear();
+    world.d_voxel.clear();
     world.somVoxel.clear();
     world.innerVoxel.clear();
     world.outerVoxel.clear();
     world.lightcube.clear();
     world.cube.clear();
     world.lattice_line.clear();
+    world.d_lattice_line.clear();
     world.l_lattice_line.clear();
     world.lattice_plane.clear();
+    world.d_lattice_plane.clear();
     world.l_lattice_plane.clear();
     world.axis.clear();
 }

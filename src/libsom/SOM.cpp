@@ -3,9 +3,12 @@
 #include <iostream>
 
 #include "SOM.h"
-som_cls* som;
-void create_mutli_som(int num){
-    som = (som_cls*)malloc(sizeof(som_cls)*num);
+som_cls** som;
+void create_mutli_som(int layerNum, int blockNum){
+    som = (som_cls**)malloc(sizeof(som_cls*)*layerNum);
+    for(int layer = 0; layer < layerNum; layer++){
+        som[layer] = (som_cls*)malloc(sizeof(som_cls)*blockNum);
+    }
 }
 
 som_cls::som_cls(){}
@@ -61,10 +64,16 @@ void som_cls::Lattice_radius_set(float initradius){
 void som_cls::Lattice_rate_set(float initrate){
     latticeData.initLearningRate = initrate;
 }
-void som_cls::Lattice_tex_set(int type, glm::ivec3 max, glm::ivec3 min){
+void som_cls::Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min){
     latticeData.type = type;
     latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
 }
+void som_cls::Lattice_block_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min){
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
+    inputData.input = createInputDataset(voxelPos, voxelNum);
+    inputData.num = voxelNum;
+}
+
 void som_cls::SOM_IterateOnce()
 {
     // 1. Get one input from the dataset
@@ -99,7 +108,6 @@ void som_cls::SOM_IterateOnce()
     latticeData.iter++;
 }
 
-
 void som_cls::SOM_Again()
 {
     // destroy(lattice, width, height);
@@ -130,10 +138,9 @@ glm::fvec3 * som_cls::createInputDataset(std::vector<glm::ivec3> voxelPos, int v
 }
 glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min)
 {
-    cout << "max : " << max.x << ", " << max.y << ", " << max.z << endl;
-    cout << "min : " << min.x << ", " << min.y << ", " << min.z << endl;
+    // cout << "max : " << max.x << ", " << max.y << ", " << max.z << endl;
+    // cout << "min : " << min.x << ", " << min.y << ", " << min.z << endl;
     glm::ivec3 size = max-min;
-    cout << "size : " << size.x << ", " << size.y << ", " << size.z << endl;
     glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * 6);
     for (int j = 0; j < 6; j++)
     {
@@ -160,7 +167,6 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 max,
             }
         }
     }else if(latticeData.type == CYLINDER){
-
 
         for (int h = 0; h < height; h++)
         {

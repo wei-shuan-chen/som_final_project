@@ -8,10 +8,12 @@
 #include <cstdlib>
 #include <ctime>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Vertex.h"
 #include "RAWmodel.h"
 #include "SOM.h"
+#include "matrixStack.h"
 
 struct World {
 
@@ -21,17 +23,20 @@ struct World {
     std::vector<Vertex> outerVoxel;
     std::vector<Vertex> innerVoxel;
     std::vector<Vertex> voxel;
-    std::vector<std::vector<Vertex>> somVoxel; // voxel model
+    std::vector<std::vector<Vertex>> d_voxel;
+    std::vector<std::vector<std::vector<Vertex>>> somVoxel; // voxel model
     std::vector<Vertex> lattice_line; // lattice
-    std::vector<std::vector<Vertex>> l_lattice_line; // lattice
+    std::vector<std::vector<Vertex>> d_lattice_line; // lattice
+    std::vector<std::vector<std::vector<Vertex>>> l_lattice_line; // lattice
     std::vector<Vertex> lattice_plane; // plane of texture
-    std::vector<std::vector<Vertex>> l_lattice_plane; // plane of texture
+    std::vector<std::vector<Vertex>> d_lattice_plane; // plane of texture
+    std::vector<std::vector<std::vector<Vertex>>> l_lattice_plane; // plane of texture
     std::vector<Vertex> axis;
 };
 
 void create_world(SurfaceVoxModel_t  voxelModel);
-void renew_world(int layerNum);
-void renew_voxel_color(SurfaceVoxModel_t voxelModel);
+void renew_world(int layerNum, int blockNum, MatrixStack tex);
+void renew_voxel(SurfaceVoxModel_t voxelModel);
 void destroy_world();
 extern struct World world;
 

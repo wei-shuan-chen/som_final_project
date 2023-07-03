@@ -63,8 +63,11 @@ void main()
                 FragColor = texture(texturemap1, fs_in.TexCoords);
             if(texType == 2)
                 FragColor = texture(texturemap2, fs_in.TexCoords);
+            if(fs_in.TexCoords.x < 0.0 || fs_in.TexCoords.x > 1.0 || fs_in.TexCoords.y < 0.0 || fs_in.TexCoords.y > 1.0){
+                FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
         }else{
-            FragColor = vec4(fs_in.Color, 1.0);;
+            FragColor = vec4(fs_in.Color, 1.0);
         }
     }
     else{

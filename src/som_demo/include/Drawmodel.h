@@ -17,6 +17,11 @@
 #include "camera.h"
 #include "Gui.h"
 #include "carve.h"
+typedef struct texture_t{
+    int angle = 0;
+    glm::fvec2 translate = {0.0, 0.0};
+    glm::fvec2 scale = {0.0, 0.0};
+}texture_t;
 
 class model_cls{
 public:
@@ -26,7 +31,8 @@ public:
     void Shader_Create();
     void Shader_Use(GLFWwindow *window);
     void Model_mapping();
-    void Lattice_renew(int layer);
+    void Lattice_renew(int layer, int block);
+    void Voxel_block_renew();
 
     Camera camera;
     glm::vec3 lightPos;
@@ -37,8 +43,10 @@ public:
     bool showOutSomIn[3] = {true, true, true};
     bool showLatticePlane = true;
     bool showLatticeLine = true;
-    bool* showEachLayer;
+    bool** showEachPart;
 
+    texture_t texInfo;
+    MatrixStack texture;
 
 private:
 
@@ -68,11 +76,11 @@ private:
     Item axis;
     Item lightcube;
     Item ground;
-    Item* somVoxel;
+    Item** somVoxel;
     Item innerVoxel;
     Item outerVoxel;
-    Item* lattice_line;
-    Item* lattice_plane;
+    Item** lattice_line;
+    Item** lattice_plane;
 
     float near_plane = 0.01f, far_plane = 10000000.0f;
 };

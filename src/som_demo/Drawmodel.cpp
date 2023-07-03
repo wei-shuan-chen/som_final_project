@@ -10,14 +10,23 @@ model_cls::model_cls(){
     glm::vec3 lightPos = glm::vec3(camera.Position.x,camera.Position.x,camera.Position.x);
     Camera camera(glm::vec3(0.0f, 5.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
-    somVoxel = (Item*)malloc(sizeof(Item) * layerNum);
-    lattice_line = (Item*)malloc(sizeof(Item) * layerNum);
-    lattice_plane = (Item*)malloc(sizeof(Item) * layerNum);
-    showEachLayer = (bool*)malloc(sizeof(bool) * layerNum);
+    somVoxel = (Item**)malloc(sizeof(Item*) * layerNum);
+    lattice_line = (Item**)malloc(sizeof(Item*) * layerNum);
+    lattice_plane = (Item**)malloc(sizeof(Item*) * layerNum);
+    showEachPart = (bool**)malloc(sizeof(bool*) * layerNum);
 
+    int blockNum = rawmodel.voxelModel.blockNum;
     for(int layer = 0; layer < layerNum; layer++){
-        showEachLayer[layer] = true;
+        showEachPart[layer] = (bool*)malloc(sizeof(bool) * blockNum);
+        somVoxel[layer] = (Item*)malloc(sizeof(Item)*blockNum);
+        lattice_line[layer] = (Item*)malloc(sizeof(Item)*blockNum);
+        lattice_plane[layer] = (Item*)malloc(sizeof(Item)*blockNum);
+        for(int block = 0; block < blockNum; block++){
+            showEachPart[layer][block] = true;
+        }
     }
+    texture.Save(glm::translate(texture.Top(), glm::vec3(0.5f, 0.5f, 0.0f)));
+    texture.Push();
 }
 model_cls::~model_cls(){
     destroy_world();
@@ -28,25 +37,31 @@ model_cls::~model_cls(){
     outerVoxel.Item_del();
 
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    int blockNum = rawmodel.voxelModel.blockNum;
     for(int layer = 0; layer < layerNum; layer++){
-        somVoxel[layer].Item_del();
-        lattice_line[layer].Item_del();
-        lattice_plane[layer].Item_del();
+        for(int block = 0; block < blockNum; block++){
+            somVoxel[layer][block].Item_del();
+            lattice_line[layer][block].Item_del();
+            lattice_plane[layer][block].Item_del();
+        }
     }
 }
 
 void model_cls::Shader_Create()
 {
-    // rawmodel.LoadFile("raw/input/teapot_dist.inf", "raw/input/teapot_df.raw");
-    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw");
-    create_mutli_som(rawmodel.voxelModel.somChioceLayerNum);
+    rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
+    create_mutli_som(rawmodel.voxelModel.somChioceLayerNum, rawmodel.voxelModel.blockNum);
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        int voxelNum = rawmodel.voxelModel.num[layer];
-        glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer];
-        glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer];
-        som[layer].SOM_Create(rawmodel.Voxel_Position(layer), voxelNum, voxelMaxsize, voxelMinsize, 0);
+        for(int block = 0; block < rawmodel.voxelModel.blockNum; block++){
+            int voxelNum = rawmodel.voxelModel.num[layer][block];
+            glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
+            glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
+            som[layer][block].SOM_Create(rawmodel.Voxel_Position(layer, block), voxelNum, voxelMaxsize, voxelMinsize, 0);
+
+        }
     }
+
     create_world(rawmodel.voxelModel);
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
 
@@ -61,9 +76,12 @@ void model_cls::Shader_Create()
     outerVoxel = Item(world.outerVoxel);
     axis = Item(world.axis);
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        somVoxel[layer] = Item(world.somVoxel[layer]);
-        lattice_line[layer] = Item(world.l_lattice_line[layer]);
-        lattice_plane[layer] = Item(world.l_lattice_plane[layer]);
+        for(int block = 0; block < rawmodel.voxelModel.blockNum; block++){
+            somVoxel[layer][block] = Item(world.somVoxel[layer][block]);
+            lattice_line[layer][block] = Item(world.l_lattice_line[layer][block]);
+            lattice_plane[layer][block] = Item(world.l_lattice_plane[layer][block]);
+
+        }
     }
 	Shader_init(0, true);
 
@@ -78,13 +96,18 @@ void model_cls::Modify_position(int x, int y, int z){
 }
 void model_cls::Shader_Use(GLFWwindow *window){
     // som iter
-    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        const LatData_t* latticeData = som[layer].Lattice_get();
-        if(latticeData->iter < latticeData->finalIter && startSOM){
-            // som.SOM_IterateOnce();
-            renew_world(rawmodel.voxelModel.somChioceLayerNum);
-            lattice_line[layer].renewVBO(world.l_lattice_line[layer]);
-            lattice_plane[layer].renewVBO(world.l_lattice_plane[layer]);
+    int blockNum = rawmodel.voxelModel.blockNum;
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    for(int layer = 0; layer < layerNum; layer++){
+        for(int block = 0; block < blockNum; block++){
+            const LatData_t* latticeData = som[layer][block].Lattice_get();
+            if(latticeData->iter < latticeData->finalIter && startSOM){
+                // som.SOM_IterateOnce();
+                renew_world(layerNum, blockNum, texture);
+                lattice_line[layer][block].renewVBO(world.l_lattice_line[layer][block]);
+                lattice_plane[layer][block].renewVBO(world.l_lattice_plane[layer][block]);
+            }
+
         }
     }
     //depth shader
@@ -100,11 +123,27 @@ void model_cls::Shader_Use(GLFWwindow *window){
     ViewProjection_Create(1);
     lightShader_model();
 }
-void model_cls::Lattice_renew( int layer){
+void model_cls::Lattice_renew( int layer, int block){
+    int blockNum = rawmodel.voxelModel.blockNum;
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    renew_world(layerNum, blockNum, texture);
+    lattice_line[layer][block].renewVBO(world.l_lattice_line[layer][block]);
+    lattice_plane[layer][block].renewVBO(world.l_lattice_plane[layer][block]);
+}
+void model_cls::Voxel_block_renew(){
+    int blockNum = rawmodel.voxelModel.blockNum;
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
 
-    renew_world(rawmodel.voxelModel.somChioceLayerNum);
-    lattice_line[layer].renewVBO(world.l_lattice_line[layer]);
-    lattice_plane[layer].renewVBO(world.l_lattice_plane[layer]);
+    renew_voxel(rawmodel.voxelModel);
+    renew_world(layerNum, blockNum, texture);
+    for(int layer = 0; layer < layerNum; layer++){
+        for(int block = 0; block < blockNum; block++){
+            lattice_line[layer][block].renewVBO(world.l_lattice_line[layer][block]);
+            lattice_plane[layer][block].renewVBO(world.l_lattice_plane[layer][block]);
+            somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
+        }
+    }
+
 }
 void model_cls::Shader_init(int n, bool settex){
     if(n == 0){
@@ -203,46 +242,53 @@ void model_cls::Model_Floor_Create(Shader shader){
 
 }
 void model_cls::Model_create_noshadow(Shader shader){
+    int blockNum = rawmodel.voxelModel.blockNum;
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
     if(showLatticePlane){
-        for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-            int texType = rawmodel.voxelModel.somVoxel[layer]->textype;
-            tex.bindTexture(texType);//texture
-            shader.setInt("texType", texType);
+        for(int layer = 0; layer < layerNum; layer++){
+            for(int block = 0; block < blockNum; block++){
 
-            if(showEachLayer[layer]){
-                model.Push();
-                // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-                shader.setMat4("model", model.Top());
-                if(texshow)
-                    shader.setBool("tex", true);
-                else
-                    shader.setBool("tex", false);
-                shader.setBool("shader",false);
-                glBindVertexArray(lattice_plane[layer].VAO);
-                glDrawArrays(GL_TRIANGLES, 0, world.l_lattice_plane[layer].size());
-                model.Pop();
+                int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
+                tex.bindTexture(texType);//texture
+                shader.setInt("texType", texType);
+
+                if(showEachPart[layer][block]){
+                    model.Push();
+                    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+                    shader.setMat4("model", model.Top());
+                    if(texshow)
+                        shader.setBool("tex", true);
+                    else
+                        shader.setBool("tex", false);
+                    shader.setBool("shader",false);
+                    glBindVertexArray(lattice_plane[layer][block].VAO);
+                    glDrawArrays(GL_TRIANGLES, 0, world.l_lattice_plane[layer][block].size());
+                    model.Pop();
+                }
             }
         }
     }
 
     if(showLatticeLine){
-        for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-            int texType = rawmodel.voxelModel.somVoxel[layer]->textype;
-            tex.bindTexture(texType);//texture
-            shader.setInt("texType", texType);
+        for(int layer = 0; layer < layerNum; layer++){
+            for(int block = 0; block < blockNum; block++){
+                int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
+                tex.bindTexture(texType);//texture
+                shader.setInt("texType", texType);
 
-            if(showEachLayer[layer]){
-                model.Push();
-                // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-                shader.setMat4("model", model.Top());
-                if(texshow)
-                    shader.setBool("tex", true);
-                else
-                    shader.setBool("tex", false);
-                shader.setBool("shader",false);
-                glBindVertexArray(lattice_line[layer].VAO);
-                glDrawArrays(GL_LINES, 0, world.l_lattice_line[layer].size());
-                model.Pop();
+                if(showEachPart[layer][block]){
+                    model.Push();
+                    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+                    shader.setMat4("model", model.Top());
+                    if(texshow)
+                        shader.setBool("tex", true);
+                    else
+                        shader.setBool("tex", false);
+                    shader.setBool("shader",false);
+                    glBindVertexArray(lattice_line[layer][block].VAO);
+                    glDrawArrays(GL_LINES, 0, world.l_lattice_line[layer][block].size());
+                    model.Pop();
+                }
             }
         }
     }
@@ -261,17 +307,21 @@ void model_cls::Model_create(Shader shader){
             model.Pop();
         }
         if(showOutSomIn[1]){
-            for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-                if(showEachLayer[layer]){
-                    model.Push();
-                    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-                    shader.setMat4("model", model.Top());
-                    shader.setBool("tex",false);
-                    shader.setBool("shader",true);
-                    glBindVertexArray(somVoxel[layer].VAO);
-                    glDrawArrays(GL_TRIANGLES, 0, world.somVoxel[layer].size());
-                    model.Pop();
+            int blockNum = rawmodel.voxelModel.blockNum;
+            int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+            for(int layer = 0; layer < layerNum; layer++){
+                for(int block = 0; block < blockNum; block++){
+                    if(showEachPart[layer][block]){
+                        model.Push();
+                        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+                        shader.setMat4("model", model.Top());
+                        shader.setBool("tex",true);
+                        shader.setBool("shader",true);
+                        glBindVertexArray(somVoxel[layer][block].VAO);
+                        glDrawArrays(GL_TRIANGLES, 0, world.somVoxel[layer][block].size());
+                        model.Pop();
 
+                    }
                 }
             }
         }
@@ -300,11 +350,17 @@ void model_cls::Model_lightCube_create(Shader shader){
 
 }
 void runthreadSomIter(){
-    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        LatData_t* latticeData = som[layer].Lattice_get();
-        latticeData->iter = 0;
-        while(latticeData->iter < latticeData->finalIter && startSOM){
-            som[layer].SOM_IterateOnce();
+    int blockNum = rawmodel.voxelModel.blockNum;
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    for(int layer = 0; layer < layerNum; layer++){
+        for(int block = 0; block < blockNum; block++){
+            if(drawModel.showEachPart[layer][block]){
+                LatData_t* latticeData = som[layer][block].Lattice_get();
+                latticeData->iter = 0;
+                while(latticeData->iter < latticeData->finalIter && startSOM){
+                    som[layer][block].SOM_IterateOnce();
+                }
+            }
         }
     }
 }
@@ -317,11 +373,18 @@ void createThread(){
 }
 
 void model_cls::Model_mapping(){
-    for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
-        carve.voxel_mapping(layer);
 
-        renew_voxel_color(rawmodel.voxelModel);
-        somVoxel[layer].renewVBO(world.somVoxel[layer]);
+    int blockNum = rawmodel.voxelModel.blockNum;
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    for(int layer = 0; layer < layerNum; layer++){
+        for(int block = 0; block < blockNum; block++){
+            if(showEachPart[layer][block]){
+                carve.voxel_mapping(layer, block);
+
+                renew_voxel(rawmodel.voxelModel);
+                somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
+            }
+        }
     }
     log_info("end: model mapping\n");
 }

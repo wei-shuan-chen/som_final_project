@@ -55,7 +55,8 @@ public:
     void Lattice_iter_set(int finalIter);
     void Lattice_radius_set(float initradius);
     void Lattice_rate_set(float initrate);
-    void Lattice_tex_set(int type, glm::ivec3 max, glm::ivec3 min);
+    void Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min);
+    void Lattice_block_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min);
 
 private:
     LatData_t latticeData;
@@ -87,9 +88,9 @@ private:
     void destroyDataset(glm::fvec3 *arr, int datasteNum);
 };
 
-void create_mutli_som(int num);
+void create_mutli_som(int layer, int block);
 
-extern som_cls* som;
+extern som_cls** som;
 
 // enum Alphabet : int {
 //     A,

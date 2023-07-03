@@ -56,7 +56,8 @@ public:
 
     // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
-    std::vector<glm::ivec3> Voxel_Position(int layer);
+    void Voxel_block_set();
+    std::vector<glm::ivec3> Voxel_Position(int layer, int block);
 
 private:
     RawData_t*** rawData; // 0 air, 1 bounder, 2 inside
@@ -71,17 +72,19 @@ private:
     void GiveSpaceLocate();
     void FindOutterLayer(short int x, short int y, short int z);
 
+    void SetInitBlockLocate(const char* orient);
     void SetVoxelData();
-    void findSurfaceVoxel(int z, int y, int x, int num, int layer, int voxelType);
+    int SetBlockNum(const char* orient, int x, int y, int z);
+    void findSurfaceVoxel(int z, int y, int x, int num, int layer, int block, int voxelType);
 
     void checkComputerEndian();
-    void setMaxbounder(int i, int j, int k, int layer);
+    void setMaxbounder(int i, int j, int k, int layer, int block);
 
     BYTE* uc_voxelData;
     float* f_voxelData;
     double* d_voxelData;
 
-    int layernum = 0;
+    int layervoxelnum = 0;
 
 };
 extern RAWmodel_cls rawmodel;
