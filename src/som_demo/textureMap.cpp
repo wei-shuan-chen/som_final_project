@@ -4,7 +4,18 @@ texture_cls tex;
 
 texture_cls::texture_cls(){}
 texture_cls::~texture_cls(){}
-
+glm::fvec2 texture_cls::compute_texture(MatrixStack tex, glm::fvec4 texCoord){
+    tex.Save(glm::translate(tex.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
+    glm::fvec2 newTexCoord = {0.0, 0.0};
+    for(int texNum = 0; texNum < 2; texNum++){
+        float tmp = 0.0;
+        for(int t = 0; t < 4; t++){
+            tmp += tex.Top()[t][texNum]*texCoord[t];
+        }
+        newTexCoord[texNum] = tmp;
+    }
+    return newTexCoord;
+}
 void texture_cls::createTexture(){
     for(int t = 0; t< 3; t++){
 

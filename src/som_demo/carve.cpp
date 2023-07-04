@@ -3,10 +3,9 @@ carve_cls carve;
 carve_cls::carve_cls(){}
 carve_cls::~carve_cls(){}
 
-void carve_cls::voxel_mapping(int layer, int block){
+void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
     const LatData_t* latticeData = som[layer][block].Lattice_get();
     int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
-    cout << layer << ", " << block << " : " << rawmodel.voxelModel.num[layer][block]<<endl;
     for(int n = 0; n < rawmodel.voxelModel.num[layer][block]; n++){// voxel
         double v_x = rawmodel.voxelModel.somVoxel[layer][block][n].locate.x;
         double v_y = rawmodel.voxelModel.somVoxel[layer][block][n].locate.y;
@@ -32,15 +31,19 @@ void carve_cls::voxel_mapping(int layer, int block){
         }
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // find the color of minDist lattice
-        glm::fvec2 trueMinLatticeCoordRate = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
-        rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = trueMinLatticeCoordRate;
+        glm::fvec2 tmpCoord  = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
+        glm::fvec2 latticeTexCoord = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_texture(texture_m, glm::fvec4(tmpCoord , 0.0, 1.0));
 
-        glm::ivec2 imageRate = {(int)(trueMinLatticeCoordRate.x*(double)(tex.imageTex[texType].width-1)), (int)(trueMinLatticeCoordRate.y*(double)(tex.imageTex[texType].height-1))};
+        if(latticeTexCoord.x < 0.0 || latticeTexCoord.x > 1.0 || latticeTexCoord.y < 0.0 || latticeTexCoord.y > 1.0){
+            rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
+        }else{
+            glm::ivec2 imageRate = {(int)(latticeTexCoord.x*(double)(tex.imageTex[texType].width-1)), (int)(latticeTexCoord.y*(double)(tex.imageTex[texType].height-1))};
 
-        float r = tex.imageTex[texType].image[imageRate.y][imageRate.x].r / 256.0;
-        float g = tex.imageTex[texType].image[imageRate.y][imageRate.x].g / 256.0;
-        float b = tex.imageTex[texType].image[imageRate.y][imageRate.x].b / 256.0;
-        rawmodel.voxelModel.somVoxel[layer][block][n].color = {r,g,b};
+            float r = tex.imageTex[texType].image[imageRate.y][imageRate.x].r / 256.0;
+            float g = tex.imageTex[texType].image[imageRate.y][imageRate.x].g / 256.0;
+            float b = tex.imageTex[texType].image[imageRate.y][imageRate.x].b / 256.0;
+            rawmodel.voxelModel.somVoxel[layer][block][n].color = {r,g,b};
+        }
 
     }
 }

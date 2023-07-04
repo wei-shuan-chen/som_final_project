@@ -2,17 +2,7 @@
 
 struct World world = {};
 
-glm::fvec2 compute_texture(MatrixStack tex, glm::fvec4 texCoord){
-    glm::fvec2 newTexCoord = {0.0, 0.0};
-    for(int texNum = 0; texNum < 2; texNum++){
-        float tmp = 0.0;
-        for(int t = 0; t < 4; t++){
-            tmp += tex.Top()[t][texNum]*texCoord[t];
-        }
-        newTexCoord[texNum] = tmp;
-    }
-    return newTexCoord;
-}
+
 
 void create_world(SurfaceVoxModel_t  voxelModel) {
     world.cube = {
@@ -392,14 +382,13 @@ void renew_voxel(SurfaceVoxModel_t voxelModel){
         world.d_voxel.clear();
         for(int block = 0; block < voxelModel.blockNum; block++){
             world.voxel.clear();
-            cout << layer << ", " << block << " : " << rawmodel.voxelModel.num[layer][block]<<endl;
             for(int i = 0;i < voxelModel.num[layer][block]; i++){
                 int x = voxelModel.somVoxel[layer][block][i].locate.x;
                 int y = voxelModel.somVoxel[layer][block][i].locate.y;
                 int z = voxelModel.somVoxel[layer][block][i].locate.z;
-                float r = (voxelModel.somVoxel[layer][block][i].color.r);
-                float g = (voxelModel.somVoxel[layer][block][i].color.g);
-                float b = (voxelModel.somVoxel[layer][block][i].color.b);
+                float r = voxelModel.somVoxel[layer][block][i].color.r;
+                float g = voxelModel.somVoxel[layer][block][i].color.g;
+                float b = voxelModel.somVoxel[layer][block][i].color.b;
 
                 float tx = voxelModel.somVoxel[layer][block][i].texcoord.x;
                 float ty = voxelModel.somVoxel[layer][block][i].texcoord.y;
@@ -462,12 +451,9 @@ void renew_voxel(SurfaceVoxModel_t voxelModel){
     }
 
 }
-void renew_world(int layerNum, int blockNum, MatrixStack tex){
+void renew_world(int layerNum, int blockNum, MatrixStack texture_m){
     world.l_lattice_line.clear();
     world.l_lattice_plane.clear();
-
-    tex.Save(glm::translate(tex.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
-
 
     for(int layer = 0; layer < layerNum; layer++){
         world.d_lattice_line.clear();
@@ -499,8 +485,8 @@ void renew_world(int layerNum, int blockNum, MatrixStack tex){
                         l_y_pos = latticeData->lattice[k][y+1][x];
                         l_xy_pos = latticeData->lattice[k][y+1][x+1];
 
-                        glm::fvec2 texCoord = compute_texture(tex, glm::fvec4(x_tex, y_tex, 0.0, 1.0));
-                        glm::fvec2 texCoord_n = compute_texture(tex, glm::fvec4(x1_tex, y1_tex, 0.0, 1.0));
+                        glm::fvec2 texCoord = tex.compute_texture(texture_m, glm::fvec4(x_tex, y_tex, 0.0, 1.0));
+                        glm::fvec2 texCoord_n = tex.compute_texture(texture_m, glm::fvec4(x1_tex, y1_tex, 0.0, 1.0));
                         x_tex = texCoord[0];
                         y_tex = texCoord[1];
                         x1_tex = texCoord_n[0];

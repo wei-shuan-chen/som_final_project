@@ -13,7 +13,8 @@
 #include "Vertex.h"
 #include "RAWmodel.h"
 #include "SOM.h"
-#include "matrixStack.h"
+#include "textureMap.h"
+
 
 struct World {
 
@@ -35,7 +36,7 @@ struct World {
 };
 
 void create_world(SurfaceVoxModel_t  voxelModel);
-void renew_world(int layerNum, int blockNum, MatrixStack tex);
+void renew_world(int layerNum, int blockNum, MatrixStack texture_m);
 void renew_voxel(SurfaceVoxModel_t voxelModel);
 void destroy_world();
 extern struct World world;

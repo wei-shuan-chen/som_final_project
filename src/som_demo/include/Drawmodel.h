@@ -46,7 +46,7 @@ public:
     bool** showEachPart;
 
     texture_t texInfo;
-    MatrixStack texture;
+    MatrixStack texture_m;
 
 private:
 

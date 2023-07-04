@@ -200,11 +200,11 @@ void imgui_funcsom(){
                 drawModel.texInfo.translate = texTranslate[layer][block];
                 drawModel.texInfo.scale = texScale[layer][block];
 
-                drawModel.texture.Pop();
-                drawModel.texture.Push();
-                drawModel.texture.Save(glm::scale(drawModel.texture.Top(), glm::vec3(1.0/t_scale.x, 1.0/t_scale.y, 0.0)));
-                drawModel.texture.Save(glm::translate(drawModel.texture.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
-                drawModel.texture.Save(glm::rotate(drawModel.texture.Top(), glm::radians((float)t_angle), glm::vec3(0.0,0.0,1.0)));
+                drawModel.texture_m.Pop();
+                drawModel.texture_m.Push();
+                drawModel.texture_m.Save(glm::scale(drawModel.texture_m.Top(), glm::vec3(1.0/t_scale.x, 1.0/t_scale.y, 0.0)));
+                drawModel.texture_m.Save(glm::translate(drawModel.texture_m.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
+                drawModel.texture_m.Save(glm::rotate(drawModel.texture_m.Top(), glm::radians((float)t_angle), glm::vec3(0.0,0.0,1.0)));
 
                 drawModel.Lattice_renew(layer, block);
             }

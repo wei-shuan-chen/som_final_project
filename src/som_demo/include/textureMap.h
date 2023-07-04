@@ -6,7 +6,9 @@
 #include <cstring>
 #include <omp.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
+#include "matrixStack.h"
 #include "logger.h"
 
 using namespace std;
@@ -36,6 +38,7 @@ public:
     void createTexture();
     void createdepthTexture();
     void bindTexture(int bind);
+    glm::fvec2 compute_texture(MatrixStack tex, glm::fvec4 texCoord);
     imageTex_t imageTex[3];
     shadowTex_t shadowTex;
 private:
