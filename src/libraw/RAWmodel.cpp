@@ -358,7 +358,7 @@ void RAWmodel_cls::GiveSpaceLocate(){
             voxelModel.maxsize[layer][block] = {0, 0, 0};
             voxelModel.minsize[layer][block] = {10000, 10000, 10000};
             for(int j = 0; j < layervoxelnum; j++){
-                voxelModel.somVoxel[layer][block][j].color = {0.8, 1.0, 0.0};
+                voxelModel.somVoxel[layer][block][j].color = {1.0, 0.7, 0.9};
                 voxelModel.somVoxel[layer][block][j].locate = {0.0, 0.0, 0.0};
                 voxelModel.somVoxel[layer][block][j].texcoord = {0.0, 0.0};
                 voxelModel.somVoxel[layer][block][j].textype = 0;

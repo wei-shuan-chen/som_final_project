@@ -272,7 +272,7 @@ double som_cls::computeLearningRate()
     double finalIter_d = latticeData.finalIter;
     double initLearningRate_d = latticeData.initLearningRate;
 
-    double sigma = initLearningRate_d * exp(-1 * iter_d / finalIter_d);
+    double sigma = initLearningRate_d * exp(-1 * iter_d / (finalIter_d));
 
     return sigma;
 }

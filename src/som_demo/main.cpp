@@ -79,7 +79,8 @@ int main()
 		lastFrame = currentFrame;
 		// input
 		processInput(window);
-		glClearColor(0.1f, 0.1f, 0.6f, 1.0f);
+		glClearColor(0.55f, 0.6f, 0.7f, 1.0f);
+		// glClearColor(0.15f, 0.1f, 0.59f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		imgui_create();
 

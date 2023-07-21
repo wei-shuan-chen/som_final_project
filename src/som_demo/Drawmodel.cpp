@@ -88,8 +88,8 @@ void model_cls::Shader_Create()
 }
 void model_cls::Modify_position(int x, int y, int z){
     // modify camera
-    rate = max(max(x,y),z) / 2.0;
-    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -2.0, y / 2.0, z * 4.0), rate);
+    rate = max(max(x,y),z) / 4.0;
+    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -2.0, y / 2.0, z * 2.0), rate);
 
     // modify light
     lightPos = glm::vec3(x, y * 1.3, z * 2.0);
@@ -201,6 +201,7 @@ void model_cls::ourShader_model(GLFWwindow *window){
     tex.bindTexture(2);//texture
     tex.bindTexture(3);//depthtexture
     Model_Floor_Create(ourShader);
+
     Model_create(ourShader);
     Model_create_noshadow(ourShader);
 }
@@ -220,15 +221,15 @@ void model_cls::depthShader_model(GLFWwindow *window){
 
 void model_cls::Model_Floor_Create(Shader shader){
     // axis
-    model.Push();
-    shader.setBool("tex",false);
-    shader.setBool("shader",false);
-    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-    model.Save(glm::scale(model.Top(), glm::vec3( 20.0f, 20.0f, 20.0f)));
-    shader.setMat4("model", model.Top());
-    glBindVertexArray(axis.VAO);
-    glDrawArrays(GL_LINES, 0, world.axis.size());
-    model.Pop();
+    // model.Push();
+    // shader.setBool("tex",false);
+    // shader.setBool("shader",false);
+    // // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+    // model.Save(glm::scale(model.Top(), glm::vec3( 20.0f, 20.0f, 20.0f)));
+    // shader.setMat4("model", model.Top());
+    // glBindVertexArray(axis.VAO);
+    // glDrawArrays(GL_LINES, 0, world.axis.size());
+    // model.Pop();
     // floor
     model.Push();
     model.Save(glm::scale(model.Top(), glm::vec3( 20000.0f, 1.0f, 20000.0f)));
@@ -239,6 +240,7 @@ void model_cls::Model_Floor_Create(Shader shader){
     glBindVertexArray(ground.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     model.Pop();
+
 
 }
 void model_cls::Model_create_noshadow(Shader shader){
@@ -254,6 +256,7 @@ void model_cls::Model_create_noshadow(Shader shader){
 
                 if(showEachPart[layer][block]){
                     model.Push();
+                    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
                     // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
                     shader.setMat4("model", model.Top());
                     if(texshow)
@@ -278,6 +281,7 @@ void model_cls::Model_create_noshadow(Shader shader){
 
                 if(showEachPart[layer][block]){
                     model.Push();
+                    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
                     // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
                     shader.setMat4("model", model.Top());
                     if(texshow)
@@ -298,6 +302,7 @@ void model_cls::Model_create(Shader shader){
     if(showVoxel){
         if(showOutSomIn[0]){
             model.Push();
+            model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
             // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
             shader.setMat4("model", model.Top());
             shader.setBool("tex",false);
@@ -313,6 +318,7 @@ void model_cls::Model_create(Shader shader){
                 for(int block = 0; block < blockNum; block++){
                     if(showEachPart[layer][block]){
                         model.Push();
+                        model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
                         // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
                         shader.setMat4("model", model.Top());
                         shader.setBool("tex",false);
@@ -327,6 +333,7 @@ void model_cls::Model_create(Shader shader){
         }
         if(showOutSomIn[2]){
             model.Push();
+            model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
             // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
             shader.setMat4("model", model.Top());
             shader.setBool("tex",false);

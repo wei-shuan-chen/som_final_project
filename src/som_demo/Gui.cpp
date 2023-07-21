@@ -151,7 +151,8 @@ void imgui_funcsom(){
                 ImGui::Text("- scale");
                 ImGui::InputFloat("x ", &texScale[layer][block].x);
                 ImGui::InputFloat("y ", &texScale[layer][block].y);
-                ImGui::SliderInt("- rotate", &texRotate[layer][block], 0, 360);
+                ImGui::Text("- rotate");
+                ImGui::SliderInt("degree", &texRotate[layer][block], 0, 360);
 
                 ImGui::Text("lattice");
                 ImGui::RadioButton("plane", &lat[layer][block], 0); ImGui::SameLine();

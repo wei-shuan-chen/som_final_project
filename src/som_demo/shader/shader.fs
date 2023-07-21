@@ -74,8 +74,8 @@ void main()
 
         // ka,kd,ks   ia,id,is
         float ka = 0.4, kd = 0.8, ks = 0.4;
-        vec3 Ia = vec3(0.6, 0.6, 0.0);
-        vec3 Id = vec3(0.8, 0.8, 0.0);
+        vec3 Ia = vec3(0.6, 0.6, 0.6);
+        vec3 Id = vec3(0.8, 0.8, 0.8);
         vec3 Is = vec3(0.4, 0.4, 0.4);
 
         // ambient
