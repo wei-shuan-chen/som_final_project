@@ -49,7 +49,7 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/dist/teapot_dist.inf", "raw/dist/teapot_dist.raw");
+    rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
     create_mutli_som(rawmodel.voxelModel.somChioceLayerNum, rawmodel.voxelModel.blockNum);
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
@@ -65,13 +65,13 @@ void model_cls::Shader_Create()
     create_world(rawmodel.voxelModel);
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
 
-    ourShader = Shader("shader/shader.vs", "shader/shader.fs");
-    lightShader = Shader("shader/lightShader.vs", "shader/lightShader.fs");
+    rayShader = Shader("shader/rayShader.vs", "shader/rayShader.fs");
+    shader = Shader("shader/shader.vs", "shader/shader.fs");
     depthShader = Shader("shader/depthShader.vs", "shader/depthShader.fs", "shader/depthShader.gs");
 
     cube = Item(world.cube);
     ground = Item((world.square));
-    lightcube = Item(world.lightcube);
+    lightcube = Item(world.cube);
     innerVoxel = Item(world.innerVoxel);
     outerVoxel = Item(world.outerVoxel);
     axis = Item(world.axis);
@@ -84,6 +84,7 @@ void model_cls::Shader_Create()
         }
     }
 	Shader_init(0, true);
+	Shader_init(1, true);
 
 }
 void model_cls::Modify_position(int x, int y, int z){
@@ -117,11 +118,11 @@ void model_cls::Shader_Use(GLFWwindow *window){
     //our shader
     Shader_init(0, false);
     ViewProjection_Create(0);
-    ourShader_model(window);
+    rayShader_model(window);
     //light shader
     Shader_init(1, false);
     ViewProjection_Create(1);
-    lightShader_model();
+    shader_model();
 }
 void model_cls::Lattice_renew( int layer, int block){
     int blockNum = rawmodel.voxelModel.blockNum;
@@ -147,16 +148,18 @@ void model_cls::Voxel_block_renew(){
 }
 void model_cls::Shader_init(int n, bool settex){
     if(n == 0){
-        ourShader.use();
+        rayShader.use();
         if(settex){
-            ourShader.setInt("texturemap0", 0);
-            ourShader.setInt("texturemap1", 1);
-            ourShader.setInt("texturemap2", 2);
-            ourShader.setInt("shadowMap", 3);
-            ourShader.setFloat("bias", 1.0);
+            rayShader.setInt("shadowMap", 3);
+            rayShader.setFloat("bias", 1.0);
         }
     }else if(n == 1){
-        lightShader.use();
+        shader.use();
+        if(settex){
+            shader.setInt("texturemap0", 0);
+            shader.setInt("texturemap1", 1);
+            shader.setInt("texturemap2", 2);
+        }
     }else if(n == 2){
         depthShader.use();
         if(settex){
@@ -171,15 +174,16 @@ void model_cls::ViewProjection_Create(int n){
 
     if(n == 0){
         view.Save(camera.GetViewMatrix());
+        // projection.Save(glm::ortho(0.0f, (float)SCR_WIDTH, 0.0f, (float)SCR_HEIGHT, near_plane, far_plane));
         projection.Save(glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near_plane, far_plane));
-        ourShader.setMat4("view", view.Top());
-        ourShader.setMat4("projection", projection.Top());
-        ourShader.setVec3("viewPos", camera.Position);
-        ourShader.setVec3("lightPos", lightPos);
-        ourShader.setFloat("far_plane", far_plane);
+        rayShader.setMat4("view", view.Top());
+        rayShader.setMat4("projection", projection.Top());
+        rayShader.setVec3("viewPos", camera.Position);
+        rayShader.setVec3("lightPos", lightPos);
+        rayShader.setFloat("far_plane", far_plane);
     }else if(n == 1){
-        lightShader.setMat4("view", view.Top());
-        lightShader.setMat4("projection", projection.Top());
+        shader.setMat4("view", view.Top());
+        shader.setMat4("projection", projection.Top());
     }else if(n == 2){
         MatrixStack shadowProj;
         shadowProj.Save(glm::perspective(glm::radians(90.0f), (float)tex.shadowTex.width / (float)tex.shadowTex.height, near_plane, far_plane));
@@ -194,26 +198,24 @@ void model_cls::ViewProjection_Create(int n){
 
     }
 }
-void model_cls::ourShader_model(GLFWwindow *window){
+void model_cls::rayShader_model(GLFWwindow *window){
     glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    tex.bindTexture(2);//texture
     tex.bindTexture(3);//depthtexture
-    Model_Floor_Create(ourShader);
 
-    Model_create(ourShader);
-    Model_create_noshadow(ourShader);
+    Model_create(rayShader);
+    Model_Floor_Create(rayShader);
 }
-void model_cls::lightShader_model(){
-    Model_lightCube_create(lightShader);
+void model_cls::shader_model(){
+    Model_create_lattice_shadow(shader);
+    Model_lightCube_create(shader);
 }
 void model_cls::depthShader_model(GLFWwindow *window){
     glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
     glViewport(0, 0, tex.shadowTex.width, tex.shadowTex.height);
     glBindFramebuffer(GL_FRAMEBUFFER, tex.shadowTex.depthFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        tex.bindTexture(2);
         Model_create(depthShader);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -222,8 +224,6 @@ void model_cls::depthShader_model(GLFWwindow *window){
 void model_cls::Model_Floor_Create(Shader shader){
     // axis
     // model.Push();
-    // shader.setBool("tex",false);
-    // shader.setBool("shader",false);
     // // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
     // model.Save(glm::scale(model.Top(), glm::vec3( 20.0f, 20.0f, 20.0f)));
     // shader.setMat4("model", model.Top());
@@ -236,80 +236,51 @@ void model_cls::Model_Floor_Create(Shader shader){
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
     shader.setMat4("model", model.Top());
     shader.setBool("tex",false);
-    shader.setBool("shader",true);
     glBindVertexArray(ground.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     model.Pop();
 
-
 }
-void model_cls::Model_create_noshadow(Shader shader){
+void model_cls::Model_create_lattice_shadow(Shader shader){
+    model.Push();
+    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
+    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+    shader.setMat4("model", model.Top());
+    if(texshow) shader.setBool("tex", true);
+    else shader.setBool("tex", false);
+
     int blockNum = rawmodel.voxelModel.blockNum;
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
-    if(showLatticePlane){
-        for(int layer = 0; layer < layerNum; layer++){
-            for(int block = 0; block < blockNum; block++){
+    for(int layer = 0; layer < layerNum; layer++){
+        for(int block = 0; block < blockNum; block++){
 
-                int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
-                tex.bindTexture(texType);//texture
-                shader.setInt("texType", texType);
-
-                if(showEachPart[layer][block]){
-                    model.Push();
-                    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
-                    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-                    shader.setMat4("model", model.Top());
-                    if(texshow)
-                        shader.setBool("tex", true);
-                    else
-                        shader.setBool("tex", false);
-                    shader.setBool("shader",false);
+            int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
+            shader.setInt("texType", texType);
+            tex.bindTexture(texType);//texture
+            if(showEachPart[layer][block]){
+                if(showLatticePlane){
                     glBindVertexArray(lattice_plane[layer][block].VAO);
                     glDrawArrays(GL_TRIANGLES, 0, world.l_lattice_plane[layer][block].size());
-                    model.Pop();
                 }
-            }
-        }
-    }
-
-    if(showLatticeLine){
-        for(int layer = 0; layer < layerNum; layer++){
-            for(int block = 0; block < blockNum; block++){
-                int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
-                tex.bindTexture(texType);//texture
-                shader.setInt("texType", texType);
-
-                if(showEachPart[layer][block]){
-                    model.Push();
-                    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
-                    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-                    shader.setMat4("model", model.Top());
-                    if(texshow)
-                        shader.setBool("tex", true);
-                    else
-                        shader.setBool("tex", false);
-                    shader.setBool("shader",false);
+                if(showLatticeLine){
                     glBindVertexArray(lattice_line[layer][block].VAO);
                     glDrawArrays(GL_LINES, 0, world.l_lattice_line[layer][block].size());
-                    model.Pop();
                 }
             }
         }
     }
-
+    model.Pop();
 }
 void model_cls::Model_create(Shader shader){
+    model.Push();
+    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
+    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
     if(showVoxel){
+        shader.setMat4("model", model.Top());
+        shader.setBool("tex",false);
         if(showOutSomIn[0]){
-            model.Push();
-            model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
-            // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-            shader.setMat4("model", model.Top());
-            shader.setBool("tex",false);
-            shader.setBool("shader",true);
             glBindVertexArray(outerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.outerVoxel.size());
-            model.Pop();
         }
         if(showOutSomIn[1]){
             int blockNum = rawmodel.voxelModel.blockNum;
@@ -317,33 +288,18 @@ void model_cls::Model_create(Shader shader){
             for(int layer = 0; layer < layerNum; layer++){
                 for(int block = 0; block < blockNum; block++){
                     if(showEachPart[layer][block]){
-                        model.Push();
-                        model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
-                        // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-                        shader.setMat4("model", model.Top());
-                        shader.setBool("tex",false);
-                        shader.setBool("shader",true);
                         glBindVertexArray(somVoxel[layer][block].VAO);
                         glDrawArrays(GL_TRIANGLES, 0, world.somVoxel[layer][block].size());
-                        model.Pop();
-
                     }
                 }
             }
         }
         if(showOutSomIn[2]){
-            model.Push();
-            model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
-            // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
-            shader.setMat4("model", model.Top());
-            shader.setBool("tex",false);
-            shader.setBool("shader",true);
             glBindVertexArray(innerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.innerVoxel.size());
-            model.Pop();
         }
     }
-
+    model.Pop();
 }
 void model_cls::Model_lightCube_create(Shader shader){
 
@@ -351,6 +307,7 @@ void model_cls::Model_lightCube_create(Shader shader){
     model.Save(glm::translate(model.Top(),lightPos));
     model.Save(glm::scale(model.Top(), glm::vec3( 0.2f, 0.2f, 0.2f)));
     shader.setMat4("model", model.Top());
+    shader.setBool("tex", false);
     glBindVertexArray(lightcube.VAO);
     glDrawArrays(GL_TRIANGLES, 0, world.lightcube.size());
     model.Pop();

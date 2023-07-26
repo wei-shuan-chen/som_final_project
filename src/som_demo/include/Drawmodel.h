@@ -56,20 +56,20 @@ private:
 
     void Model_Floor_Create(Shader shader);
     void Model_create(Shader shader);
-    void Model_create_noshadow(Shader shader);
+    void Model_create_lattice_shadow(Shader shader);
     void Model_lightCube_create(Shader shader);
 
-    void ourShader_model(GLFWwindow *window);
+    void rayShader_model(GLFWwindow *window);
     void depthShader_model(GLFWwindow *window);
-    void lightShader_model();
+    void shader_model();
 
     MatrixStack model;
     MatrixStack view;
     MatrixStack projection;
     std::vector<glm::mat4> shadowTransforms;
 
-    Shader ourShader;
-    Shader lightShader;
+    Shader rayShader;
+    Shader shader;
     Shader depthShader;
 
     Item cube;

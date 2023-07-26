@@ -266,6 +266,19 @@ void RAWmodel_cls::SetVoxelData(){
                         voxelModel.num[layern][block]++;
                     }
                 }
+
+                int end = voxelModel.somInitLayer+voxelModel.somChioceLayerNum;
+                int init = voxelModel.somInitLayer;
+                if(rawData[y][x][z].layer == 0){
+                    rawData[y][x][z].layer = 255;
+                }else if(rawData[y][x][z].layer < end && rawData[y][x][z].layer >= init){
+                    int gap = rawData[y][x][z].layer - init;
+                    rawData[y][x][z].layer = 100+gap*10;
+                }else if(rawData[y][x][z].layer > 0){
+                    rawData[y][x][z].layer = 255;
+                }else{
+                    rawData[y][x][z].layer = 0;
+                }
             }
         }
     }

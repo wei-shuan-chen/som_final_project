@@ -53,6 +53,7 @@ public:
     // var
     SurfaceVoxModel_t voxelModel;
     InfData_t infdata;
+    RawData_t*** rawData; // 0 air, 255 bounder, 100~100+(somChioceLayerNum*10) inside
 
     // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
@@ -60,8 +61,7 @@ public:
     std::vector<glm::ivec3> Voxel_Position(int layer, int block);
 
 private:
-    RawData_t*** rawData; // 0 air, 1 bounder, 2 inside
-    RawData_l* head;
+    // RawData_l* head;
     bool LoadINFfile(const char* infFileName);
     bool SetSampleType(const char* type);
 

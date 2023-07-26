@@ -18,7 +18,7 @@ typedef struct SurfaceVoxModel_t {
     int somChioceLayerNum = 1;// max 8
     int somInitLayer = 1;
     // same layer
-    int blockNum = 3;// max 5
+    int blockNum = 1;// max 5
     int *blockLocate;
     char* blockOrientation;
 

@@ -46,6 +46,7 @@ void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
         }
 
     }
+
 }
 glm::fvec2 carve_cls::findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){
 
