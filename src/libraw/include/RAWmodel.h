@@ -11,7 +11,7 @@ using namespace std;
 typedef unsigned char  BYTE;
 
 typedef struct InfData_t {
-	int resolution[3];//inf size
+	glm::ivec3 resolution;//inf size
 	char sampleType[15];
 	float voxelSize[3];
 	char endian[10];

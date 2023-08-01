@@ -64,11 +64,7 @@ int main()
 	// ------------------------------------
 	imgui_init(window);
 	drawModel.Shader_Create();
-	// cout << "0" << endl;
-    tex.createTexture();
-	// cout << "0" << endl;
-	tex.createdepthTexture();
-	// cout << "0" << endl;
+    tex.create_texture();
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{

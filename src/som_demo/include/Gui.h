@@ -3,9 +3,10 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include<iostream>
+#include <iostream>
 
 #include "Drawmodel.h"
+#include "transfer_function_widget.h"
 
 using namespace std;
 

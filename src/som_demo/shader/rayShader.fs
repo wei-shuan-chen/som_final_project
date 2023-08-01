@@ -6,11 +6,17 @@ in VS_OUT{
 	vec3 Normal;
     vec3 Color;
 	vec2 TexCoords;
+    vec3 RayPos;
 } fs_in;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
+uniform vec3 modelSize;
 uniform samplerCube shadowMap;
+uniform sampler3D intensityMap;
+uniform sampler1D colorMap;
+uniform bool ray;
+
 uniform float far_plane;
 uniform float bias;
 
@@ -45,9 +51,7 @@ float ShadowCalculation(vec3 fragPos)
 
     return shadow;
 }
-// function prototypes
-void main()
-{
+vec3 phong_shade(vec3 color){
     // ka,kd,ks   ia,id,is
     float ka = 0.4, kd = 0.8, ks = 0.4;
     vec3 Ia = vec3(0.6, 0.6, 0.6);
@@ -67,7 +71,32 @@ void main()
 
     float shadow = ShadowCalculation(fs_in.FragPos);
 
-    vec3 I = vec3(ambient + (1.0 - shadow) * (diffuse + specular))*fs_in.Color.rgb;
-    FragColor = vec4(I, 1.0);
+    return vec3(ambient + (1.0 - shadow) * (diffuse + specular))*color;
+}
+// function prototypes
+void main()
+{
+    if(ray){
+        vec3 Raypos = fs_in.RayPos;
+        vec3 Raytex = Raypos/modelSize;
 
+        vec3 d = (Raypos-viewPos)/length(Raypos-viewPos);
+        float T = 0.0, deltat = 1.0;
+        vec3 color;
+
+        for(;;){
+            vec4 myColorMap = texture(colorMap, texture(intensityMap, Raytex).r);
+            vec3 myColor = phong_shade(myColorMap.rgb)*myColorMap.a;
+            color = color + (1-T)*myColor;
+            T = T + (1-T)*myColorMap.a;
+            Raypos = Raypos + deltat*d;
+            Raytex = Raypos/modelSize;
+            if(Raytex.x >= 1.0 || Raytex.x < 0.0 || Raytex.y >= 1.0 || Raytex.y < 0.0 || Raytex.z >= 1.0 || Raytex.z < 0.0) break;
+            if(T > 1.0) break;
+        }
+        FragColor = vec4(color, 1.0);
+    }else{
+        vec3 I = phong_shade(fs_in.Color.rgb);
+        FragColor = vec4(I, 1.0);
+    }
 }

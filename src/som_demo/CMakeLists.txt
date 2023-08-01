@@ -19,6 +19,7 @@ target_sources(som-demo PRIVATE
     "textureMap.cpp"
     "logger.c"
     "carve.cpp"
+    "transfer_function_widget.cc"
 )
 
 

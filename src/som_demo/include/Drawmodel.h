@@ -62,6 +62,7 @@ private:
     void rayShader_model(GLFWwindow *window);
     void depthShader_model(GLFWwindow *window);
     void shader_model();
+    glm::fvec3 vector_matrix(glm::mat4 matrix, glm::fvec4 vec);
 
     MatrixStack model;
     MatrixStack view;

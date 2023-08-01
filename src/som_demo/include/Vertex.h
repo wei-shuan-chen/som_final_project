@@ -12,14 +12,21 @@ struct Vertex{
     struct Color{
         float r, g, b;
     };
-    
+
     struct Texcoord {
         float s,t;
     };
+
+    struct Raypos
+    {
+        float x, y, z;
+    };
+
     Position position;
     Normal normal;
     Color color;
     Texcoord texcoord;
+    Raypos raypos;
 };
 
 #endif

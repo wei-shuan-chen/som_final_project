@@ -1,5 +1,6 @@
 #include "Gui.h"
 
+TransferFunctionWidget rgba(tex.colormapTex.color+1);
 void imgui_init(GLFWwindow *window);
 void imgui_create();
 void imgui_end();
@@ -12,11 +13,12 @@ void imgui_init(GLFWwindow *window){
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    ImGui::StyleColorsLight();
+    //ImGui::StyleColorsLight();
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -33,6 +35,13 @@ void imgui_create(){
     imgui_funcsom();
 
     ImGui::End();
+    ImGui::Begin("TransferFunction");
+    if (rgba.Render() || tex.colormapTex.data[0] == -1)
+    {
+        tex.updataColorMap(rgba.TransferFunction());
+    }
+    ImGui::End();
+
 }
 void imgui_funcbuttom(){
     if(ImGui::Button("Start")) {

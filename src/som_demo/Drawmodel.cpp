@@ -49,7 +49,7 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/dist/vase_dist.inf", "raw/dist/vase_dist.raw");
+    rawmodel.LoadFile("raw/input/ball21_dist.inf", "raw/input/ball21_df.raw");
     create_mutli_som(rawmodel.voxelModel.somChioceLayerNum, rawmodel.voxelModel.blockNum);
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
@@ -151,6 +151,8 @@ void model_cls::Shader_init(int n, bool settex){
         rayShader.use();
         if(settex){
             rayShader.setInt("shadowMap", 3);
+            rayShader.setInt("intensityMap", 4);
+            rayShader.setInt("colorMap", 5);
             rayShader.setFloat("bias", 1.0);
         }
     }else if(n == 1){
@@ -180,6 +182,7 @@ void model_cls::ViewProjection_Create(int n){
         rayShader.setMat4("projection", projection.Top());
         rayShader.setVec3("viewPos", camera.Position);
         rayShader.setVec3("lightPos", lightPos);
+
         rayShader.setFloat("far_plane", far_plane);
     }else if(n == 1){
         shader.setMat4("view", view.Top());
@@ -203,7 +206,8 @@ void model_cls::rayShader_model(GLFWwindow *window){
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
    	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     tex.bindTexture(3);//depthtexture
-
+    tex.bindTexture(4);
+    tex.bindTexture(5);
     Model_create(rayShader);
     Model_Floor_Create(rayShader);
 }
@@ -235,7 +239,7 @@ void model_cls::Model_Floor_Create(Shader shader){
     model.Save(glm::scale(model.Top(), glm::vec3( 20000.0f, 1.0f, 20000.0f)));
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
     shader.setMat4("model", model.Top());
-    shader.setBool("tex",false);
+    shader.setBool("ray", false);
     glBindVertexArray(ground.VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     model.Pop();
@@ -274,10 +278,12 @@ void model_cls::Model_create_lattice_shadow(Shader shader){
 void model_cls::Model_create(Shader shader){
     model.Push();
     model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
+    shader.setVec3("modelSize", vector_matrix(model.Top(), glm::fvec4(rawmodel.infdata.resolution, 1.0)));
     // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+    shader.setBool("ray", true);
+
     if(showVoxel){
         shader.setMat4("model", model.Top());
-        shader.setBool("tex",false);
         if(showOutSomIn[0]){
             glBindVertexArray(outerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.outerVoxel.size());
@@ -335,7 +341,19 @@ void createThread(){
 	t1 = thread(runthreadSomIter);
 
 }
-
+glm::fvec3 model_cls::vector_matrix(glm::mat4 matrix, glm::fvec4 vec){
+    glm::fvec4 tmp = {0.0, 0.0, 0.0, 0.0};
+    glm::fvec3 ans;
+    for(int i = 0; i < 4; i++){
+        for(int j = 0; j < 4; j++){
+            tmp[i] += matrix[j][i]*vec[j];
+        }
+    }
+    for(int i = 0; i < 3; i++){
+        ans[i] = tmp[i]/tmp[3];
+    }
+    return ans;
+}
 void model_cls::Model_mapping(){
 
     int blockNum = rawmodel.voxelModel.blockNum;

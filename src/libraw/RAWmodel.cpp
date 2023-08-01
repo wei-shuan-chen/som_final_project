@@ -133,7 +133,7 @@ bool RAWmodel_cls::LoadRAWfile(const char* rawFileName){
     else if (ferror(file))
         std::cout << "Encountered an error while reading the file!" << std::endl;
 
-    fclose(file);
+
 
     return true;
 }
@@ -143,6 +143,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
     int size = infdata.resolution[0] * infdata.resolution[1] * infdata.resolution[2];
     if(infdata.type == 0){
         fread(uc_voxelData, sizeof(BYTE),size, file);
+fclose(file);
         for(int i = 1; i < infdata.resolution[2]-1; i++){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
@@ -160,6 +161,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
         return true;
     }else if(infdata.type == 1){
         fread(f_voxelData, sizeof(float),size, file);
+        fclose(file);
         for(int i = 1; i < infdata.resolution[2]-1; i++){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
@@ -177,6 +179,7 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
         return true;
     }else if(infdata.type == 2){
         fread(d_voxelData, sizeof(double),size, file);
+        fclose(file);
         for(int i = 1; i < infdata.resolution[2]-1; i++){
             for(int j = 1; j < infdata.resolution[1]-1; j++){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
@@ -224,26 +227,26 @@ void RAWmodel_cls::Voxel_block_set(){
 void RAWmodel_cls::SetVoxelData(){
 
     GiveSpaceLocate();
-    if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
-        SetInitBlockLocate("z");
-        for(short int z = 0, x = 1,y = 1; z < infdata.resolution[0]; z++){
-            FindOutterLayer(x, y, z);
-        }
-    }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
-        SetInitBlockLocate("x");
-        for(short int x = 0, z = 1,y = 1; x < infdata.resolution[1]; x++){
-            FindOutterLayer(x, y, z);
-        }
-    }else{
-        SetInitBlockLocate("y");
-        for(short int y = 0, x = 1,z = 1; y < infdata.resolution[2]; y++){
-            FindOutterLayer(x, y, z);
-        }
-    }
+    // if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
+    //     SetInitBlockLocate("z");
+    //     for(short int z = 0, x = 1,y = 1; z < infdata.resolution[0]; z++){
+    //         FindOutterLayer(x, y, z);
+    //     }
+    // }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
+    //     SetInitBlockLocate("x");
+    //     for(short int x = 0, z = 1,y = 1; x < infdata.resolution[1]; x++){
+    //         FindOutterLayer(x, y, z);
+    //     }
+    // }else{
+    //     SetInitBlockLocate("y");
+    //     for(short int y = 0, x = 1,z = 1; y < infdata.resolution[2]; y++){
+    //         FindOutterLayer(x, y, z);
+    //     }
+    // }
 
-    for(int y = 1; y < infdata.resolution[2]-1; y++){
-        for(int x = 1; x < infdata.resolution[1]-1; x++){
-            for(int z = 1; z < infdata.resolution[0]-1; z++){
+    for(int y = 0; y < infdata.resolution[2]; y++){
+        for(int x = 0; x < infdata.resolution[1]; x++){
+            for(int z = 0; z < infdata.resolution[0]; z++){
                 // outer voxel type = 0
                 if(rawData[y][x][z].layer == 0){
                     voxelModel.outerVoxel.push_back(USVoxData_t{{x,y,z},{}});
@@ -286,12 +289,12 @@ void RAWmodel_cls::SetVoxelData(){
 int RAWmodel_cls::SetBlockNum(const char* orient, int x, int y, int z){
     int block = 0, axis;
 
-    if(!strcmp(orient, "x"))
-        axis = x;
-    if(!strcmp(orient, "y"))
-        axis = y;
-    if(!strcmp(orient, "z"))
-        axis = z;
+    // if(!strcmp(orient, "x"))
+    //     axis = x;
+    // if(!strcmp(orient, "y"))
+    //     axis = y;
+    // if(!strcmp(orient, "z"))
+    //     axis = z;
 
     for(int blockn = 1; blockn < voxelModel.blockNum; blockn++)
         if(axis >= voxelModel.blockLocate[blockn]) block++;
@@ -320,6 +323,7 @@ void RAWmodel_cls::SetInitBlockLocate(const char* orient){
 }
 void RAWmodel_cls::FindOutterLayer(short int x, short int y, short int z){
     // 先用2D 測試
+    // cout << x << " " << y << " " << z << endl;
     if(x < 0 || x >= infdata.resolution[1]) return;
     if(y < 0 || y >= infdata.resolution[2]) return;
     if(z < 0 || z >= infdata.resolution[0]) return;
