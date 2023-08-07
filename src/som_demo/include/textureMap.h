@@ -47,6 +47,7 @@ public:
     void create_texture();
     void bindTexture(int bind);
     void updataColorMap(vector<float> newdata);
+    void updateIntensityMap();
     glm::fvec2 compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord);
 
     imageTex_t imageTex[3];

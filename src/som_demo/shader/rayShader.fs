@@ -6,7 +6,7 @@ in VS_OUT{
 	vec3 Normal;
     vec3 Color;
 	vec2 TexCoords;
-    vec3 RayPos;
+    // vec3 RayPos;
 } fs_in;
 
 uniform vec3 lightPos;
@@ -51,7 +51,7 @@ float ShadowCalculation(vec3 fragPos)
 
     return shadow;
 }
-vec3 phong_shade(vec3 color){
+vec3 phong_shade(vec3 color, vec3 gradient){
     // ka,kd,ks   ia,id,is
     float ka = 0.4, kd = 0.8, ks = 0.4;
     vec3 Ia = vec3(0.6, 0.6, 0.6);
@@ -62,7 +62,7 @@ vec3 phong_shade(vec3 color){
     vec3 ambient = ka * Ia;
     // diffuse
     vec3 L = normalize(lightPos - fs_in.FragPos);
-    vec3 N = normalize(fs_in.Normal);
+    vec3 N = normalize(gradient);
     vec3 diffuse = kd * Id * max(dot(L, N), 0.0);
     // specular
     vec3 V = normalize(viewPos - fs_in.FragPos);
@@ -77,16 +77,17 @@ vec3 phong_shade(vec3 color){
 void main()
 {
     if(ray){
-        vec3 Raypos = fs_in.RayPos;
+        vec3 Raypos = fs_in.FragPos;
         vec3 Raytex = Raypos/modelSize;
 
         vec3 d = (Raypos-viewPos)/length(Raypos-viewPos);
-        float T = 0.0, deltat = 1.0;
+        float T = 0.0, deltat = .2;
         vec3 color;
 
         for(;;){
-            vec4 myColorMap = texture(colorMap, texture(intensityMap, Raytex).r);
-            vec3 myColor = phong_shade(myColorMap.rgb)*myColorMap.a;
+            vec4 myIntensityMap = texture(intensityMap, Raytex);
+            vec4 myColorMap = texture(colorMap, myIntensityMap.a);
+            vec3 myColor = phong_shade(myColorMap.rgb, myIntensityMap.rgb)*myColorMap.a;
             color = color + (1-T)*myColor;
             T = T + (1-T)*myColorMap.a;
             Raypos = Raypos + deltat*d;
@@ -94,9 +95,11 @@ void main()
             if(Raytex.x >= 1.0 || Raytex.x < 0.0 || Raytex.y >= 1.0 || Raytex.y < 0.0 || Raytex.z >= 1.0 || Raytex.z < 0.0) break;
             if(T > 1.0) break;
         }
-        FragColor = vec4(color, 1.0);
+        if(T<0.0001)
+            discard;
+        FragColor = vec4(color, T);
     }else{
-        vec3 I = phong_shade(fs_in.Color.rgb);
+        vec3 I = phong_shade(fs_in.Color.rgb, fs_in.Normal);
         FragColor = vec4(I, 1.0);
     }
 }

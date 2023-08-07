@@ -20,24 +20,24 @@ typedef struct InfData_t {
     int type; // 0 unsigned char, 1 float, 2 double
 }InfData_t;
 
-typedef struct RawData_l
-{
-    short int layer;
-    bool air = false;
-    RawData_l *p_x;
-    RawData_l *n_x;
-    RawData_l *p_y;
-    RawData_l *n_y;
-    RawData_l *p_z;
-    RawData_l *n_z;
-}RawData_l;
+// typedef struct RawData_l
+// {
+//     short int layer;
+//     bool air = false;
+//     RawData_l *p_x;
+//     RawData_l *n_x;
+//     RawData_l *p_y;
+//     RawData_l *n_y;
+//     RawData_l *p_z;
+//     RawData_l *n_z;
+// }RawData_l;
 
-typedef struct RawDataY_l
-{
-    short int y;
-    RawData_l *p_y;
-    RawData_l *n_y;
-}RawDataY_l;
+// typedef struct RawDataY_l
+// {
+//     short int y;
+//     RawData_l *p_y;
+//     RawData_l *n_y;
+// }RawDataY_l;
 
 typedef struct RawData_t
 {
@@ -51,9 +51,9 @@ public:
     RAWmodel_cls();
     ~RAWmodel_cls();
     // var
-    SurfaceVoxModel_t voxelModel;
+    svoxModel_t voxelModel;
     InfData_t infdata;
-    RawData_t*** rawData; // 0 air, 255 bounder, 100~100+(somChioceLayerNum*10) inside
+    RawData_t*** rawData; // 0 air, (255\50) bounder, 100~100+(somChioceLayerNum*10) inside
 
     // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
@@ -84,7 +84,7 @@ private:
     float* f_voxelData;
     double* d_voxelData;
 
-    int layervoxelnum = 0;
+    int* layervoxelnum = {0};
 
 };
 extern RAWmodel_cls rawmodel;

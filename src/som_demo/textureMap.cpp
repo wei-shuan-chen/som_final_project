@@ -59,17 +59,55 @@ void texture_cls::updataColorMap(vector<float> newdata){
     glBindTexture(GL_TEXTURE_1D, colormapTex.texture1D);
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, colormapTex.color+1, 0, GL_RGBA, GL_FLOAT, colormapTex.data);
 }
+void texture_cls::updateIntensityMap(){
+    for(int z = 0; z < intensityTex.z; z++){
+        for(int y = 0; y < intensityTex.y; y++){
+            for(int x = 0; x < intensityTex.x; x++){
+                int num = x*4 + y*intensityTex.x*4 + z*intensityTex.x*intensityTex.y*4;
+                intensityTex.data[num+3] = rawmodel.rawData[y][x][z].layer/255.0;
+            }
+        }
+    }
+    glBindTexture(GL_TEXTURE_3D, intensityTex.texture3D);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, intensityTex.x, intensityTex.y, intensityTex.z, 0, GL_RGBA, GL_FLOAT, intensityTex.data);
+}
 void texture_cls::create_ray_tex(){
     // init
     intensityTex.x = rawmodel.infdata.resolution[1];
     intensityTex.y = rawmodel.infdata.resolution[2];
     intensityTex.z = rawmodel.infdata.resolution[0];
-    intensityTex.data = (float*)calloc(intensityTex.x*intensityTex.y*intensityTex.z, sizeof(float));
+    intensityTex.data = (float*)calloc(intensityTex.x*intensityTex.y*intensityTex.z*4, sizeof(float));
     for(int z = 0; z < intensityTex.z; z++){
         for(int y = 0; y < intensityTex.y; y++){
             for(int x = 0; x < intensityTex.x; x++){
-                int num = x + y*intensityTex.x + z*intensityTex.x*intensityTex.y;
-                intensityTex.data[num] = rawmodel.rawData[y][x][z].layer/255.0;
+                int num = x*4 + y*intensityTex.x*4 + z*intensityTex.x*intensityTex.y*4;
+                float gx,gy,gz;
+                if(x == 0)
+                    gx = rawmodel.rawData[y][x+1][z].layer-rawmodel.rawData[y][x][z].layer;
+                else if(x == intensityTex.x-1) gx = rawmodel.rawData[y][x][z].layer - rawmodel.rawData[y][x-1][z].layer;
+                else {
+                    gx = (rawmodel.rawData[y][x+1][z].layer-rawmodel.rawData[y][x-1][z].layer)/2.0;
+                    if(rawmodel.rawData[y][x+1][z].layer == 0 || rawmodel.rawData[y][x-1][z].layer == 0) gx *=-1;
+                }
+                if(y == 0) gy = rawmodel.rawData[y+1][x][z].layer - rawmodel.rawData[y][x][z].layer;
+                else if(y == intensityTex.y-1) gy = rawmodel.rawData[y][x][z].layer - rawmodel.rawData[y-1][x][z].layer;
+                else {
+                    gy = (rawmodel.rawData[y+1][x][z].layer - rawmodel.rawData[y-1][x][z].layer)/2.0;
+                    if(rawmodel.rawData[y+1][x][z].layer == 0 || rawmodel.rawData[y-1][x][z].layer == 0) gy*=-1;
+                }
+
+                if(z == 0) gz = rawmodel.rawData[y][x][z+1].layer - rawmodel.rawData[y][x][z].layer;
+                else if(z == intensityTex.z-1) gz = rawmodel.rawData[y][x][z].layer - rawmodel.rawData[y][x][z-1].layer;
+                else {
+                    gz = (rawmodel.rawData[y][x][z+1].layer - rawmodel.rawData[y][x][z-1].layer)/2.0;
+                    if(rawmodel.rawData[y][x][z+1].layer == 0 || rawmodel.rawData[y][x][z-1].layer == 0) gz *=-1;
+                }
+
+                float dist = sqrt(gx*gx+gy*gy+gz*gz);
+                intensityTex.data[num+0] = gx/dist;
+                intensityTex.data[num+1] = gy/dist;
+                intensityTex.data[num+2] = gz/dist;
+                intensityTex.data[num+3] = rawmodel.rawData[y][x][z].layer/255.0;
             }
         }
     }
@@ -84,7 +122,7 @@ void texture_cls::create_ray_tex(){
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, intensityTex.x, intensityTex.y, intensityTex.z, 0, GL_RED, GL_FLOAT, intensityTex.data);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, intensityTex.x, intensityTex.y, intensityTex.z, 0, GL_RGBA, GL_FLOAT, intensityTex.data);
 
     glGenTextures(1, &colormapTex.texture1D);
     glBindTexture(GL_TEXTURE_1D, colormapTex.texture1D);

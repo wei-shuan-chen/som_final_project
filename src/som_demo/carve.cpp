@@ -43,10 +43,14 @@ void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
             float g = tex.imageTex[texType].image[imageRate.y][imageRate.x].g / 256.0;
             float b = tex.imageTex[texType].image[imageRate.y][imageRate.x].b / 256.0;
             rawmodel.voxelModel.somVoxel[layer][block][n].color = {r,g,b};
+
+            if(r < 0.5) {
+                glm::ivec3 rawCoord = rawmodel.voxelModel.somVoxel[layer][block][n].locate;
+                rawmodel.rawData[rawCoord.y][rawCoord.x][rawCoord.z].layer = 0;
+            }
         }
-
     }
-
+    tex.updateIntensityMap();
 }
 glm::fvec2 carve_cls::findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de){
 

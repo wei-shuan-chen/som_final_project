@@ -30,7 +30,7 @@ model_cls::model_cls(){
 }
 model_cls::~model_cls(){
     destroy_world();
-    cube.Item_del();
+    boundingbox.Item_del();
     ground.Item_del();
     lightcube.Item_del();
     innerVoxel.Item_del();
@@ -49,7 +49,7 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/input/ball21_dist.inf", "raw/input/ball21_df.raw");
+    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw");
     create_mutli_som(rawmodel.voxelModel.somChioceLayerNum, rawmodel.voxelModel.blockNum);
 
     for(int layer = 0; layer < rawmodel.voxelModel.somChioceLayerNum; layer++){
@@ -69,7 +69,7 @@ void model_cls::Shader_Create()
     shader = Shader("shader/shader.vs", "shader/shader.fs");
     depthShader = Shader("shader/depthShader.vs", "shader/depthShader.fs", "shader/depthShader.gs");
 
-    cube = Item(world.cube);
+    boundingbox = Item(world.cube);
     ground = Item((world.square));
     lightcube = Item(world.cube);
     innerVoxel = Item(world.innerVoxel);
@@ -147,6 +147,11 @@ void model_cls::Voxel_block_renew(){
 
 }
 void model_cls::Shader_init(int n, bool settex){
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    // glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     if(n == 0){
         rayShader.use();
         if(settex){
@@ -208,7 +213,7 @@ void model_cls::rayShader_model(GLFWwindow *window){
     tex.bindTexture(3);//depthtexture
     tex.bindTexture(4);
     tex.bindTexture(5);
-    Model_create(rayShader);
+    Model_bound_create(rayShader);
     Model_Floor_Create(rayShader);
 }
 void model_cls::shader_model(){
@@ -275,15 +280,29 @@ void model_cls::Model_create_lattice_shadow(Shader shader){
     }
     model.Pop();
 }
-void model_cls::Model_create(Shader shader){
+void  model_cls::Model_bound_create(Shader shader){
     model.Push();
-    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
-    shader.setVec3("modelSize", vector_matrix(model.Top(), glm::fvec4(rawmodel.infdata.resolution, 1.0)));
-    // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
+    float x_s = rawmodel.infdata.resolution[1]/2.0;
+    float y_s = rawmodel.infdata.resolution[2]/2.0;
+    float z_s = rawmodel.infdata.resolution[0]/2.0;
+    model.Save(glm::scale(model.Top(), glm::vec3(x_s, y_s, z_s)));
+    shader.setVec3("modelSize", glm::vec3(x_s, y_s, z_s));//vector_matrix(model.Top(), glm::fvec4(rawmodel.infdata.resolution, 1.0)));
     shader.setBool("ray", true);
 
     if(showVoxel){
         shader.setMat4("model", model.Top());
+        glBindVertexArray(boundingbox.VAO);
+        glDrawArrays(GL_TRIANGLES, 0, world.cube.size());
+    }
+    model.Pop();
+}
+void model_cls::Model_create(Shader shader){
+    model.Push();
+    model.Save(glm::scale(model.Top(), glm::vec3( 0.5,0.5, 0.5)));
+    shader.setVec3("modelSize", glm::vec3( 0.5,0.5, 0.5));
+    shader.setBool("ray", false);
+    shader.setMat4("model", model.Top());
+    if(showVoxel){
         if(showOutSomIn[0]){
             glBindVertexArray(outerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.outerVoxel.size());

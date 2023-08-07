@@ -56,6 +56,7 @@ private:
 
     void Model_Floor_Create(Shader shader);
     void Model_create(Shader shader);
+    void Model_bound_create(Shader shader);
     void Model_create_lattice_shadow(Shader shader);
     void Model_lightCube_create(Shader shader);
 
@@ -73,7 +74,7 @@ private:
     Shader shader;
     Shader depthShader;
 
-    Item cube;
+    Item boundingbox;
     Item axis;
     Item lightcube;
     Item ground;
