@@ -6,7 +6,7 @@ carve_cls::~carve_cls(){}
 void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
     const LatData_t* latticeData = som[layer][block].Lattice_get();
     int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
-    for(int n = 0; n < rawmodel.voxelModel.num[layer][block]; n++){// voxel
+    for(int n = 0; n < rawmodel.voxelModel.voxelnum[layer][block]; n++){// voxel
         double v_x = rawmodel.voxelModel.somVoxel[layer][block][n].locate.x;
         double v_y = rawmodel.voxelModel.somVoxel[layer][block][n].locate.y;
         double v_z = rawmodel.voxelModel.somVoxel[layer][block][n].locate.z;
@@ -31,8 +31,8 @@ void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
         }
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // find the color of minDist lattice
-        glm::fvec2 tmpCoord  = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1)};
-        glm::fvec2 latticeTexCoord = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(texture_m, glm::fvec4(tmpCoord , 0.0, 1.0));
+        glm::fvec3 tmpCoord  = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1), 0.5};
+        glm::fvec3 latticeTexCoord = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(texture_m, glm::fvec4(tmpCoord, 1.0));
 
         if(latticeTexCoord.x < 0.0 || latticeTexCoord.x > 1.0 || latticeTexCoord.y < 0.0 || latticeTexCoord.y > 1.0){
             rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
@@ -71,20 +71,20 @@ glm::fvec2 carve_cls::findMinDistPrecisePos(const LatData_t* latticeData, double
         glm::fvec3 p = voxelPos;
 
         // Project the point p onto the plane where the triangle is located
-        glm::fvec3 vector_n = glm::normalize(crossPruduct(a1-o, a2-o));
+        glm::fvec3 vector_n = glm::normalize(math.crossPruduct(a1-o, a2-o));
         glm::fvec3 vector_p = p-o;
 
         glm::fvec3 vector_d;
-        vector_d.x = (-1*innerProduct(vector_p, vector_n))*vector_n.x;
-        vector_d.y = (-1*innerProduct(vector_p, vector_n))*vector_n.y;
-        vector_d.z = (-1*innerProduct(vector_p, vector_n))*vector_n.z;
+        vector_d.x = (-1*math.innerProduct(vector_p, vector_n))*vector_n.x;
+        vector_d.y = (-1*math.innerProduct(vector_p, vector_n))*vector_n.y;
+        vector_d.z = (-1*math.innerProduct(vector_p, vector_n))*vector_n.z;
         // find projection point
         glm::fvec3 projp = p + vector_d;
 
         // ensure the point is in the triangle
-        glm::fvec3 cross1 = glm::normalize(crossPruduct(o-projp, a1-projp));
-        glm::fvec3 cross2 = glm::normalize(crossPruduct(a1-projp, a2-projp));
-        glm::fvec3 cross3 = glm::normalize(crossPruduct(a2-projp, o-projp));
+        glm::fvec3 cross1 = glm::normalize(math.crossPruduct(o-projp, a1-projp));
+        glm::fvec3 cross2 = glm::normalize(math.crossPruduct(a1-projp, a2-projp));
+        glm::fvec3 cross3 = glm::normalize(math.crossPruduct(a2-projp, o-projp));
         if(cross1.x*cross2.x < 0.0 || cross1.x*cross3.x < 0.0 || cross2.x*cross3.x < 0.0){
             // if outer triangle find close point or edgepoint
             projp = outerProjp(o, a1, a2, projp, p);
@@ -140,7 +140,7 @@ glm::fvec3 carve_cls::outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm
     // outer point close to triangle edge
     // o a1
     tmp = a1-o;
-    float ratio = innerProduct(a1-o, projp-o)/ (tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z);
+    float ratio = math.innerProduct(a1-o, projp-o)/ (tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z);
     tmp = p - ((a1-o)*ratio + o);
     tmpDist = tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z;
     if(dist > tmpDist && ratio >= 0.0 && ratio <= 1.0){
@@ -149,7 +149,7 @@ glm::fvec3 carve_cls::outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm
     }
     // o a2
     tmp = a2-o;
-    ratio = innerProduct(a2-o, projp-o)/ (tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z);
+    ratio = math.innerProduct(a2-o, projp-o)/ (tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z);
     tmp = p - ((a2-o)*ratio + o);
     tmpDist = tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z;
     if(dist > tmpDist && ratio >= 0.0 && ratio <= 1.0){
@@ -158,7 +158,7 @@ glm::fvec3 carve_cls::outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm
     }
     // a1 a2
     tmp = a2-a1;
-    ratio = innerProduct(a2-a1, projp-a1)/ (tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z);
+    ratio = math.innerProduct(a2-a1, projp-a1)/ (tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z);
     tmp = p - ((a2-a1)*ratio + a1);
     tmpDist = tmp.x*tmp.x + tmp.y*tmp.y + tmp.z*tmp.z;
     if(dist > tmpDist && ratio >= 0.0 && ratio <= 1.0){
@@ -173,22 +173,12 @@ glm::fvec3 carve_cls::pointTotriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2
 
     // compute center of gravity
     glm::fvec3 ratio;
-    float total_volume = innerProduct(crossPruduct(a1-o, a2-o),vector_n);
-    ratio[0] = innerProduct(crossPruduct(a1-projp, a2-projp),vector_n)/ total_volume;
-    ratio[1] = innerProduct(crossPruduct(a2-projp, o-projp),vector_n)/ total_volume;
+    float total_volume = math.innerProduct(math.crossPruduct(a1-o, a2-o),vector_n);
+    ratio[0] = math.innerProduct(math.crossPruduct(a1-projp, a2-projp),vector_n)/ total_volume;
+    ratio[1] = math.innerProduct(math.crossPruduct(a2-projp, o-projp),vector_n)/ total_volume;
     ratio[2] = 1.0 - ratio[1] - ratio[0];
 
     return ratio;
 }
 
-glm::fvec3 carve_cls::crossPruduct(glm::fvec3 a, glm::fvec3 b){
-    glm::fvec3 c;
-    c.x = a.y*b.z - a.z*b.y;
-    c.y = -1*(a.x*b.z - a.z*b.x);
-    c.z = a.x*b.y - a.y*b.x;
 
-    return c;
-}
-float carve_cls::innerProduct(glm::fvec3 a, glm::fvec3 b){
-    return ((a.x*b.x) + (a.y*b.y) + (a.z*b.z));
-}

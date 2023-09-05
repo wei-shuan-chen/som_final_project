@@ -12,14 +12,16 @@ enum latType{
     PLANE,
     CYLINDER,
     DONUT,
-    BALL
+    BALL,
+    THREED
 };
 
 typedef struct LatData_t {
     glm::fvec3*** lattice; // [5][h][w]
 
-    int width = 25;
-    int height = 25;
+    int width;
+    int height;
+    int depth;
 
     int iter = 0;
     int finalIter = 120000;
@@ -30,8 +32,8 @@ typedef struct LatData_t {
     double radius = width/2.0;
     double initRadius = width/2.0;
 
-    int type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball
-    int typeNum[4] = {1,1,1,6};
+    int type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball, 4 3Dlattice
+    int typeNum[5] = {1,1,1,6,10};
 }LatData_t;
 
 typedef struct InputData_t {
@@ -47,7 +49,7 @@ public:
 
     void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type);
     void SOM_IterateOnce();
-    void SOM_Again();
+    void SOM_End();
 
     LatData_t* Lattice_get();
 
@@ -56,7 +58,7 @@ public:
     void Lattice_radius_set(float initradius);
     void Lattice_rate_set(float initrate);
     void Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min);
-    void Lattice_block_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min);
+    void Lattice_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min);
 
 private:
     LatData_t latticeData;
@@ -67,7 +69,7 @@ private:
     // som init
     void som_init();
     // som create
-    glm::fvec3 ***createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min);
+    glm::fvec3 ***createLatticeData(int width, int height, int depth, glm::ivec3 max, glm::ivec3 min);
     glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);
     // som iterate
     double computeLearningRate();
@@ -84,13 +86,14 @@ private:
     glm::ivec3 computeHalfballDist(glm::ivec3 p0);
     bool isInradiushood(double squaredDist, double radius);
     // ~som_cls
-    void destroy(glm::fvec3 ***arr, int width, int height);
+    void destroy(glm::fvec3 ***arr, int width, int height, int depth);
     void destroyDataset(glm::fvec3 *arr, int datasteNum);
 };
 
 void create_mutli_som(int layer, int block);
 
 extern som_cls** som;
+extern som_cls psom;
 
 // enum Alphabet : int {
 //     A,

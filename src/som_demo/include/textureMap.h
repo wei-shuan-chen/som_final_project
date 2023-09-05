@@ -40,6 +40,12 @@ typedef struct colormapTex_t
     float *data;
 }colormapTex_t;
 
+typedef struct threeDTex_t{
+    int width = 10, height = 10, depth = 10;
+    unsigned int texture;
+    float *data;
+}threeDTex_t;
+
 class texture_cls{
 public:
     texture_cls();
@@ -48,15 +54,17 @@ public:
     void bindTexture(int bind);
     void updataColorMap(vector<float> newdata);
     void updateIntensityMap();
-    glm::fvec2 compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord);
+    glm::fvec3 compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord);
 
     imageTex_t imageTex[3];
+    threeDTex_t threeDTex;
     shadowTex_t shadowTex;
     intensityTex_t intensityTex;
     colormapTex_t colormapTex;
 
 private:
     void create_img_tex();
+    void create_3D_tex();
     void create_depth_tex();
     void create_ray_tex();
     const char* texName[3] = {"texture/stru.png", "texture/pattern.png", "texture/wwb.png"};

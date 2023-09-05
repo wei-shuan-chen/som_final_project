@@ -20,6 +20,7 @@ target_sources(som-demo PRIVATE
     "logger.c"
     "carve.cpp"
     "transfer_function_widget.cc"
+    "Math.cpp"
 )
 
 

@@ -6,7 +6,9 @@ void imgui_create();
 void imgui_end();
 void imgui_funcbuttom();
 void imgui_funcsom();
+void imgui_funcpsom();
 bool texshow = false;
+int som_psom = 0;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
@@ -32,7 +34,12 @@ void imgui_create(){
     ImGui::ShowDemoWindow();
     ImGui::Begin("SOM_3D_voxel");
     imgui_funcbuttom();
-    imgui_funcsom();
+    if(som_psom == SHOWSOM){
+        imgui_funcsom();
+    }
+    if(som_psom == SHOWPSOM){
+        imgui_funcpsom();
+    }
 
     ImGui::End();
     ImGui::Begin("TransferFunction");
@@ -45,9 +52,11 @@ void imgui_create(){
 }
 void imgui_funcbuttom(){
     if(ImGui::Button("Start")) {
-        startSOM = true;
-        cout << "start" << endl;
-        createThread();
+        // if(som_psom == SOM ||(som_psom == PSOM && rawmodel.voxelModel.psomVoxel.size() >= 0)){
+            startSOM = true;
+            cout << "start" << endl;
+            createThread();
+        // }
     }
 
     ImGui::SameLine();
@@ -63,9 +72,69 @@ void imgui_funcbuttom(){
     if(texnum == 0) texshow = false;
     else texshow = true;
 
-    static int* blocker = (int*)calloc(rawmodel.voxelModel.blockNum, sizeof(int));
+    static int somnum = SHOWSOM;
+    const char* som_types[2] = { "som", "psom"};
+    const char* som_type = (somnum >= 0 && somnum < 2) ? som_types[somnum] : "Unknown";
+    ImGui::SliderInt("som / psom", &somnum, 0, 1, som_type);
+    if(somnum == SHOWSOM) som_psom = SHOWSOM;
+    else som_psom = SHOWPSOM;
+
+
+}
+void imgui_funcpsom(){
+    const LatData_t* latticeData = psom.Lattice_get();
+    ImGui::Text("iter : %d",latticeData->iter);
+    ImGui::Text("radius: %f", latticeData->radius);
+    ImGui::Text("learning_rate: %f", latticeData->learningRate);
+
+
+
+    static glm::mat3x3 m_psomAxis = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    static glm::vec3 m_psomTranslate = {0.0,0.0,0.0};
+    static float x_axis[3] = {1.0f, 0.0f, 0.0f};
+    static float y_axis[3] = {0.0f, 1.0f, 0.0f};
+    static float z_axis[3] = {0.0f, 0.0f, 1.0f};
+    static float f_translate[3] = {50.0f, 100.0f, 100.0f};
+    static float f_scale[3] = {100.0f, 100.0f, 100.0f};
+    ImGui::Text("axis");
+    ImGui::InputFloat3("x_axis", x_axis);
+    ImGui::InputFloat3("y_axis", y_axis);
+    ImGui::InputFloat3("z_axis", z_axis);
+    ImGui::InputFloat3("translate", f_translate);
+    ImGui::InputFloat3("scale", f_scale);
+
+    glm::mat3x3 m_tmp = { x_axis[0]*f_scale[0], y_axis[0]*f_scale[1], z_axis[0]*f_scale[2],
+                          x_axis[1]*f_scale[0], y_axis[1]*f_scale[1], z_axis[1]*f_scale[2],
+                          x_axis[2]*f_scale[0], y_axis[2]*f_scale[1], z_axis[2]*f_scale[2] };
+    bool c[2] = {false, false};
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            if(m_psomAxis[i][j] != m_tmp[i][j]){
+                c[0] = true;
+                m_psomAxis[i][j] = m_tmp[i][j];
+            }
+        }
+        if(m_psomTranslate[i] != f_translate[i]){
+            c[1] = true;
+            m_psomTranslate[i] = f_translate[i];
+        }
+    }
+    if(c[1] || c[0]){
+        m_tmp = math.inverseMatrix(m_psomAxis);
+        bool renew = rawmodel.choice_psomvoxel(m_tmp, m_psomTranslate);
+        drawModel.psom_axis_renew(m_psomAxis, m_psomTranslate);
+        if(renew) {
+            psom.Lattice_set(rawmodel.pVoxel_Position(),rawmodel.pvoxelModel.psomVoxel.size(),rawmodel.pvoxelModel.maxsize ,rawmodel.pvoxelModel.minsize);
+            drawModel.pVoxel_renew();
+        }
+    }
+}
+void imgui_funcsom(){
+    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+    int blockNum = rawmodel.voxelModel.blockNum;
+    static int* blocker = (int*)calloc(blockNum, sizeof(int));
     const char* blockerNum[5] = {"block0", "block1", "block2", "block3", "block4"};
-    for(int b = 1; b < rawmodel.voxelModel.blockNum; b++){
+    for(int b = 1; b < blockNum; b++){
         if(blocker[b] == 0) blocker[b] = rawmodel.voxelModel.blockLocate[b];
         int left, right;
         left = rawmodel.voxelModel.blockLocate[b-1];
@@ -74,25 +143,19 @@ void imgui_funcbuttom(){
         ImGui::SliderInt(blockerNum[b], &blocker[b], left, right);
         if(blocker[b] != rawmodel.voxelModel.blockLocate[b]) {
             rawmodel.voxelModel.blockLocate[b] = blocker[b];
-            rawmodel.Voxel_block_set();
-            int blockNum = rawmodel.voxelModel.blockNum;
-            int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+            rawmodel.Voxel_block_set(SHOWSOM);
             for(int layer = 0; layer < layerNum; layer++){
                 for(int block = 0; block < blockNum; block++){
-                    int voxelNum = rawmodel.voxelModel.num[layer][block];
+                    int voxelNum = rawmodel.voxelModel.voxelnum[layer][block];
                     glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
                     glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
-                    som[layer][block].Lattice_block_set(rawmodel.Voxel_Position(layer, block), voxelNum, voxelMaxsize, voxelMinsize);
+                    som[layer][block].Lattice_set(rawmodel.Voxel_Position(layer, block), voxelNum, voxelMaxsize, voxelMinsize);
                 }
             }
-            drawModel.Voxel_block_renew();
+            drawModel.Voxel_renew();
         }
     }
 
-}
-void imgui_funcsom(){
-    int layerNum = rawmodel.voxelModel.somChioceLayerNum;
-    int blockNum = rawmodel.voxelModel.blockNum;
     static bool init = true;
 
     const char* collapsingHeaderName[8][5] = {
@@ -212,7 +275,7 @@ void imgui_funcsom(){
 
                 drawModel.texture_m.Pop();
                 drawModel.texture_m.Push();
-                drawModel.texture_m.Save(glm::scale(drawModel.texture_m.Top(), glm::vec3(1.0/t_scale.x, 1.0/t_scale.y, 0.0)));
+                drawModel.texture_m.Save(glm::scale(drawModel.texture_m.Top(), glm::vec3(1.0/t_scale.x, 1.0/t_scale.y, 1.0)));
                 drawModel.texture_m.Save(glm::translate(drawModel.texture_m.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
                 drawModel.texture_m.Save(glm::rotate(drawModel.texture_m.Top(), glm::radians((float)t_angle), glm::vec3(0.0,0.0,1.0)));
 

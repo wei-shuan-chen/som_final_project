@@ -17,6 +17,7 @@
 #include "camera.h"
 #include "Gui.h"
 #include "carve.h"
+#include "Math.h"
 typedef struct texture_t{
     int angle = 0;
     glm::fvec2 translate = {0.0, 0.0};
@@ -32,7 +33,9 @@ public:
     void Shader_Use(GLFWwindow *window);
     void Model_mapping();
     void Lattice_renew(int layer, int block);
-    void Voxel_block_renew();
+    void Voxel_renew();
+    void pVoxel_renew();
+    void psom_axis_renew(glm::mat3x3 A, glm::vec3 t);
 
     Camera camera;
     glm::vec3 lightPos;
@@ -57,7 +60,8 @@ private:
     void Model_Floor_Create(Shader shader);
     void Model_create(Shader shader);
     void Model_bound_create(Shader shader);
-    void Model_create_lattice_shadow(Shader shader);
+    void Model_lattice_create(Shader shader);
+    void Model_axis_create(Shader shader);
     void Model_lightCube_create(Shader shader);
 
     void rayShader_model(GLFWwindow *window);
@@ -76,13 +80,17 @@ private:
 
     Item boundingbox;
     Item axis;
+    Item p_axis;
     Item lightcube;
     Item ground;
     Item** somVoxel;
     Item innerVoxel;
     Item outerVoxel;
-    Item** lattice_line;
-    Item** lattice_plane;
+    Item psomVoxel;
+    Item** s_lattice_line;
+    Item** s_lattice_plane;
+    Item ps_lattice_line;
+    Item ps_lattice_plane;
 
     float near_plane = 0.01f, far_plane = 10000000.0f;
 };

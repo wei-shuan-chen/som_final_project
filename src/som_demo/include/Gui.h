@@ -7,12 +7,13 @@
 
 #include "Drawmodel.h"
 #include "transfer_function_widget.h"
+#include "Math.h"
 
 using namespace std;
 
 
 extern bool texshow;
-
+extern int som_psom;
 void imgui_init(GLFWwindow *window);
 void imgui_create();
 void imgui_end();

@@ -4,11 +4,19 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "SurfaceVoxels.h"
 
 using namespace std;
 typedef unsigned char  BYTE;
+
+enum voxelType{
+    OUTTER,
+    INNER,
+    SOM,
+    PSOM
+};
 
 typedef struct InfData_t {
 	glm::ivec3 resolution;//inf size
@@ -52,13 +60,17 @@ public:
     ~RAWmodel_cls();
     // var
     svoxModel_t voxelModel;
+    psvoxModel_t pvoxelModel;
     InfData_t infdata;
     RawData_t*** rawData; // 0 air, (255\50) bounder, 100~100+(somChioceLayerNum*10) inside
 
     // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
-    void Voxel_block_set();
+    void Voxel_block_set(int showtype);
+    bool choice_psomvoxel(glm::mat3x3 m_psomInverse, glm::vec3 v_psomTranslate);
+
     std::vector<glm::ivec3> Voxel_Position(int layer, int block);
+    std::vector<glm::ivec3> pVoxel_Position();
 
 private:
     // RawData_l* head;
@@ -70,22 +82,22 @@ private:
     bool LoadRAWfile(const char*rawFileName);
     bool ReadRawFile(FILE *file);
     void GiveSpaceLocate();
-    void FindOutterLayer(short int x, short int y, short int z);
 
     void SetInitBlockLocate(const char* orient);
     void SetVoxelData();
+
     int SetBlockNum(const char* orient, int x, int y, int z);
     void findSurfaceVoxel(int z, int y, int x, int num, int layer, int block, int voxelType);
 
     void checkComputerEndian();
-    void setMaxbounder(int i, int j, int k, int layer, int block);
+    void setMaxbounder(int i, int j, int k, int layer, int block, int type);
 
     BYTE* uc_voxelData;
     float* f_voxelData;
     double* d_voxelData;
 
     int* layervoxelnum = {0};
-
+    glm::mat3x3 m_transform;
 };
 extern RAWmodel_cls rawmodel;
 #endif

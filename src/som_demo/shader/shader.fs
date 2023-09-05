@@ -5,26 +5,32 @@ in VS_OUT{
     vec3 FragPos;
 	vec3 Normal;
     vec3 Color;
-	vec2 TexCoords;
+	vec3 TexCoords;
 } fs_in;
 
 uniform bool tex;
 uniform int texType;
-uniform sampler2D texturemap0;
-uniform sampler2D texturemap1;
-uniform sampler2D texturemap2;
+uniform sampler3D texturemap0;
+uniform sampler3D texturemap1;
+uniform sampler3D texturemap2;
+uniform sampler3D texturemap3D;
 
 
 void main()
 {
-
+    vec3 texcoord = fs_in.TexCoords;
+    if(texcoord.x == 1) texcoord.x -= 0.0001;
+    if(texcoord.y == 1) texcoord.y -= 0.0001;
+    if(texcoord.z == 1) texcoord.z -= 0.0001;
     if(tex){
         if(texType == 0)
-            FragColor = texture(texturemap0, fs_in.TexCoords);
+            FragColor = texture(texturemap0, texcoord);
         if(texType == 1)
-            FragColor = texture(texturemap1, fs_in.TexCoords);
+            FragColor = texture(texturemap1, texcoord);
         if(texType == 2)
-            FragColor = texture(texturemap2, fs_in.TexCoords);
+            FragColor = texture(texturemap2, texcoord);
+        if(texType == 6)
+            FragColor = texture(texturemap3D, texcoord);
         if(fs_in.TexCoords.x < 0.0 || fs_in.TexCoords.x > 1.0 || fs_in.TexCoords.y < 0.0 || fs_in.TexCoords.y > 1.0){
             FragColor = vec4(1.0, 1.0, 1.0, 1.0);
         }

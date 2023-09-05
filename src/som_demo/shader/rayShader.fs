@@ -5,8 +5,7 @@ in VS_OUT{
     vec3 FragPos;
 	vec3 Normal;
     vec3 Color;
-	vec2 TexCoords;
-    // vec3 RayPos;
+	vec3 TexCoords;
 } fs_in;
 
 uniform vec3 lightPos;

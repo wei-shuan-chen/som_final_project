@@ -14,19 +14,13 @@ struct Vertex{
     };
 
     struct Texcoord {
-        float s,t;
-    };
-
-    struct Raypos
-    {
-        float x, y, z;
+        float s,t,r;
     };
 
     Position position;
     Normal normal;
     Color color;
     Texcoord texcoord;
-    Raypos raypos;
 };
 
 #endif

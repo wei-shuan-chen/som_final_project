@@ -86,6 +86,12 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+	int blockNum = rawmodel.voxelModel.blockNum;
+	for(int layer = 0; layer < layerNum; layer++)
+        for(int block = 0; block < blockNum; block++)
+			som[layer][block].SOM_End();
+	psom.SOM_End();
 	glfwTerminate();
 	destroy_world();
 	return 0;

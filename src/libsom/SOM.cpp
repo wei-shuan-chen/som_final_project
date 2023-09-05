@@ -4,6 +4,8 @@
 
 #include "SOM.h"
 som_cls** som;
+som_cls psom;
+
 void create_mutli_som(int layerNum, int blockNum){
     som = (som_cls**)malloc(sizeof(som_cls*)*layerNum);
     for(int layer = 0; layer < layerNum; layer++){
@@ -11,13 +13,12 @@ void create_mutli_som(int layerNum, int blockNum){
     }
 }
 
-som_cls::som_cls(){}
+som_cls::som_cls(){
+
+}
 
 som_cls::~som_cls(){
-    // 1. Destroy lattice
-    destroy(latticeData.lattice, latticeData.width, latticeData.height);
-    // 2. Destroy input dataset
-    destroyDataset(inputData.input, inputData.num);
+
 }
 
 void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type)
@@ -28,12 +29,14 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
     // 1. Create input dataset
     inputData.input = createInputDataset(voxelPos, voxelNum);
     // 2. Create lattice
-    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, latticeData.depth, max, min);
     inputData.num = voxelNum;
+
 }
 void som_cls::som_init(){
-    latticeData.width = 30;
-    latticeData.height = 30;
+    latticeData.width = 10;
+    latticeData.height = 10;
+    latticeData.depth = 10;
 
     latticeData.iter = 0;
     latticeData.finalIter = 120000;
@@ -49,11 +52,14 @@ void som_cls::som_init(){
     latticeData.typeNum[1] = 1;
     latticeData.typeNum[2] = 1;
     latticeData.typeNum[3] = 6;
+    latticeData.typeNum[4] = latticeData.depth;
 }
 void som_cls::Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min){
+    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
     latticeData.width = resolution;
     latticeData.height = resolution;
-    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
+    latticeData.typeNum[4] = latticeData.depth = resolution;
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, latticeData.depth, max, min);
 }
 void som_cls::Lattice_iter_set(int finalIter){
     latticeData.finalIter = finalIter;
@@ -66,10 +72,12 @@ void som_cls::Lattice_rate_set(float initrate){
 }
 void som_cls::Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min){
     latticeData.type = type;
-    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
+    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, latticeData.depth, max, min);
 }
-void som_cls::Lattice_block_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min){
-    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, max, min);
+void som_cls::Lattice_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min){
+    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, latticeData.depth, max, min);
     inputData.input = createInputDataset(voxelPos, voxelNum);
     inputData.num = voxelNum;
 }
@@ -108,21 +116,7 @@ void som_cls::SOM_IterateOnce()
     latticeData.iter++;
 }
 
-void som_cls::SOM_Again()
-{
-    // destroy(lattice, width, height);
 
-    // is_som_finished = false;
-    // width;
-    // height;
-    // datasteNum = 0;
-    // iter = 0;
-    // learningRate = 0.1;
-    // radius = 5;
-    // learningRate = 0.1;
-    // radius = 5;
-    // lattice = createLatticeData(width, height, max_lattice_range);
-}
 LatData_t * som_cls::Lattice_get()
 {
     return &latticeData;
@@ -136,13 +130,13 @@ glm::fvec3 * som_cls::createInputDataset(std::vector<glm::ivec3> voxelPos, int v
 
     return dataset;
 }
-glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 max, glm::ivec3 min)
+glm::fvec3 *** som_cls::createLatticeData(int width, int height, int depth, glm::ivec3 max, glm::ivec3 min)
 {
     // cout << "max : " << max.x << ", " << max.y << ", " << max.z << endl;
     // cout << "min : " << min.x << ", " << min.y << ", " << min.z << endl;
     glm::ivec3 size = max-min;
-    glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * 6);
-    for (int j = 0; j < 6; j++)
+    glm::fvec3 ***lattice = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * depth);
+    for (int j = 0; j < depth; j++)
     {
         lattice[j] = (glm::fvec3 **)malloc(sizeof(glm::fvec3 *) * height);
         for (int i = 0; i < height; i++)
@@ -249,6 +243,27 @@ glm::fvec3 *** som_cls::createLatticeData(int width, int height, glm::ivec3 max,
                 k0 = size[2] * ratio_h + min[2];
                 lattice[5][h][w] = {i0, j0, k0};
 
+            }
+        }
+    }
+    else if(latticeData.type == THREED){
+        double i0, j0, k0;
+        for(int d = 0; d < depth; d++)
+        {
+            for (int h = 0; h < height; h++)
+            {
+                for (int w = 0; w < width; w++)
+                {
+                    double ratio_w = (double)w / (double)(width - 1);
+                    double ratio_h = (double)h / (double)(height - 1);
+                    double ratio_d = (double)d / (double)(depth - 1);
+
+                    i0 = (double)size[0] * ratio_w + min[0];
+                    j0 = (double)size[1] * ratio_h + min[1];
+                    k0 = (double)size[2] * ratio_d + min[2];
+
+                    lattice[d][h][w] = {i0, j0, k0};
+                }
             }
         }
     }
@@ -547,6 +562,9 @@ glm::ivec3 som_cls::computNeiborhood(glm::ivec3 node, glm::ivec3 bmu)
         //   3          front
         diff = computeHalfballDist(node)-computeHalfballDist(bmu);
     }
+    else if(latticeData.type == THREED){
+        diff = node - bmu;
+    }
     return diff;
 }
 glm::ivec3 som_cls::computeHalfballDist(glm::ivec3 p0){
@@ -575,20 +593,22 @@ bool som_cls::isInradiushood(double squaredDist, double radius)
 
 
 
-void som_cls::destroy(glm::fvec3 ***arr, int width, int height)
+void som_cls::destroy(glm::fvec3 ***arr, int width, int height, int depth)
 {
-
-    for (int j = 0; j < 5; j++)
-    {
-
-        for (int i = 0; i < height; i++)
-        {
-            free(arr[j][i]);
+    for(int d = 0; d < depth; d++){
+        for (int h = 0; h < height; h++){
+            free(arr[d][h]);
         }
-        free(arr[j]);
+        free(arr[d]);
     }
 }
 void som_cls::destroyDataset(glm::fvec3 *arr, int datasteNum)
 {
     free(arr);
+}
+void som_cls::SOM_End(){
+    // 1. Destroy lattice
+    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    // 2. Destroy input dataset
+    destroyDataset(inputData.input, inputData.num);
 }

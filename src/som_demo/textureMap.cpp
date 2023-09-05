@@ -6,18 +6,19 @@ texture_cls::texture_cls(){}
 texture_cls::~texture_cls(){
     free(intensityTex.data);
     free(colormapTex.data);
+    free(threeDTex.data);
     // for(int i = 0; i < 3; i++){
     //     free(imageTex[i].data);
     // }
 }
-glm::fvec2 texture_cls::compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord){
+glm::fvec3 texture_cls::compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord){
     tex.Save(glm::translate(tex.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
-    glm::fvec2 newTexCoord = {0.0, 0.0};
+    glm::fvec3 newTexCoord = {0.0, 0.0, 0.0};
     float down = 0.0;
     for(int t = 0; t < 4; t++){
         down += tex.Top()[t][3]*texCoord[t];
     }
-    for(int texNum = 0; texNum < 2; texNum++){
+    for(int texNum = 0; texNum < 3; texNum++){
         float tmp = 0.0;
         for(int t = 0; t < 4; t++){
             tmp += tex.Top()[t][texNum]*texCoord[t];
@@ -31,23 +32,26 @@ void texture_cls::create_texture(){
     create_img_tex();
     create_depth_tex();
     create_ray_tex();
+    create_3D_tex();
 }
 void texture_cls::bindTexture(int bind){
 
     glActiveTexture(GL_TEXTURE0+bind);
 
     if(bind == 0){
-        glBindTexture(GL_TEXTURE_2D, imageTex[0].texture);
+        glBindTexture(GL_TEXTURE_3D, imageTex[0].texture);
     }else if(bind == 1){
-        glBindTexture(GL_TEXTURE_2D, imageTex[1].texture);
+        glBindTexture(GL_TEXTURE_3D, imageTex[1].texture);
     }else if(bind == 2){
-        glBindTexture(GL_TEXTURE_2D, imageTex[2].texture);
+        glBindTexture(GL_TEXTURE_3D, imageTex[2].texture);
     }else if(bind == 3){
         glBindTexture(GL_TEXTURE_CUBE_MAP, shadowTex.depthCubemap);
     }else if(bind == 4){
         glBindTexture(GL_TEXTURE_3D, intensityTex.texture3D);
     }else if(bind == 5){
         glBindTexture(GL_TEXTURE_1D, colormapTex.texture1D);
+    }else if(bind == 6){
+        glBindTexture(GL_TEXTURE_3D, threeDTex.texture);
     }
 }
 void texture_cls::updataColorMap(vector<float> newdata){
@@ -131,16 +135,46 @@ void texture_cls::create_ray_tex(){
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, colormapTex.color+1, 0, GL_RGBA, GL_FLOAT, colormapTex.data);
 }
+void texture_cls::create_3D_tex(){
+
+    threeDTex.data = (float*)calloc(3*threeDTex.width*threeDTex.height*threeDTex.depth, sizeof(float));
+    for(int z = 0; z < threeDTex.depth; z++){
+        for(int y = 0; y < threeDTex.height; y++){
+            for(int x = 0; x < threeDTex.width; x++){
+                int num = x*3 + y*threeDTex.width*3 + z*threeDTex.width*threeDTex.height*3;
+                if(y < 3 ||y > 6||x < 3 || x > 6){
+                    threeDTex.data[num] = 1.0;
+                    threeDTex.data[num+1] = 0.0;
+                    threeDTex.data[num+2] = 0.0;
+                }else{
+                    threeDTex.data[num] = 1.0;
+                    threeDTex.data[num+1] = 0.0;
+                    threeDTex.data[num+2] = 1.0;
+                }
+            }
+        }
+    }
+
+    glGenTextures(1, &threeDTex.texture);
+    glBindTexture(GL_TEXTURE_3D, threeDTex.texture);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, threeDTex.width, threeDTex.height, threeDTex.depth, 0, GL_RGB, GL_FLOAT, threeDTex.data);
+}
 void texture_cls::create_img_tex(){
     for(int t = 0; t< 3; t++){
         glGenTextures(1, &imageTex[t].texture);
-        glBindTexture(GL_TEXTURE_2D, imageTex[t].texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+        glBindTexture(GL_TEXTURE_3D, imageTex[t].texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
         // set the texture wrapping parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	// set texture wrapping to GL_REPEAT (default wrapping method)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	// set texture wrapping to GL_REPEAT (default wrapping method)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
         // set texture filtering parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         // load image, create texture and generate mipmaps
         int nrChannels;
         // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
@@ -149,13 +183,13 @@ void texture_cls::create_img_tex(){
         if (imageTex[t].data)
         {
             if(nrChannels == 3){
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageTex[t].width, imageTex[t].height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageTex[t].data);
+                glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, imageTex[t].width, imageTex[t].height, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, imageTex[t].data);
             }else if(nrChannels == 4){
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageTex[t].width, imageTex[t].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageTex[t].data);
+                glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, imageTex[t].width, imageTex[t].height, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageTex[t].data);
             }else{
                 cout << "ncrChannel error!" << endl;
             }
-            glGenerateMipmap(GL_TEXTURE_2D);
+            // glGenerateMipmap(GL_TEXTURE_3D);
         }
         else
         {
