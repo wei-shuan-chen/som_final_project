@@ -5,10 +5,14 @@ void imgui_init(GLFWwindow *window);
 void imgui_create();
 void imgui_end();
 void imgui_funcbuttom();
+void imgui_roi();
 void imgui_funcsom();
 void imgui_funcpsom();
 bool texshow = false;
 int som_psom = 0;
+static float f_translate[3] = {50.0f, 100.0f, 100.0f};
+static float f_scale[3] = {100.0f, 20.0f, 100.0f};
+static glm::mat3x3 m_inverse;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
@@ -34,6 +38,7 @@ void imgui_create(){
     ImGui::ShowDemoWindow();
     ImGui::Begin("SOM_3D_voxel");
     imgui_funcbuttom();
+    imgui_roi();
     if(som_psom == SHOWSOM){
         imgui_funcsom();
     }
@@ -81,21 +86,13 @@ void imgui_funcbuttom(){
 
 
 }
-void imgui_funcpsom(){
-    const LatData_t* latticeData = psom.Lattice_get();
-    ImGui::Text("iter : %d",latticeData->iter);
-    ImGui::Text("radius: %f", latticeData->radius);
-    ImGui::Text("learning_rate: %f", latticeData->learningRate);
-
-
-
-    static glm::mat3x3 m_psomAxis = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-    static glm::vec3 m_psomTranslate = {0.0,0.0,0.0};
+void imgui_roi(){
+    static int b_s_ps = SHOWSOM;
+    static glm::mat3x3 m_axis = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    static glm::vec3 v_translate = {0.0,0.0,0.0};
     static float x_axis[3] = {1.0f, 0.0f, 0.0f};
     static float y_axis[3] = {0.0f, 1.0f, 0.0f};
     static float z_axis[3] = {0.0f, 0.0f, 1.0f};
-    static float f_translate[3] = {50.0f, 100.0f, 100.0f};
-    static float f_scale[3] = {100.0f, 100.0f, 100.0f};
     ImGui::Text("axis");
     ImGui::InputFloat3("x_axis", x_axis);
     ImGui::InputFloat3("y_axis", y_axis);
@@ -109,25 +106,55 @@ void imgui_funcpsom(){
     bool c[2] = {false, false};
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
-            if(m_psomAxis[i][j] != m_tmp[i][j]){
+            if(m_axis[i][j] != m_tmp[i][j]){
                 c[0] = true;
-                m_psomAxis[i][j] = m_tmp[i][j];
+                m_axis[i][j] = m_tmp[i][j];
             }
         }
-        if(m_psomTranslate[i] != f_translate[i]){
+        if(v_translate[i] != f_translate[i]){
             c[1] = true;
-            m_psomTranslate[i] = f_translate[i];
+            v_translate[i] = f_translate[i];
         }
     }
     if(c[1] || c[0]){
-        m_tmp = math.inverseMatrix(m_psomAxis);
-        bool renew = rawmodel.choice_psomvoxel(m_tmp, m_psomTranslate);
-        drawModel.psom_axis_renew(m_psomAxis, m_psomTranslate);
-        if(renew) {
-            psom.Lattice_set(rawmodel.pVoxel_Position(),rawmodel.pvoxelModel.psomVoxel.size(),rawmodel.pvoxelModel.maxsize ,rawmodel.pvoxelModel.minsize);
-            drawModel.pVoxel_renew();
+        int layerNum = rawmodel.voxelModel.somChioceLayerNum;
+        int blockNum = rawmodel.voxelModel.blockNum;
+        m_inverse = math.inverseMatrix(m_axis);
+        drawModel.psom_axis_renew(m_axis, v_translate);
+        if(som_psom == SHOWSOM|| b_s_ps == SHOWPSOM) {
+            b_s_ps = SHOWSOM;
+            bool renew = rawmodel.choice_somvoxel(m_inverse, f_translate, f_scale, true);
+            if(renew){
+                for(int layer = 0; layer < layerNum; layer++){
+                    for(int block = 0; block < blockNum; block++){
+                        int voxelNum = rawmodel.voxelModel.voxelnum[layer][block];
+
+                        glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
+                        glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
+                        som[layer][block].Lattice_set(rawmodel.Voxel_Position(layer, block), voxelNum, voxelMaxsize, voxelMinsize);
+                        drawModel.Voxel_renew();
+                    }
+                }
+            }
+        }
+        if(som_psom == SHOWPSOM || b_s_ps == SHOWSOM) {
+            b_s_ps = SHOWPSOM;
+            bool renew = rawmodel.choice_psomvoxel(m_inverse, v_translate);
+            if(renew) {
+                psom.Lattice_set(rawmodel.pVoxel_Position(),rawmodel.pvoxelModel.psomVoxel.size(),rawmodel.pvoxelModel.maxsize ,rawmodel.pvoxelModel.minsize);
+                drawModel.pVoxel_renew();
+            }
+
         }
     }
+}
+void imgui_funcpsom(){
+    const LatData_t* latticeData = psom.Lattice_get();
+    ImGui::Text("iter : %d",latticeData->iter);
+    ImGui::Text("radius: %f", latticeData->radius);
+    ImGui::Text("learning_rate: %f", latticeData->learningRate);
+
+
 }
 void imgui_funcsom(){
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
@@ -135,7 +162,7 @@ void imgui_funcsom(){
     static int* blocker = (int*)calloc(blockNum, sizeof(int));
     const char* blockerNum[5] = {"block0", "block1", "block2", "block3", "block4"};
     for(int b = 1; b < blockNum; b++){
-        if(blocker[b] == 0) blocker[b] = rawmodel.voxelModel.blockLocate[b];
+        if(blocker[b] != rawmodel.voxelModel.blockLocate[b]) blocker[b] = rawmodel.voxelModel.blockLocate[b];
         int left, right;
         left = rawmodel.voxelModel.blockLocate[b-1];
         right = rawmodel.voxelModel.blockLocate[b+1];
@@ -143,7 +170,7 @@ void imgui_funcsom(){
         ImGui::SliderInt(blockerNum[b], &blocker[b], left, right);
         if(blocker[b] != rawmodel.voxelModel.blockLocate[b]) {
             rawmodel.voxelModel.blockLocate[b] = blocker[b];
-            rawmodel.Voxel_block_set(SHOWSOM);
+            rawmodel.choice_somvoxel(m_inverse, f_translate, f_scale, false);;
             for(int layer = 0; layer < layerNum; layer++){
                 for(int block = 0; block < blockNum; block++){
                     int voxelNum = rawmodel.voxelModel.voxelnum[layer][block];

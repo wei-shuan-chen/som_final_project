@@ -66,8 +66,8 @@ public:
 
     // fun
     void LoadFile(const char* infFileName,const char* rawFileName);
-    void Voxel_block_set(int showtype);
     bool choice_psomvoxel(glm::mat3x3 m_psomInverse, glm::vec3 v_psomTranslate);
+    bool choice_somvoxel(glm::mat3x3 m_psomInverse, float* f_psomTranslate, float* f_scale, bool setBlock);
 
     std::vector<glm::ivec3> Voxel_Position(int layer, int block);
     std::vector<glm::ivec3> pVoxel_Position();
@@ -83,7 +83,7 @@ private:
     bool ReadRawFile(FILE *file);
     void GiveSpaceLocate();
 
-    void SetInitBlockLocate(const char* orient);
+    void SetBlockLocate(const char* orient, int trans, int scale);
     void SetVoxelData();
 
     int SetBlockNum(const char* orient, int x, int y, int z);
@@ -95,6 +95,7 @@ private:
     BYTE* uc_voxelData;
     float* f_voxelData;
     double* d_voxelData;
+    int ***newrawData;
 
     int* layervoxelnum = {0};
     glm::mat3x3 m_transform;

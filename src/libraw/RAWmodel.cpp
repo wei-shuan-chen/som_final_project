@@ -31,7 +31,6 @@ void RAWmodel_cls::LoadFile(const char* infFileName,const char* rawFileName){
 std::vector<glm::ivec3> RAWmodel_cls::Voxel_Position(int layer, int block){
 
     std::vector<glm::ivec3> voxelPosition;
-
     for(int i = 0; i < voxelModel.voxelnum[layer][block]; i++){
         voxelPosition.push_back(voxelModel.somVoxel[layer][block][i].locate);
     }
@@ -104,12 +103,16 @@ void RAWmodel_cls::CreateRawData(){
         d_voxelData = (double*)malloc(sizeof(double)* rawSize);
     }
     rawData = (RawData_t***)malloc(sizeof(RawData_t**) * infdata.resolution[2]);
+    newrawData = (int***)malloc(sizeof(int**)*infdata.resolution[2]);
     for(int i = 0; i < infdata.resolution[2]; i++){
         rawData[i] = (RawData_t**)malloc(sizeof(RawData_t*) * infdata.resolution[1]);
+        newrawData[i] = (int**)malloc(sizeof(int*) * infdata.resolution[1]);
         for(int j = 0; j < infdata.resolution[1]; j++){
             rawData[i][j] = (RawData_t*)malloc(sizeof(RawData_t) * infdata.resolution[0]);
+            newrawData[i][j] = (int*)malloc(sizeof(int) * infdata.resolution[0]);
             for(int k = 0; k < infdata.resolution[0]; k++){
                 rawData[i][j][k].layer = -1;
+                newrawData[i][j][k] = 0;
                 rawData[i][j][k].air = false;
             }
         }
@@ -205,44 +208,11 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
     return false;
 
 }
-void RAWmodel_cls::Voxel_block_set(int showtype){
-    int layernNum = voxelModel.somChioceLayerNum;
-    int blockNum = voxelModel.blockNum;
-    for(int layer = 0; layer < layernNum; layer++){
-        for(int block = 0; block < blockNum; block++){
-            voxelModel.voxelnum[layer][block] = 0;
-            voxelModel.maxsize[layer][block] = {0, 0, 0};
-            voxelModel.minsize[layer][block] = {10000, 10000, 10000};
-        }
-    }
-    for(int y = 0; y < infdata.resolution[2]; y++){
-        for(int x = 0; x < infdata.resolution[1]; x++){
-            for(int z = 0; z < infdata.resolution[0]; z++){
-                for(int layern = 0; layern < layernNum; layern++){
-                    // cout << rawData[y][x][z].layer << endl;
-                    if(rawData[y][x][z].layer == 100+layern*10){
 
-                        int block = SetBlockNum(voxelModel.blockOrientation, x, y, z);
-                        voxelModel.somVoxel[layern][block][voxelModel.voxelnum[layern][block]].locate = {x, y, z};
-                        setMaxbounder(x, y, z, layern, block, SHOWSOM);
-                        findSurfaceVoxel(y,x,z, voxelModel.voxelnum[layern][block], layern, block, 2);
-                        voxelModel.voxelnum[layern][block]++;
-                    }
-                }
-            }
-        }
-    }
-}
 void RAWmodel_cls::SetVoxelData(){
 
     GiveSpaceLocate();
-    if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
-        SetInitBlockLocate("z");
-    }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
-        SetInitBlockLocate("x");
-    }else{
-        SetInitBlockLocate("y");
-    }
+
     int layerNum = voxelModel.somChioceLayerNum;
     for(int y = 0; y < infdata.resolution[2]; y++){
         for(int x = 0; x < infdata.resolution[1]; x++){
@@ -259,46 +229,96 @@ void RAWmodel_cls::SetVoxelData(){
                     voxelModel.innerVoxel.push_back(USVoxData_t{{x,y,z},{1.0, 0.0, 0.8},{}});
                     findSurfaceVoxel(y, x, z, voxelModel.innerVoxel.size()-1, 0, 0, INNER);
                 }
-                // som voxel type = 2
-                for(int layern = 0; layern < layerNum; layern++){
-                    if(rawData[y][x][z].layer == voxelModel.somInitLayer+layern){
-                        int block = SetBlockNum(voxelModel.blockOrientation, x, y, z);
-                        voxelModel.somVoxel[layern][block][voxelModel.voxelnum[layern][block]].locate = {x, y, z};
-                        setMaxbounder(x, y, z, layern, block, SHOWSOM);
-                        findSurfaceVoxel(y,x,z, voxelModel.voxelnum[layern][block], layern, block, SOM);
-                        voxelModel.voxelnum[layern][block]++;
-                    }
+                // mid voxel type
+                if(rawData[y][x][z].layer > 0 && rawData[y][x][z].layer < voxelModel.somInitLayer+layerNum){
+                    voxelModel.midVoxel.push_back(SOMVoxData_t{{x,y,z},{rawData[y][x][z].layer}});
+                    // findSurfaceVoxel(y,x,z,voxelModel.midVoxel.size()-1,0,0,MID);
                 }
+                // som voxel type = 2
+                // for(int layern = 0; layern < layerNum; layern++){
+                //     if(rawData[y][x][z].layer == voxelModel.somInitLayer+layern){
+                //         int block = SetBlockNum(voxelModel.blockOrientation, x, y, z);
+                //         voxelModel.somVoxel[layern][block][voxelModel.voxelnum[layern][block]].locate = {x, y, z};
+                //         setMaxbounder(x, y, z, layern, block, SHOWSOM);
+                //         findSurfaceVoxel(y,x,z, voxelModel.voxelnum[layern][block], layern, block, SOM);
+                //         voxelModel.voxelnum[layern][block]++;
+                //     }
+                // }
                 int end = voxelModel.somInitLayer+layerNum;
                 int init = voxelModel.somInitLayer;
                 if(rawData[y][x][z].layer == 0){
-                    rawData[y][x][z].layer = 255;
+                    newrawData[y][x][z]= 255;
                 }else if(rawData[y][x][z].layer < end && rawData[y][x][z].layer >= init){
                     int gap = rawData[y][x][z].layer - init;
-                    rawData[y][x][z].layer = 100+gap*10;
+                    newrawData[y][x][z] = 100+gap*10;
                 }else if(rawData[y][x][z].layer > 0){
-                    rawData[y][x][z].layer = 50;
+                    newrawData[y][x][z] = 50;
                 }else{
-                    rawData[y][x][z].layer = 0;
+                    newrawData[y][x][z] = 0;
                 }
             }
         }
     }
 
-
 }
-bool RAWmodel_cls::choice_psomvoxel(glm::mat3x3 m_psomInverse, glm::vec3 v_psomTranslate){
+bool RAWmodel_cls::choice_somvoxel(glm::mat3x3 m_inverse, float* f_translate, float* f_scale, bool setBlock){
+    bool c = false;
+    int layerNum = voxelModel.somChioceLayerNum;
+    int blockNum = voxelModel.blockNum;
+    if(setBlock){
+        if(infdata.resolution[0] > infdata.resolution[1] && infdata.resolution[0] > infdata.resolution[2]){
+            SetBlockLocate("z", f_translate[2], f_scale[2]);
+        }else if(infdata.resolution[1] > infdata.resolution[0] && infdata.resolution[1] > infdata.resolution[2]){
+            SetBlockLocate("x", f_translate[0], f_scale[0]);
+        }else{
+            SetBlockLocate("y", f_translate[1], f_scale[1]);
+        }
+    }
+
+    for(int i = 0; i < voxelModel.midVoxel.size(); i++){
+        glm::vec3 p = voxelModel.midVoxel[i].locate;
+        p.x = p.x-f_translate[0];
+        p.y = p.y-f_translate[1];
+        p.z = p.z-f_translate[2];
+        glm::vec3 newCoordp = p*m_inverse;
+        if(newCoordp.x < 1.0 && newCoordp.x > 0.0 && newCoordp.y < 1.0 && newCoordp.y > 0.0 && newCoordp.z < 1.0 && newCoordp.z > 0.0){
+            for(int layern = 0; layern < layerNum; layern++){
+                if( voxelModel.midVoxel[i].layer == voxelModel.somInitLayer+layern){
+                    if(!c){
+                        for(int layer = 0; layer<layerNum;layer++){
+                            for(int block = 0; block < blockNum; block++){
+                                voxelModel.voxelnum[layer][block] = 0;
+                                voxelModel.maxsize[layer][block] = {0, 0, 0};
+                                voxelModel.minsize[layer][block] = {10000, 10000, 10000};
+                            }
+                        }
+                    }
+                    glm::vec3 t_p = voxelModel.midVoxel[i].locate;
+                    int block = SetBlockNum(voxelModel.blockOrientation, t_p.x, t_p.y, t_p.z);
+                    voxelModel.somVoxel[layern][block][voxelModel.voxelnum[layern][block]].locate = {t_p.x, t_p.y, t_p.z};
+                    setMaxbounder(t_p.x, t_p.y, t_p.z, layern, block, SHOWSOM);
+                    findSurfaceVoxel(t_p.y,t_p.x,t_p.z, voxelModel.voxelnum[layern][block], layern, block, SOM);
+                    voxelModel.voxelnum[layern][block]++;
+                    c = true;
+                }
+            }
+        }
+    }
+    cout << voxelModel.voxelnum[0][0]<<", "<<voxelModel.voxelnum[0][1]<<endl;
+    return c;
+}
+bool RAWmodel_cls::choice_psomvoxel(glm::mat3x3 m_inverse, glm::vec3 v_translate){
     bool c = false;
     pvoxelModel.psomVoxel.clear();
     for(int y = 0; y < infdata.resolution[2]; y++){
         for(int x = 0; x < infdata.resolution[1]; x++){
             for(int z = 0; z < infdata.resolution[0]; z++){
                 glm::vec3 p = {x,y,z};
-                p.x = p.x-v_psomTranslate.x;
-                p.y = p.y-v_psomTranslate.y;
-                p.z = p.z-v_psomTranslate.z;
-                glm::vec3 newCoordp = p*m_psomInverse;
-                if(rawData[y][x][z].layer > 0){
+                p.x = p.x-v_translate.x;
+                p.y = p.y-v_translate.y;
+                p.z = p.z-v_translate.z;
+                glm::vec3 newCoordp = p*m_inverse;
+                if(rawData[y][x][z].layer >= 0){
                     if(newCoordp.x < 1.0 && newCoordp.x > 0.0 && newCoordp.y < 1.0 && newCoordp.y > 0.0 && newCoordp.z < 1.0 && newCoordp.z > 0.0){
                         if(!c){
                             pvoxelModel.maxsize = {0, 0, 0};
@@ -313,7 +333,6 @@ bool RAWmodel_cls::choice_psomvoxel(glm::mat3x3 m_psomInverse, glm::vec3 v_psomT
             }
         }
     }
-
     return c;
 }
 
@@ -327,29 +346,25 @@ int RAWmodel_cls::SetBlockNum(const char* orient, int x, int y, int z){
     if(!strcmp(orient, "z"))
         axis = z;
 
-    for(int blockn = 1; blockn < voxelModel.blockNum
-    ; blockn++)
+    for(int blockn = 1; blockn < voxelModel.blockNum; blockn++)
         if(axis >= voxelModel.blockLocate[blockn]) block++;
 
     return block;
 }
-void RAWmodel_cls::SetInitBlockLocate(const char* orient){
-    int resolution;
+void RAWmodel_cls::SetBlockLocate(const char* orient, int trans, int scale){
+
     if(!strcmp(orient, "x")){
         voxelModel.blockOrientation = "x";
-        resolution = infdata.resolution[1];
     }
     if(!strcmp(orient, "y")){
         voxelModel.blockOrientation = "y";
-        resolution = infdata.resolution[2];
     }
     if(!strcmp(orient, "z")){
         voxelModel.blockOrientation = "z";
-        resolution = infdata.resolution[0];
     }
 
     for(int block = 0; block <= voxelModel.blockNum; block++){
-        voxelModel.blockLocate[block] = ((block)*resolution)/voxelModel.blockNum;
+        voxelModel.blockLocate[block] = ((block*scale)/voxelModel.blockNum)+trans;
     }
 
 }

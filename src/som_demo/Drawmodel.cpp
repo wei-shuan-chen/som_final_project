@@ -354,7 +354,7 @@ void model_cls::Model_create(Shader shader){
     shader.setVec3("modelSize", glm::vec3( 0.5,0.5, 0.5));
     shader.setBool("ray", false);
     shader.setMat4("model", model.Top());
-    if(showVoxel && som_psom == 0){
+    if(showVoxel && som_psom == SHOWSOM){
         if(showOutSomIn[0]){
             glBindVertexArray(outerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.outerVoxel.size());
@@ -373,9 +373,10 @@ void model_cls::Model_create(Shader shader){
             glBindVertexArray(innerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.innerVoxel.size());
         }
-    }else if(showVoxel && som_psom == 1){
+    }else if(showVoxel && som_psom == SHOWPSOM){
         glBindVertexArray(psomVoxel.VAO);
         glDrawArrays(GL_TRIANGLES, 0, world.psomVoxel.size());
+
         if(showOutSomIn[0]){
             glBindVertexArray(outerVoxel.VAO);
             glDrawArrays(GL_TRIANGLES, 0, world.outerVoxel.size());
