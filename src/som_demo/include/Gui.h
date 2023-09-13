@@ -8,6 +8,7 @@
 #include "Drawmodel.h"
 #include "transfer_function_widget.h"
 #include "Math.h"
+#include "textureMap.h"
 
 using namespace std;
 

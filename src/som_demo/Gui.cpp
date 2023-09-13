@@ -10,8 +10,8 @@ void imgui_funcsom();
 void imgui_funcpsom();
 bool texshow = false;
 int som_psom = 0;
-static float f_translate[3] = {50.0f, 100.0f, 100.0f};
-static float f_scale[3] = {100.0f, 20.0f, 100.0f};
+static float f_translate[3] = {50.0f, 50.0f, 100.0f};
+static float f_scale[3] = {100.0f, 100.0f, 50.0f};
 static glm::mat3x3 m_inverse;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
@@ -205,10 +205,12 @@ void imgui_funcsom(){
         {true, true, true, true, true},
         {true, true, true, true, true}
     };
-    static int** tex = (int**)malloc(layerNum * sizeof(int*));
+    static int** texType = (int**)malloc(layerNum * sizeof(int*));
+    static int** texWrap = (int**)malloc(layerNum * sizeof(int*));
     static int** texRotate = (int**)malloc(layerNum * sizeof(int*));
-    static glm::fvec2** texScale = (glm::fvec2**)malloc(layerNum * sizeof(glm::fvec2*));
-    static glm::fvec2** texTranslate = (glm::fvec2**)malloc(layerNum * sizeof(glm::fvec2*));
+    static float*** texResolution = (float***)malloc(layerNum * sizeof(float**));
+    static float*** texScale = (float***)malloc(layerNum * sizeof(float**));
+    static float*** texTranslate = (float***)malloc(layerNum * sizeof(float**));
     static int** lat = (int**)malloc(layerNum * sizeof(int*));
     static int** resolution = (int**)malloc(layerNum * sizeof(int*));
     static int** iter = (int**)malloc(layerNum * sizeof(int*));
@@ -216,18 +218,27 @@ void imgui_funcsom(){
     static float** rate = (float**)malloc(layerNum * sizeof(float*));
     if(init){
         for(int layer = 0; layer < layerNum; layer++){
-            tex[layer] = (int*)calloc(blockNum, sizeof(int));
+            texType[layer] = (int*)calloc(blockNum, sizeof(int));
+            texWrap[layer] = (int*)calloc(blockNum, sizeof(int));
             texRotate[layer] = (int*)calloc(blockNum, sizeof(int));
-            texTranslate[layer] = (glm::fvec2*)calloc(blockNum, sizeof(glm::fvec2));
-            texScale[layer] = (glm::fvec2*)calloc(blockNum, sizeof(glm::fvec2));
+            texResolution[layer] = (float**)malloc(blockNum * sizeof(float*));
+            texTranslate[layer] = (float**)malloc(blockNum * sizeof(float*));
+            texScale[layer] = (float**)malloc(blockNum * sizeof(float*));
             lat[layer] = (int*)calloc(blockNum, sizeof(int));
             resolution[layer] = (int*)calloc(blockNum, sizeof(int));
             iter[layer] = (int*)calloc(blockNum, sizeof(int));
             radius[layer] = (float*)calloc(blockNum, sizeof(float));
             rate[layer] = (float*)calloc(blockNum, sizeof(float));
             for(int block = 0; block < blockNum; block++){
-                texScale[layer][block].x = 1.0;
-                texScale[layer][block].y = 1.0;
+                texTranslate[layer][block] = (float*)calloc(2, sizeof(float));
+                texScale[layer][block] = (float*)calloc(2, sizeof(float));
+                texScale[layer][block][0] = 1.0;
+                texScale[layer][block][1] = 1.0;
+                texResolution[layer][block] = (float*)calloc(4, sizeof(float));
+                texResolution[layer][block][0] = 0.3;
+                texResolution[layer][block][1] = 1.0;
+                texResolution[layer][block][2] = 0.0;
+                texResolution[layer][block][3] = 1.0;
             }
         }
         init = false;
@@ -239,19 +250,19 @@ void imgui_funcsom(){
             const LatData_t* latticeData = som[layer][block].Lattice_get();
             if (ImGui::CollapsingHeader(collapsingHeaderName[layer][block]))
             {
-                // SurfaceVoxel.h    texTypeNum = 3
+                // textureMap.h    texTypeNum = 3
                 ImGui::Text("texture");
-                ImGui::RadioButton("hive", &tex[layer][block], 0); ImGui::SameLine();
-                ImGui::RadioButton("pattern", &tex[layer][block], 1); ImGui::SameLine();
-                ImGui::RadioButton("wb", &tex[layer][block], 2);
-                ImGui::Text("- translate");
-                ImGui::SliderFloat("x", &texTranslate[layer][block].x, -1, 1);
-                ImGui::SliderFloat("y", &texTranslate[layer][block].y, -1, 1);
-                ImGui::Text("- scale");
-                ImGui::InputFloat("x ", &texScale[layer][block].x);
-                ImGui::InputFloat("y ", &texScale[layer][block].y);
-                ImGui::Text("- rotate");
-                ImGui::SliderInt("degree", &texRotate[layer][block], 0, 360);
+                ImGui::RadioButton("hive", &texType[layer][block], 0); ImGui::SameLine();
+                ImGui::RadioButton("pattern", &texType[layer][block], 1); ImGui::SameLine();
+                ImGui::RadioButton("wb", &texType[layer][block], 2);
+                ImGui::Text("wrap");
+                ImGui::RadioButton("repeat", &texWrap[layer][block], 0); ImGui::SameLine();
+                ImGui::RadioButton("border", &texWrap[layer][block], 1);
+                ImGui::DragFloatRange2("resolution_tex width", &texResolution[layer][block][0], &texResolution[layer][block][1], 0.01f, 0.0f, 1.0f, "Min: %.001f ", "Max: %.001f ", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::DragFloatRange2("resolution_tex height", &texResolution[layer][block][2], &texResolution[layer][block][3], 0.01f, 0.0f, 1.0f, "Min: %.001f ", "Max: %.001f ", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat2("translate_tex", texTranslate[layer][block], -1, 1);
+                ImGui::InputFloat2("scale_tex", texScale[layer][block]);
+                ImGui::SliderInt("rotate(degree)_tex", &texRotate[layer][block], 0, 360);
 
                 ImGui::Text("lattice");
                 ImGui::RadioButton("plane", &lat[layer][block], 0); ImGui::SameLine();
@@ -266,7 +277,6 @@ void imgui_funcsom(){
                 ImGui::InputFloat("input initRadius", &radius[layer][block]);
                 ImGui::Text("learning_rate: %f", latticeData->learningRate); ImGui::SameLine();
                 ImGui::InputFloat("input initRate", &rate[layer][block]);
-
 
             }
             if(resolution[layer][block] == 0) resolution[layer][block] = latticeData->width;
@@ -289,26 +299,38 @@ void imgui_funcsom(){
                 som[layer][block].Lattice_type_set(lat[layer][block], voxelMaxsize, voxelMinsize);
                 drawModel.Lattice_renew(layer, block);
             }
-            int d_angle = drawModel.texInfo.angle;
+            int d_angle = tex.texMap.angle;
             int t_angle = texRotate[layer][block];
-            glm::fvec2 d_trans = drawModel.texInfo.translate;
-            glm::fvec2 t_trans = texTranslate[layer][block];
-            glm::fvec2 d_scale = drawModel.texInfo.scale;
-            glm::fvec2 t_scale = texScale[layer][block];
+            int d_wrap = tex.texMap.wrapType;
+            int t_wrap = texWrap[layer][block];
+            glm::fvec2 d_trans = tex.texMap.translate;
+            glm::fvec2 t_trans = {texTranslate[layer][block][0], texTranslate[layer][block][1]};
+            glm::fvec2 d_scale = tex.texMap.scale;
+            glm::fvec2 t_scale = {texScale[layer][block][0], texScale[layer][block][1]};
+            glm::fvec2 d_resolution_w = tex.texMap.resolution_w;
+            glm::fvec2 t_resolution_w = {texResolution[layer][block][0], texResolution[layer][block][1]};
+            glm::fvec2 d_resolution_h = tex.texMap.resolution_h;
+            glm::fvec2 t_resolution_h = {texResolution[layer][block][2], texResolution[layer][block][3]};
             if(d_angle != t_angle || d_trans != t_trans || d_scale != t_scale){
-                drawModel.texInfo.angle = texRotate[layer][block];
-                drawModel.texInfo.translate = texTranslate[layer][block];
-                drawModel.texInfo.scale = texScale[layer][block];
+                tex.texMap.angle = t_angle;
+                tex.texMap.translate = t_trans;
+                tex.texMap.scale = t_scale;
 
-                drawModel.texture_m.Pop();
-                drawModel.texture_m.Push();
-                drawModel.texture_m.Save(glm::scale(drawModel.texture_m.Top(), glm::vec3(1.0/t_scale.x, 1.0/t_scale.y, 1.0)));
-                drawModel.texture_m.Save(glm::translate(drawModel.texture_m.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
-                drawModel.texture_m.Save(glm::rotate(drawModel.texture_m.Top(), glm::radians((float)t_angle), glm::vec3(0.0,0.0,1.0)));
+                tex.texMap.texture_m.Pop();
+                tex.texMap.texture_m.Push();
+                tex.texMap.texture_m.Save(glm::scale(tex.texMap.texture_m.Top(), glm::vec3(1.0/t_scale.x, 1.0/t_scale.y, 1.0)));
+                tex.texMap.texture_m.Save(glm::translate(tex.texMap.texture_m.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
+                tex.texMap.texture_m.Save(glm::rotate(tex.texMap.texture_m.Top(), glm::radians((float)t_angle), glm::vec3(0.0,0.0,1.0)));
 
                 drawModel.Lattice_renew(layer, block);
             }
-            rawmodel.voxelModel.somVoxel[layer][block]->textype = tex[layer][block];
+            if(d_resolution_w != t_resolution_w || d_resolution_h != t_resolution_h || d_wrap != t_wrap){
+                tex.texMap.resolution_w = t_resolution_w;
+                tex.texMap.resolution_h = t_resolution_h;
+                tex.texMap.wrapType = t_wrap;
+                drawModel.Lattice_renew(layer, block);
+            }
+            rawmodel.voxelModel.somVoxel[layer][block]->textype = texType[layer][block];
             drawModel.showEachPart[layer][block] = selection[layer][block];
         }
     }

@@ -25,7 +25,7 @@ typedef struct SurfaceVoxModel_t {
     int somChioceLayerNum = 1;// max 8
     int somInitLayer = 1;
     // same layer
-    int blockNum = 2;// max 5
+    int blockNum = 1;// max 5
     int *blockLocate;
     char* blockOrientation;
 
@@ -38,7 +38,6 @@ typedef struct SurfaceVoxModel_t {
     glm::ivec3 **maxsize;
     glm::ivec3 **minsize;
 
-    int texTypeNum = 3;
 
 }svoxModel_t;
 typedef struct PartSurfaceVoxModel_t {

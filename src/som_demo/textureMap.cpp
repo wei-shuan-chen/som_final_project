@@ -2,7 +2,10 @@
 
 texture_cls tex;
 
-texture_cls::texture_cls(){}
+texture_cls::texture_cls(){
+    texMap.texture_m.Save(glm::translate(texMap.texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.0f)));
+    texMap.texture_m.Push();
+}
 texture_cls::~texture_cls(){
     free(intensityTex.data);
     free(colormapTex.data);
@@ -11,21 +14,84 @@ texture_cls::~texture_cls(){
     //     free(imageTex[i].data);
     // }
 }
-glm::fvec3 texture_cls::compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord){
-    tex.Save(glm::translate(tex.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
+glm::fvec3 texture_cls::compute_voxel_texture(glm::fvec4 texCoord){
+    texMap.texture_m.Push();
+    texMap.texture_m.Save(glm::translate(texMap.texture_m.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
+
+    // compute new texture coord
     glm::fvec3 newTexCoord = {0.0, 0.0, 0.0};
     float down = 0.0;
     for(int t = 0; t < 4; t++){
-        down += tex.Top()[t][3]*texCoord[t];
+        down += texMap.texture_m.Top()[t][3]*texCoord[t];
     }
     for(int texNum = 0; texNum < 3; texNum++){
         float tmp = 0.0;
         for(int t = 0; t < 4; t++){
-            tmp += tex.Top()[t][texNum]*texCoord[t];
+            tmp += texMap.texture_m.Top()[t][texNum]*texCoord[t];
         }
         newTexCoord[texNum] = tmp/down;
     }
+    texMap.texture_m.Pop();
 
+
+    float wb, we, hb, he, gap_w, gap_h;
+    wb = texMap.resolution_w.x;
+    we = texMap.resolution_w.y;
+    hb = texMap.resolution_h.x;
+    he = texMap.resolution_h.y;
+    gap_w = we - wb;
+    gap_h = he- hb;
+    if((newTexCoord.s <= we && newTexCoord.s >= wb) && (newTexCoord.t <= he && newTexCoord.t >= hb)){
+        if(newTexCoord.s == we) newTexCoord.s -= 0.0001;
+        if(newTexCoord.t == he) newTexCoord.t -= 0.0001;
+        return newTexCoord;
+    }
+    // resolution && repeat
+    if(texMap.wrapType == REPEAT){
+        float tmpCoord;
+        if(newTexCoord.s > we){
+            tmpCoord = newTexCoord.s - wb;
+            while(tmpCoord > we){
+                tmpCoord -= gap_w;
+            }
+            newTexCoord.s = tmpCoord;
+        }
+        if(newTexCoord.s < wb){
+            tmpCoord = newTexCoord.s;
+            while(tmpCoord < wb){
+                tmpCoord += gap_w;
+            }
+            newTexCoord.s = tmpCoord;
+        }
+        if(newTexCoord.t > he){
+            tmpCoord = newTexCoord.t - hb;
+            while(tmpCoord > he){
+                tmpCoord -= gap_h;
+            }
+            newTexCoord.t = tmpCoord;
+        }
+        if(newTexCoord.t < hb){
+            tmpCoord = newTexCoord.t;
+            while(tmpCoord < hb){
+                tmpCoord += gap_h;
+            }
+            newTexCoord.t = tmpCoord;
+        }
+
+    }
+    // resolution && border
+    if(texMap.wrapType == BORDER){
+        if(newTexCoord.s > we)
+            newTexCoord.s = 1.1;
+        if(newTexCoord.s < wb)
+            newTexCoord.s = -0.1;
+        if(newTexCoord.t > he)
+            newTexCoord.t = 1.1;
+        if(newTexCoord.t < hb)
+            newTexCoord.t = -0.1;
+    }
+
+    // cout <<"\n\n\n";
     return newTexCoord;
 }
 void texture_cls::create_texture(){

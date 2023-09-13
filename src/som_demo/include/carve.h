@@ -16,7 +16,7 @@ public:
     carve_cls();
     ~carve_cls();
 
-    void voxel_mapping(int layer, int block, MatrixStack texture_m);
+    void voxel_mapping(int layer, int block);
 private:
     glm::fvec2 findMinDistPrecisePos(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord, int de);
     glm::fvec3 outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 p);

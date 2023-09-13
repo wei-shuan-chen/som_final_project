@@ -33,8 +33,8 @@ struct World {
     std::vector<Vertex> p_axis;
 };
 
-void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel, MatrixStack texture_m);
-void renew_lattice(int layerNum, int blockNum, MatrixStack texture_m);
+void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel);
+void renew_lattice(int layerNum, int blockNum);
 void renew_plattice();
 void renew_voxel(svoxModel_t voxelModel);
 void renew_pvoxel(psvoxModel_t voxelModel);

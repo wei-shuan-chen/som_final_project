@@ -26,8 +26,7 @@ model_cls::model_cls(){
             showEachPart[layer][block] = true;
         }
     }
-    texture_m.Save(glm::translate(texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.0f)));
-    texture_m.Push();
+
 }
 model_cls::~model_cls(){
     destroy_world();
@@ -68,7 +67,7 @@ void model_cls::Shader_Create()
     }
     psom.SOM_Create(rawmodel.pVoxel_Position(), rawmodel.pvoxelModel.psomVoxel.size(), glm::vec3(150,150,150), glm::vec3(0,0,0), THREED);
 
-    create_world(rawmodel.voxelModel, rawmodel.pvoxelModel, texture_m);
+    create_world(rawmodel.voxelModel, rawmodel.pvoxelModel);
 
     Modify_position(rawmodel.infdata.resolution[0], rawmodel.infdata.resolution[1], rawmodel.infdata.resolution[2]);
 
@@ -115,7 +114,7 @@ void model_cls::Shader_Use(GLFWwindow *window){
                 const LatData_t* latticeData = som[layer][block].Lattice_get();
                 if(latticeData->iter < latticeData->finalIter && startSOM){
                     // som.SOM_IterateOnce();
-                    renew_lattice(layerNum, blockNum, texture_m);
+                    renew_lattice(layerNum, blockNum);
                     s_lattice_line[layer][block].renewVBO(world.s_lattice_line[layer][block]);
                     s_lattice_plane[layer][block].renewVBO(world.s_lattice_plane[layer][block]);
                 }
@@ -146,14 +145,14 @@ void model_cls::Shader_Use(GLFWwindow *window){
     shader_model();
 }
 void model_cls::Lattice_renew( int layer, int block){
-    renew_lattice(layerNum, blockNum, texture_m);
+    renew_lattice(layerNum, blockNum);
     s_lattice_line[layer][block].renewVBO(world.s_lattice_line[layer][block]);
     s_lattice_plane[layer][block].renewVBO(world.s_lattice_plane[layer][block]);
 }
 void model_cls::Voxel_renew(){
 
     renew_voxel(rawmodel.voxelModel);
-    renew_lattice(layerNum, blockNum, texture_m);
+    renew_lattice(layerNum, blockNum);
     for(int layer = 0; layer < layerNum; layer++){
         for(int block = 0; block < blockNum; block++){
             s_lattice_line[layer][block].renewVBO(world.s_lattice_line[layer][block]);
@@ -245,7 +244,7 @@ void model_cls::rayShader_model(GLFWwindow *window){
     tex.bindTexture(5);
     // Model_bound_create(rayShader);
     Model_create(rayShader);
-    Model_Floor_Create(rayShader);
+    // Model_Floor_Create(rayShader);
 }
 void model_cls::shader_model(){
     Model_axis_create(shader);
@@ -443,7 +442,7 @@ void model_cls::Model_mapping(){
     for(int layer = 0; layer < layerNum; layer++){
         for(int block = 0; block < blockNum; block++){
             if(showEachPart[layer][block]){
-                carve.voxel_mapping(layer, block, texture_m);
+                carve.voxel_mapping(layer, block);
 
                 renew_voxel(rawmodel.voxelModel);
                 somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);

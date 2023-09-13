@@ -14,6 +14,21 @@
 
 using namespace std;
 
+enum wrapType{
+    REPEAT,
+    BORDER
+};
+typedef struct textureMap_t
+{
+    int angle = 0;
+    glm::fvec2 translate = {0.0, 0.0};
+    glm::fvec2 scale = {0.0, 0.0};
+    glm::fvec2 resolution_w = {0.3, 1.0};
+    glm::fvec2 resolution_h = {0.0, 1.0};
+    int wrapType = 0;
+    MatrixStack texture_m;
+}textureMap_t;
+
 typedef struct imageTex_t{
     int width, height;
     unsigned int texture;
@@ -54,14 +69,16 @@ public:
     void bindTexture(int bind);
     void updataColorMap(vector<float> newdata);
     void updateIntensityMap();
-    glm::fvec3 compute_voxel_texture(MatrixStack tex, glm::fvec4 texCoord);
+    glm::fvec3 compute_voxel_texture(glm::fvec4 texCoord);
 
+    int texTypeNum = 3;
     imageTex_t imageTex[3];
     threeDTex_t threeDTex;
     shadowTex_t shadowTex;
     intensityTex_t intensityTex;
     colormapTex_t colormapTex;
 
+    textureMap_t texMap;
 private:
     void create_img_tex();
     void create_3D_tex();

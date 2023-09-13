@@ -3,7 +3,7 @@ carve_cls carve;
 carve_cls::carve_cls(){}
 carve_cls::~carve_cls(){}
 
-void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
+void carve_cls::voxel_mapping(int layer, int block){
     const LatData_t* latticeData = som[layer][block].Lattice_get();
     int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
     for(int n = 0; n < rawmodel.voxelModel.voxelnum[layer][block]; n++){// voxel
@@ -32,7 +32,7 @@ void carve_cls::voxel_mapping(int layer, int block, MatrixStack texture_m){
         glm::fvec2 trueMinLatticeCoord = findMinDistPrecisePos(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord, n);
         // find the color of minDist lattice
         glm::fvec3 tmpCoord  = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1), 0.5};
-        glm::fvec3 latticeTexCoord = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(texture_m, glm::fvec4(tmpCoord, 1.0));
+        glm::fvec3 latticeTexCoord = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(glm::fvec4(tmpCoord, 1.0));
 
         if(latticeTexCoord.x < 0.0 || latticeTexCoord.x > 1.0 || latticeTexCoord.y < 0.0 || latticeTexCoord.y > 1.0){
             rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};

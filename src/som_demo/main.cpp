@@ -63,8 +63,8 @@ int main()
 	// build and compile our shader program
 	// ------------------------------------
 	imgui_init(window);
-	drawModel.Shader_Create();
     tex.create_texture();
+	drawModel.Shader_Create();
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{

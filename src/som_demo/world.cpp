@@ -4,7 +4,7 @@ struct World world = {};
 
 
 
-void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel, MatrixStack texture_m) {
+void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel) {
     world.cube = {
         //       position                  normal                 color               tex
         Vertex{  { 0.0f,  0.0f,  0.0f, } , { 0.0f,  0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0} },
@@ -188,7 +188,7 @@ void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel, MatrixStack
     renew_pvoxel(pvoxelModel);
     renew_voxel(voxelModel);
     renew_plattice();
-    renew_lattice(voxelModel.somChioceLayerNum, voxelModel.blockNum, texture_m);
+    renew_lattice(voxelModel.somChioceLayerNum, voxelModel.blockNum);
 
     world.lightcube = {
         //       position
@@ -539,7 +539,7 @@ void renew_plattice(){
         }
     }
 }
-void renew_lattice(int layerNum, int blockNum, MatrixStack texture_m){
+void renew_lattice(int layerNum, int blockNum){
     world.s_lattice_line.clear();
     world.s_lattice_plane.clear();
     std::vector<Vertex> lattice_line; // lattice
@@ -576,15 +576,14 @@ void renew_lattice(int layerNum, int blockNum, MatrixStack texture_m){
                         l_y_pos = latticeData->lattice[k][y+1][x];
                         l_xy_pos = latticeData->lattice[k][y+1][x+1];
 
-                        glm::fvec3 texCoord = tex.compute_voxel_texture(texture_m, glm::fvec4(x_tex, y_tex, z_tex, 1.0));
-                        glm::fvec3 texCoord_n = tex.compute_voxel_texture(texture_m, glm::fvec4(x1_tex, y1_tex, z1_tex, 1.0));
+                        glm::fvec3 texCoord = tex.compute_voxel_texture(glm::fvec4(x_tex, y_tex, z_tex, 1.0));
+                        glm::fvec3 texCoord_n = tex.compute_voxel_texture(glm::fvec4(x1_tex, y1_tex, z1_tex, 1.0));
                         x_tex = texCoord[0];
                         y_tex = texCoord[1];
                         z_tex = texCoord[2];
                         x1_tex = texCoord_n[0];
                         y1_tex = texCoord_n[1];
                         z1_tex = texCoord_n[2];
-
                         // line
                         lattice_line.push_back(Vertex{ {l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y_tex, z_tex}});
                         lattice_line.push_back(Vertex{ {l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {x_tex, y1_tex, z_tex}});

@@ -219,9 +219,11 @@ void RAWmodel_cls::SetVoxelData(){
             for(int z = 0; z < infdata.resolution[0]; z++){
                 // outer voxel type = 0
                 if(rawData[y][x][z].layer == 0){
+                }
+                if(rawData[y][x][z].layer == 1){
                     voxelModel.outerVoxel.push_back(USVoxData_t{{x,y,z}, {1.0, 0.0, 0.8},{}});
-                    pvoxelModel.outerVoxel.push_back(USVoxData_t{{x,y,z}, {1.0, 0.0, 0.8},{}});
                     findSurfaceVoxel(y, x, z, voxelModel.outerVoxel.size()-1, 0, 0, OUTTER);
+                    pvoxelModel.outerVoxel.push_back(USVoxData_t{{x,y,z}, {1.0, 0.0, 0.8},{}});
                     findSurfaceVoxel(y, x, z, pvoxelModel.outerVoxel.size()-1, 0, 0, OUTTER);
                 }
                 // inner voxel type = 1
@@ -230,7 +232,7 @@ void RAWmodel_cls::SetVoxelData(){
                     findSurfaceVoxel(y, x, z, voxelModel.innerVoxel.size()-1, 0, 0, INNER);
                 }
                 // mid voxel type
-                if(rawData[y][x][z].layer > 0 && rawData[y][x][z].layer < voxelModel.somInitLayer+layerNum){
+                if(rawData[y][x][z].layer >= 0 && rawData[y][x][z].layer < voxelModel.somInitLayer+layerNum){
                     voxelModel.midVoxel.push_back(SOMVoxData_t{{x,y,z},{rawData[y][x][z].layer}});
                     // findSurfaceVoxel(y,x,z,voxelModel.midVoxel.size()-1,0,0,MID);
                 }
@@ -304,7 +306,6 @@ bool RAWmodel_cls::choice_somvoxel(glm::mat3x3 m_inverse, float* f_translate, fl
             }
         }
     }
-    cout << voxelModel.voxelnum[0][0]<<", "<<voxelModel.voxelnum[0][1]<<endl;
     return c;
 }
 bool RAWmodel_cls::choice_psomvoxel(glm::mat3x3 m_inverse, glm::vec3 v_translate){
@@ -318,7 +319,7 @@ bool RAWmodel_cls::choice_psomvoxel(glm::mat3x3 m_inverse, glm::vec3 v_translate
                 p.y = p.y-v_translate.y;
                 p.z = p.z-v_translate.z;
                 glm::vec3 newCoordp = p*m_inverse;
-                if(rawData[y][x][z].layer >= 0){
+                if(rawData[y][x][z].layer >= 1){
                     if(newCoordp.x < 1.0 && newCoordp.x > 0.0 && newCoordp.y < 1.0 && newCoordp.y > 0.0 && newCoordp.z < 1.0 && newCoordp.z > 0.0){
                         if(!c){
                             pvoxelModel.maxsize = {0, 0, 0};

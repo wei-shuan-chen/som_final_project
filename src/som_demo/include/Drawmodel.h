@@ -18,11 +18,7 @@
 #include "Gui.h"
 #include "carve.h"
 #include "Math.h"
-typedef struct texture_t{
-    int angle = 0;
-    glm::fvec2 translate = {0.0, 0.0};
-    glm::fvec2 scale = {0.0, 0.0};
-}texture_t;
+
 
 class model_cls{
 public:
@@ -48,8 +44,8 @@ public:
     bool showLatticeLine = true;
     bool** showEachPart;
 
-    texture_t texInfo;
-    MatrixStack texture_m;
+    // texture_t texInfo;
+    // MatrixStack texture_m;
 
 private:
 
