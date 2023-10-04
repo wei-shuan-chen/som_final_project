@@ -23,7 +23,7 @@ typedef struct textureMap_t
     int angle = 0;
     glm::fvec2 translate = {0.0, 0.0};
     glm::fvec2 scale = {0.0, 0.0};
-    glm::fvec2 resolution_w = {0.3, 1.0};
+    glm::fvec2 resolution_w = {0.0, 1.0};
     glm::fvec2 resolution_h = {0.0, 1.0};
     int wrapType = 0;
     MatrixStack texture_m;
@@ -84,7 +84,7 @@ private:
     void create_3D_tex();
     void create_depth_tex();
     void create_ray_tex();
-    const char* texName[3] = {"texture/stru.png", "texture/pattern.png", "texture/wwb.png"};
+    const char* texName[3] = {"texture/color.png", "texture/pattern.png", "texture/wwb.png"};
     void texture1Dto2D(int nrChannels, int t);
 };
 

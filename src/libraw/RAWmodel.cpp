@@ -239,7 +239,7 @@ void RAWmodel_cls::SetVoxelData(){
                 // som voxel type = 2
                 // for(int layern = 0; layern < layerNum; layern++){
                 //     if(rawData[y][x][z].layer == voxelModel.somInitLayer+layern){
-                //         int block = SetBlockNum(voxelModel.blockOrientation, x, y, z);
+                //         int block = 0;//SetBlockNum(voxelModel.blockOrientation, x, y, z);
                 //         voxelModel.somVoxel[layern][block][voxelModel.voxelnum[layern][block]].locate = {x, y, z};
                 //         setMaxbounder(x, y, z, layern, block, SHOWSOM);
                 //         findSurfaceVoxel(y,x,z, voxelModel.voxelnum[layern][block], layern, block, SOM);

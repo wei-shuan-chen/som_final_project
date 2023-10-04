@@ -8,7 +8,7 @@ bool startSOM = false;
 int layerNum = rawmodel.voxelModel.somChioceLayerNum;
 int blockNum = rawmodel.voxelModel.blockNum;
 model_cls::model_cls(){
-    glm::vec3 lightPos = glm::vec3(camera.Position.x,camera.Position.x,camera.Position.x);
+    glm::vec3 lightPos = glm::vec3(50,50,50);
     Camera camera(glm::vec3(0.0f, 5.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
     somVoxel = (Item**)malloc(sizeof(Item*) * layerNum);
@@ -100,11 +100,11 @@ void model_cls::Shader_Create()
 }
 void model_cls::Modify_position(int x, int y, int z){
     // modify camera
-    rate = max(max(x,y),z) / 4.0;
-    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -2.0, y / 2.0, z * 2.0), rate);
+    rate = max(max(x,y),z) / 8.0;
+    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -2.0, y / 4.0, z * 1.0), rate);
 
     // modify light
-    lightPos = glm::vec3(x, y * 1.3, z * 2.0);
+    lightPos = glm::vec3(x, y , z );
 }
 void model_cls::Shader_Use(GLFWwindow *window){
     // som iter
@@ -179,6 +179,7 @@ void model_cls::Shader_init(int n, bool settex){
     // glEnable(GL_CULL_FACE);
     // glCullFace(GL_BACK);
     // glEnable(GL_BLEND);
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     if(n == 0){
         rayShader.use();
@@ -244,7 +245,7 @@ void model_cls::rayShader_model(GLFWwindow *window){
     tex.bindTexture(5);
     // Model_bound_create(rayShader);
     Model_create(rayShader);
-    // Model_Floor_Create(rayShader);
+    Model_Floor_Create(rayShader);
 }
 void model_cls::shader_model(){
     Model_axis_create(shader);
@@ -264,7 +265,7 @@ void model_cls::Model_Floor_Create(Shader shader){
 
     // floor
     model.Push();
-    model.Save(glm::scale(model.Top(), glm::vec3( 20000.0f, 1.0f, 20000.0f)));
+    model.Save(glm::scale(model.Top(), glm::vec3( 1000.0f, 1.0f, 1000.0f)));
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
     shader.setMat4("model", model.Top());
     shader.setBool("ray", false);
@@ -284,7 +285,7 @@ void model_cls::Model_axis_create(Shader shader){
     // model.Pop();
     // p_axis
     model.Push();
-    model.Save(glm::scale(model.Top(), glm::vec3( 0.5,0.5, 0.5)));
+    model.Save(glm::scale(model.Top(),modelsize));
     shader.setMat4("model", model.Top());
     glBindVertexArray(p_axis.VAO);
     glDrawArrays(GL_LINES, 0, world.p_axis.size());
@@ -292,7 +293,7 @@ void model_cls::Model_axis_create(Shader shader){
 }
 void model_cls::Model_lattice_create(Shader shader){
     model.Push();
-    model.Save(glm::scale(model.Top(), glm::vec3( 0.5f, 0.5f, 0.5f)));
+    model.Save(glm::scale(model.Top(), modelsize));
     // model.Save(glm::rotate(model.Top(), glm::radians(-90.0f), glm::vec3(0.0,1.0,0.0)));
     shader.setMat4("model", model.Top());
     if(texshow) shader.setBool("tex", true);
@@ -349,8 +350,8 @@ void  model_cls::Model_bound_create(Shader shader){
 }
 void model_cls::Model_create(Shader shader){
     model.Push();
-    model.Save(glm::scale(model.Top(), glm::vec3( 0.5,0.5, 0.5)));
-    shader.setVec3("modelSize", glm::vec3( 0.5,0.5, 0.5));
+    model.Save(glm::scale(model.Top(), modelsize));
+    shader.setVec3("modelSize", modelsize);
     shader.setBool("ray", false);
     shader.setMat4("model", model.Top());
     if(showVoxel && som_psom == SHOWSOM){
@@ -438,16 +439,23 @@ glm::fvec3 model_cls::vector_matrix(glm::mat4 matrix, glm::fvec4 vec){
     return ans;
 }
 void model_cls::Model_mapping(){
+    if(som_psom == SHOWSOM){
+        for(int layer = 0; layer < layerNum; layer++){
+            for(int block = 0; block < blockNum; block++){
+                if(showEachPart[layer][block]){
+                    carve.voxel_mapping(layer, block);
 
-    for(int layer = 0; layer < layerNum; layer++){
-        for(int block = 0; block < blockNum; block++){
-            if(showEachPart[layer][block]){
-                carve.voxel_mapping(layer, block);
-
-                renew_voxel(rawmodel.voxelModel);
-                somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
+                    renew_voxel(rawmodel.voxelModel);
+                    somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
+                }
             }
         }
+        log_info("end: model mapping\n");
     }
-    log_info("end: model mapping\n");
+    if(som_psom == SHOWPSOM){
+        carve.pvoxel_mapping();
+        renew_pvoxel(rawmodel.pvoxelModel);
+        psomVoxel.renewVBO(world.psomVoxel);
+        log_info("end: p model mapping\n");
+    }
 }

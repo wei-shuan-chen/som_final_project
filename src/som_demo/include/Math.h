@@ -14,7 +14,7 @@ public:
     glm::fvec3 crossPruduct(glm::fvec3 a, glm::fvec3 b);
     float innerProduct(glm::fvec3 a, glm::fvec3 b);
     glm::mat3x3 inverseMatrix(glm::mat3x3 A);
-
+    float determinant(glm::mat3x3 A);
 };
 extern math_cls math;
 

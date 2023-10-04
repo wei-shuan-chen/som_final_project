@@ -13,9 +13,13 @@ glm::fvec3 math_cls::crossPruduct(glm::fvec3 a, glm::fvec3 b){
 float math_cls::innerProduct(glm::fvec3 a, glm::fvec3 b){
     return ((a.x*b.x) + (a.y*b.y) + (a.z*b.z));
 }
-glm::mat3x3 math_cls::inverseMatrix(glm::mat3x3 A){
+float math_cls::determinant(glm::mat3x3 A){
     float detA = A[0][0]*A[1][1]*A[2][2] + A[1][0]*A[2][1]*A[0][2] + A[2][0]*A[0][1]*A[1][2];
     detA = detA - A[0][2]*A[1][1]*A[2][0] - A[1][2]*A[2][1]*A[0][0] - A[2][2]*A[0][1]*A[1][0];
+    return detA;
+}
+glm::mat3x3 math_cls::inverseMatrix(glm::mat3x3 A){
+    float detA = determinant(A);
 
     // for(int i = 0; i < 3; i++){
     //     for(int j = 0; j < 3; j++){

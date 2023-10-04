@@ -10,8 +10,8 @@ void imgui_funcsom();
 void imgui_funcpsom();
 bool texshow = false;
 int som_psom = 0;
-static float f_translate[3] = {50.0f, 50.0f, 100.0f};
-static float f_scale[3] = {100.0f, 100.0f, 50.0f};
+static float f_translate[3] = {80.0f, 80.0f, 80.0f};
+static float f_scale[3] = {80.0f, 80.0f, 80.0f};
 static glm::mat3x3 m_inverse;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
@@ -69,6 +69,7 @@ void imgui_funcbuttom(){
         drawModel.Model_mapping();
     }
 
+
     ImGui::SameLine();
     static int texnum = 0;
     const char* tex_types[2] = { "false", "true"};
@@ -76,6 +77,14 @@ void imgui_funcbuttom(){
     ImGui::SliderInt("texture show", &texnum, 0, 1, tex_type);
     if(texnum == 0) texshow = false;
     else texshow = true;
+
+    static int filnum = 0;
+    const char* fil_types[2] = { "false", "true"};
+    const char* fil_type = (filnum >= 0 && filnum < 2) ? fil_types[filnum] : "Unknown";
+    ImGui::SliderInt("filter show", &filnum, 0, 1, fil_type);
+    if(filnum == 0) carve.filter = false;
+    else carve.filter = true;
+    ImGui::SameLine();
 
     static int somnum = SHOWSOM;
     const char* som_types[2] = { "som", "psom"};
@@ -208,7 +217,8 @@ void imgui_funcsom(){
     static int** texType = (int**)malloc(layerNum * sizeof(int*));
     static int** texWrap = (int**)malloc(layerNum * sizeof(int*));
     static int** texRotate = (int**)malloc(layerNum * sizeof(int*));
-    static float*** texResolution = (float***)malloc(layerNum * sizeof(float**));
+    static float*** texResolution_w = (float***)malloc(layerNum * sizeof(float**));
+    static float*** texResolution_h = (float***)malloc(layerNum * sizeof(float**));
     static float*** texScale = (float***)malloc(layerNum * sizeof(float**));
     static float*** texTranslate = (float***)malloc(layerNum * sizeof(float**));
     static int** lat = (int**)malloc(layerNum * sizeof(int*));
@@ -221,7 +231,8 @@ void imgui_funcsom(){
             texType[layer] = (int*)calloc(blockNum, sizeof(int));
             texWrap[layer] = (int*)calloc(blockNum, sizeof(int));
             texRotate[layer] = (int*)calloc(blockNum, sizeof(int));
-            texResolution[layer] = (float**)malloc(blockNum * sizeof(float*));
+            texResolution_w[layer] = (float**)malloc(blockNum * sizeof(float*));
+            texResolution_h[layer] = (float**)malloc(blockNum * sizeof(float*));
             texTranslate[layer] = (float**)malloc(blockNum * sizeof(float*));
             texScale[layer] = (float**)malloc(blockNum * sizeof(float*));
             lat[layer] = (int*)calloc(blockNum, sizeof(int));
@@ -234,11 +245,12 @@ void imgui_funcsom(){
                 texScale[layer][block] = (float*)calloc(2, sizeof(float));
                 texScale[layer][block][0] = 1.0;
                 texScale[layer][block][1] = 1.0;
-                texResolution[layer][block] = (float*)calloc(4, sizeof(float));
-                texResolution[layer][block][0] = 0.3;
-                texResolution[layer][block][1] = 1.0;
-                texResolution[layer][block][2] = 0.0;
-                texResolution[layer][block][3] = 1.0;
+                texResolution_w[layer][block] = (float*)calloc(2, sizeof(float));
+                texResolution_h[layer][block] = (float*)calloc(2, sizeof(float));
+                texResolution_w[layer][block][0] = 0.0;
+                texResolution_w[layer][block][1] = 1.0;
+                texResolution_h[layer][block][0] = 0.0;
+                texResolution_h[layer][block][1] = 1.0;
             }
         }
         init = false;
@@ -258,8 +270,12 @@ void imgui_funcsom(){
                 ImGui::Text("wrap");
                 ImGui::RadioButton("repeat", &texWrap[layer][block], 0); ImGui::SameLine();
                 ImGui::RadioButton("border", &texWrap[layer][block], 1);
-                ImGui::DragFloatRange2("resolution_tex width", &texResolution[layer][block][0], &texResolution[layer][block][1], 0.01f, 0.0f, 1.0f, "Min: %.001f ", "Max: %.001f ", ImGuiSliderFlags_AlwaysClamp);
-                ImGui::DragFloatRange2("resolution_tex height", &texResolution[layer][block][2], &texResolution[layer][block][3], 0.01f, 0.0f, 1.0f, "Min: %.001f ", "Max: %.001f ", ImGuiSliderFlags_AlwaysClamp);
+                // ImGui::DragFloatRange2("resolution_tex width", &texResolution[layer][block][0], &texResolution[layer][block][1], 0.01f, 0.0f, 1.0f, "Min: %.001f ", "Max: %.001f ", ImGuiSliderFlags_AlwaysClamp);
+                // ImGui::DragFloatRange2("resolution_tex height", &texResolution[layer][block][2], &texResolution[layer][block][3], 0.01f, 0.0f, 1.0f, "Min: %.001f ", "Max: %.001f ", ImGuiSliderFlags_AlwaysClamp);
+
+                ImGui::InputFloat2("resolution_tex width", texResolution_w[layer][block]);
+                ImGui::InputFloat2("resolution_tex height", texResolution_h[layer][block]);
+
                 ImGui::SliderFloat2("translate_tex", texTranslate[layer][block], -1, 1);
                 ImGui::InputFloat2("scale_tex", texScale[layer][block]);
                 ImGui::SliderInt("rotate(degree)_tex", &texRotate[layer][block], 0, 360);
@@ -308,9 +324,9 @@ void imgui_funcsom(){
             glm::fvec2 d_scale = tex.texMap.scale;
             glm::fvec2 t_scale = {texScale[layer][block][0], texScale[layer][block][1]};
             glm::fvec2 d_resolution_w = tex.texMap.resolution_w;
-            glm::fvec2 t_resolution_w = {texResolution[layer][block][0], texResolution[layer][block][1]};
+            glm::fvec2 t_resolution_w = {texResolution_w[layer][block][0], texResolution_w[layer][block][1]};
             glm::fvec2 d_resolution_h = tex.texMap.resolution_h;
-            glm::fvec2 t_resolution_h = {texResolution[layer][block][2], texResolution[layer][block][3]};
+            glm::fvec2 t_resolution_h = {texResolution_h[layer][block][0], texResolution_h[layer][block][1]};
             if(d_angle != t_angle || d_trans != t_trans || d_scale != t_scale){
                 tex.texMap.angle = t_angle;
                 tex.texMap.translate = t_trans;
@@ -325,6 +341,8 @@ void imgui_funcsom(){
                 drawModel.Lattice_renew(layer, block);
             }
             if(d_resolution_w != t_resolution_w || d_resolution_h != t_resolution_h || d_wrap != t_wrap){
+                if(t_resolution_w.t < t_resolution_w.s) t_resolution_w.t = t_resolution_w.s+0.01;
+                if(t_resolution_h.t < t_resolution_h.s) t_resolution_h.t = t_resolution_h.s+0.01;
                 tex.texMap.resolution_w = t_resolution_w;
                 tex.texMap.resolution_h = t_resolution_h;
                 tex.texMap.wrapType = t_wrap;

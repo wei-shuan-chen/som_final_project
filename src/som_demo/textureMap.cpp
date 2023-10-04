@@ -33,14 +33,13 @@ glm::fvec3 texture_cls::compute_voxel_texture(glm::fvec4 texCoord){
     }
     texMap.texture_m.Pop();
 
-
     float wb, we, hb, he, gap_w, gap_h;
     wb = texMap.resolution_w.x;
     we = texMap.resolution_w.y;
     hb = texMap.resolution_h.x;
     he = texMap.resolution_h.y;
     gap_w = we - wb;
-    gap_h = he- hb;
+    gap_h = he - hb;
     if((newTexCoord.s <= we && newTexCoord.s >= wb) && (newTexCoord.t <= he && newTexCoord.t >= hb)){
         if(newTexCoord.s == we) newTexCoord.s -= 0.0001;
         if(newTexCoord.t == he) newTexCoord.t -= 0.0001;
@@ -50,45 +49,46 @@ glm::fvec3 texture_cls::compute_voxel_texture(glm::fvec4 texCoord){
     if(texMap.wrapType == REPEAT){
         float tmpCoord;
         if(newTexCoord.s > we){
-            tmpCoord = newTexCoord.s - wb;
-            while(tmpCoord > we){
+            tmpCoord = newTexCoord.s;
+            while(tmpCoord-0.001 > we){
                 tmpCoord -= gap_w;
             }
             newTexCoord.s = tmpCoord;
         }
         if(newTexCoord.s < wb){
             tmpCoord = newTexCoord.s;
-            while(tmpCoord < wb){
+            while(tmpCoord+0.001 < wb){
                 tmpCoord += gap_w;
             }
             newTexCoord.s = tmpCoord;
         }
         if(newTexCoord.t > he){
-            tmpCoord = newTexCoord.t - hb;
-            while(tmpCoord > he){
+            tmpCoord = newTexCoord.t;
+            while(tmpCoord-0.001 > he){
                 tmpCoord -= gap_h;
             }
             newTexCoord.t = tmpCoord;
         }
         if(newTexCoord.t < hb){
             tmpCoord = newTexCoord.t;
-            while(tmpCoord < hb){
+            while(tmpCoord+0.001 < hb){
                 tmpCoord += gap_h;
             }
             newTexCoord.t = tmpCoord;
         }
 
     }
+
     // resolution && border
     if(texMap.wrapType == BORDER){
         if(newTexCoord.s > we)
-            newTexCoord.s = 1.1;
+            newTexCoord.s = 100.1;
         if(newTexCoord.s < wb)
-            newTexCoord.s = -0.1;
+            newTexCoord.s = -100.1;
         if(newTexCoord.t > he)
-            newTexCoord.t = 1.1;
+            newTexCoord.t = 100.1;
         if(newTexCoord.t < hb)
-            newTexCoord.t = -0.1;
+            newTexCoord.t = -100.1;
     }
 
     // cout <<"\n\n\n";
@@ -213,7 +213,7 @@ void texture_cls::create_3D_tex(){
                     threeDTex.data[num+1] = 0.0;
                     threeDTex.data[num+2] = 0.0;
                 }else{
-                    threeDTex.data[num] = 1.0;
+                    threeDTex.data[num] = 0.0;
                     threeDTex.data[num+1] = 0.0;
                     threeDTex.data[num+2] = 1.0;
                 }
@@ -239,8 +239,8 @@ void texture_cls::create_img_tex(){
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
         // set texture filtering parameters
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         // load image, create texture and generate mipmaps
         int nrChannels;
         // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.

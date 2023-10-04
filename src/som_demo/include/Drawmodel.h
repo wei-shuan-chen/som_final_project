@@ -35,6 +35,7 @@ public:
 
     Camera camera;
     glm::vec3 lightPos;
+    glm::vec3 modelsize = {0.1, 0.1, 0.1};
     int SCR_WIDTH = 800, SCR_HEIGHT = 600;
     float rate;
 
