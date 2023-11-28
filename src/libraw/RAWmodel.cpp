@@ -22,8 +22,8 @@ RAWmodel_cls::~RAWmodel_cls(){
     }
     free(rawData);
 }
-void RAWmodel_cls::LoadFile(const char* infFileName,const char* rawFileName){
-    LoadINFfile(infFileName);
+void RAWmodel_cls::LoadFile(const char* infFileName,const char* rawFileName,const char* o_inf){
+    LoadINFfile(infFileName, o_inf);
     CreateRawData();
     LoadRAWfile(rawFileName);
 
@@ -43,10 +43,11 @@ std::vector<glm::ivec3> RAWmodel_cls::pVoxel_Position(){
         voxelPosition.push_back(pvoxelModel.psomVoxel[i].locate);
     return voxelPosition;
 }
-bool RAWmodel_cls::LoadINFfile(const char* infFileName){
-    FILE *file = NULL;
+bool RAWmodel_cls::LoadINFfile(const char* infFileName, const char* o_inf){
+    FILE *file = NULL, *o_file = NULL;
     errno_t err;                    //record error
     file = fopen(infFileName, "r"); // err = 0 success, err != fail
+
     if(file == NULL){
         std::cout << "Failed to open inffile" << std::endl;
         return false;
@@ -87,20 +88,34 @@ bool RAWmodel_cls::LoadINFfile(const char* infFileName){
         std::cout << "Encountered an error while reading the file!" << std::endl;
     }
 
+    // printf("\n");
+
     fclose(file);
+    file = fopen(infFileName, "r");
+    o_file = fopen(o_inf, "w");
+    char ch;
+    while( (ch=getc(file))!=EOF)
+    {
+
+        putc(ch,o_file);
+    }
+    fclose(file);
+    fclose(o_file);
 
     return true;
 
 }
-
 void RAWmodel_cls::CreateRawData(){
     int rawSize = infdata.resolution[0] * infdata.resolution[1] * infdata.resolution[2];
     if(infdata.type == 0){
         uc_voxelData = (BYTE*)malloc(sizeof(BYTE) * rawSize);
+        new_uc_voxelData = (BYTE*)malloc(sizeof(BYTE) * rawSize);
     }else if(infdata.type == 1){
         f_voxelData = (float*)malloc(sizeof(float)* rawSize);
+        new_f_voxelData = (float*)malloc(sizeof(float)* rawSize);
     }else if(infdata.type == 2){
         d_voxelData = (double*)malloc(sizeof(double)* rawSize);
+        new_d_voxelData = (double*)malloc(sizeof(double)* rawSize);
     }
     rawData = (RawData_t***)malloc(sizeof(RawData_t**) * infdata.resolution[2]);
     newrawData = (int***)malloc(sizeof(int**)*infdata.resolution[2]);
@@ -118,7 +133,6 @@ void RAWmodel_cls::CreateRawData(){
         }
     }
 }
-
 bool RAWmodel_cls::LoadRAWfile(const char* rawFileName){
     FILE *file = NULL;
     errno_t err;                    //record error
@@ -127,19 +141,18 @@ bool RAWmodel_cls::LoadRAWfile(const char* rawFileName){
         std::cout << "Failed to open rawfile" << std::endl;
         return false;
     }
-
     //read raw to 3Darray
     if(!ReadRawFile(file)){
         std::cout << "Failed to read raw file" << std::endl;
     }
     //set 0 air, 1 bounder, 2 inside
     SetVoxelData();
-
     // error detect
     if (feof(file))
         std::cout << "End of file reached!" << std::endl;
     else if (ferror(file))
         std::cout << "Encountered an error while reading the file!" << std::endl;
+
 
 
 
@@ -178,13 +191,16 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
                 for(int k = 1; k < infdata.resolution[0]-1; k++){
                     int num = k + j*infdata.resolution[0] + i*infdata.resolution[0]* infdata.resolution[1];
                     rawData[i][j][k].layer = (short int)f_voxelData[num];
+                    // cout << rawData[i][j][k].layer << " ";
                     for(int layern = 0; layern < layerNum; layern++){
                         if(rawData[i][j][k].layer == voxelModel.somInitLayer+layern){
                             layervoxelnum[layern]++;
                         }
                     }
                 }
+                // cout <<"\n";
             }
+            // cout <<"\n\n";
         }
         return true;
     }else if(infdata.type == 2){
@@ -208,7 +224,40 @@ bool RAWmodel_cls::ReadRawFile(FILE *file){
     return false;
 
 }
+void RAWmodel_cls::LoadOutputFile(const char* o_raw){
+    FILE *o_file = NULL;
+    o_file = fopen(o_raw, "w");
+    for(int y = 0; y < infdata.resolution[2]; y++){
+        for(int x = 0; x < infdata.resolution[1]; x++){
+            for(int z = 0; z < infdata.resolution[0]; z++){
+                int num = z + x*infdata.resolution[0] + y*infdata.resolution[0]* infdata.resolution[1];
+                if(infdata.type == 0){
+                    new_uc_voxelData[num] = (BYTE)newrawData[y][x][z];
+                }
+                if(infdata.type == 1){
+                    new_f_voxelData[num] = (float)newrawData[y][x][z];
+                }
+                if(infdata.type == 2){
+                    new_d_voxelData[num] = (double)newrawData[y][x][z];
+                }
+            }
+        }
+    }
 
+    int size = (infdata.resolution[0]) * (infdata.resolution[1]) * (infdata.resolution[2]);
+    // fwrite(test , sizeof(int) , sizeof(test) , fp );
+    if(infdata.type == 0){
+        fwrite(new_uc_voxelData, sizeof(BYTE) , size, o_file);
+    }
+    if(infdata.type == 1){
+        fwrite(new_f_voxelData, sizeof(float), size, o_file);
+    }
+    if(infdata.type == 2){
+        fwrite(new_d_voxelData, sizeof(double), size, o_file);
+
+    }
+    fclose(o_file);
+}
 void RAWmodel_cls::SetVoxelData(){
 
     GiveSpaceLocate();
@@ -249,15 +298,16 @@ void RAWmodel_cls::SetVoxelData(){
                 int end = voxelModel.somInitLayer+layerNum;
                 int init = voxelModel.somInitLayer;
                 if(rawData[y][x][z].layer == 0){
-                    newrawData[y][x][z]= 255;
+                    newrawData[y][x][z]= 50;
                 }else if(rawData[y][x][z].layer < end && rawData[y][x][z].layer >= init){
                     int gap = rawData[y][x][z].layer - init;
-                    newrawData[y][x][z] = 100+gap*10;
+                    newrawData[y][x][z] = 50;//100+gap*10;
                 }else if(rawData[y][x][z].layer > 0){
                     newrawData[y][x][z] = 50;
                 }else{
                     newrawData[y][x][z] = 0;
                 }
+
             }
         }
     }
@@ -282,7 +332,7 @@ bool RAWmodel_cls::choice_somvoxel(glm::mat3x3 m_inverse, float* f_translate, fl
         p.x = p.x-f_translate[0];
         p.y = p.y-f_translate[1];
         p.z = p.z-f_translate[2];
-        glm::vec3 newCoordp = p*m_inverse;
+        glm::vec3 newCoordp = m_inverse*p; //000000000000
         if(newCoordp.x < 1.0 && newCoordp.x > 0.0 && newCoordp.y < 1.0 && newCoordp.y > 0.0 && newCoordp.z < 1.0 && newCoordp.z > 0.0){
             for(int layern = 0; layern < layerNum; layern++){
                 if( voxelModel.midVoxel[i].layer == voxelModel.somInitLayer+layern){

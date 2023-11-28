@@ -10,8 +10,8 @@ void imgui_funcsom();
 void imgui_funcpsom();
 bool texshow = false;
 int som_psom = 0;
-static float f_translate[3] = {80.0f, 80.0f, 80.0f};
-static float f_scale[3] = {80.0f, 80.0f, 80.0f};
+static float f_translate[3] = {0.0f, 100.0f, 0.0f};
+static float f_scale[3] = {300.0f, 100.0f, 300.0f};
 static glm::mat3x3 m_inverse;
 void imgui_init(GLFWwindow *window){
     // GL 3.0 + GLSL 130
@@ -68,6 +68,10 @@ void imgui_funcbuttom(){
     if(ImGui::Button("curve")){
         drawModel.Model_mapping();
     }
+    ImGui::SameLine();
+    if(ImGui::Button("load raw")){
+        rawmodel.LoadOutputFile("raw/output/vase3D.raw");
+    }
 
 
     ImGui::SameLine();
@@ -84,7 +88,8 @@ void imgui_funcbuttom(){
     ImGui::SliderInt("filter show", &filnum, 0, 1, fil_type);
     if(filnum == 0) carve.filter = false;
     else carve.filter = true;
-    ImGui::SameLine();
+
+    // ImGui::SameLine();
 
     static int somnum = SHOWSOM;
     const char* som_types[2] = { "som", "psom"};
@@ -159,6 +164,13 @@ void imgui_roi(){
 }
 void imgui_funcpsom(){
     const LatData_t* latticeData = psom.Lattice_get();
+    static int pcarnum = 0;
+    const char* pcar_types[2] = { "false", "true"};
+    const char* pcar_type = (pcarnum >= 0 && pcarnum < 2) ? pcar_types[pcarnum] : "Unknown";
+    ImGui::SliderInt("pcarve show", &pcarnum, 0, 1, pcar_type);
+    if(pcarnum == 0) carve.pcarve = false;
+    else carve.pcarve = true;
+
     ImGui::Text("iter : %d",latticeData->iter);
     ImGui::Text("radius: %f", latticeData->radius);
     ImGui::Text("learning_rate: %f", latticeData->learningRate);

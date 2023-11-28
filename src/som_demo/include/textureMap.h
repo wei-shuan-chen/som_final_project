@@ -56,7 +56,7 @@ typedef struct colormapTex_t
 }colormapTex_t;
 
 typedef struct threeDTex_t{
-    int width = 10, height = 10, depth = 10;
+    int width = 1024, height = 1024, depth = 10;
     unsigned int texture;
     float *data;
 }threeDTex_t;

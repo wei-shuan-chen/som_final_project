@@ -202,13 +202,21 @@ void texture_cls::create_ray_tex(){
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, colormapTex.color+1, 0, GL_RGBA, GL_FLOAT, colormapTex.data);
 }
 void texture_cls::create_3D_tex(){
-
+    int t = 1;
+    threeDTex.width = imageTex[t].width;
+    threeDTex.height = imageTex[t].height;
+    threeDTex.depth = 10;
     threeDTex.data = (float*)calloc(3*threeDTex.width*threeDTex.height*threeDTex.depth, sizeof(float));
     for(int z = 0; z < threeDTex.depth; z++){
         for(int y = 0; y < threeDTex.height; y++){
             for(int x = 0; x < threeDTex.width; x++){
                 int num = x*3 + y*threeDTex.width*3 + z*threeDTex.width*threeDTex.height*3;
-                if(y < 3 ||y > 6||x < 3 || x > 6){
+
+                // threeDTex.data[num] = imageTex[t].image[y][x][0]/256.0;
+                // threeDTex.data[num+1] = imageTex[t].image[y][x][1]/256.0;
+                // threeDTex.data[num+2] = imageTex[t].image[y][x][2]/256.0;
+
+                if((x%200 >= 0 && x%200 <= 50)||(y%200 >= 0 && y%200 <= 50)){
                     threeDTex.data[num] = 1.0;
                     threeDTex.data[num+1] = 0.0;
                     threeDTex.data[num+2] = 0.0;
@@ -217,6 +225,7 @@ void texture_cls::create_3D_tex(){
                     threeDTex.data[num+1] = 0.0;
                     threeDTex.data[num+2] = 1.0;
                 }
+
             }
         }
     }
@@ -297,8 +306,12 @@ void texture_cls::texture1Dto2D(int nrChannels, int t){
         imageTex[t].image[i] = (glm::ivec3*)calloc(imageTex[t].width, sizeof(glm::ivec3));
         for(int j = 0; j < imageTex[t].width; j++){
             for(int k = 0; k < 3; k++){
-                if(nrChannels == 3) imageTex[t].image[i][j][k] = imageTex[t].data[i*imageTex[t].width*3 + j*3 + k];
-                if(nrChannels == 4) imageTex[t].image[i][j][k] = imageTex[t].data[i*imageTex[t].width*4 + j*4 + k];
+                if(nrChannels == 3) {
+                    imageTex[t].image[i][j][k] = imageTex[t].data[i*imageTex[t].width*3 + j*3 + k];
+                }
+                if(nrChannels == 4) {
+                    imageTex[t].image[i][j][k] = imageTex[t].data[i*imageTex[t].width*4 + j*4 + k];
+                }
             }
         }
     }

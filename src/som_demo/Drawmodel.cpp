@@ -53,8 +53,8 @@ model_cls::~model_cls(){
 
 void model_cls::Shader_Create()
 {
-    // rawmodel.LoadFile("raw/dist/teapot_dist.inf", "raw/dist/teapot_dist.raw");
-    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw");
+    // rawmodel.LoadFile("raw/input/ball21_dist.inf", "raw/input/ball21_df.raw", "raw/output/ball21.inf");
+    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw", "raw/output/vase.inf");
     create_mutli_som(layerNum, blockNum);
 
     for(int layer = 0; layer < layerNum; layer++){
@@ -100,8 +100,8 @@ void model_cls::Shader_Create()
 }
 void model_cls::Modify_position(int x, int y, int z){
     // modify camera
-    rate = max(max(x,y),z) / 8.0;
-    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -2.0, y / 4.0, z * 1.0), rate);
+    rate = max(max(x,y),z) / 50.0;
+    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -8.0, y / 8.0, z * 0.2), rate);
 
     // modify light
     lightPos = glm::vec3(x, y , z );
@@ -248,7 +248,7 @@ void model_cls::rayShader_model(GLFWwindow *window){
     Model_Floor_Create(rayShader);
 }
 void model_cls::shader_model(){
-    Model_axis_create(shader);
+    // Model_axis_create(shader);
     Model_lattice_create(shader);
     Model_lightCube_create(shader);
 }

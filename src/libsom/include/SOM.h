@@ -86,8 +86,8 @@ private:
     glm::ivec3 computeHalfballDist(glm::ivec3 p0);
     bool isInradiushood(double squaredDist, double radius);
     // ~som_cls
-    void destroy(glm::fvec3 ***arr, int width, int height, int depth);
-    void destroyDataset(glm::fvec3 *arr, int datasteNum);
+    void destroy(int depth);
+    void destroyDataset();
 };
 
 void create_mutli_som(int layer, int block);

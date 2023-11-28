@@ -63,9 +63,11 @@ public:
     psvoxModel_t pvoxelModel;
     InfData_t infdata;
     RawData_t*** rawData; // 0 air, (255\50) bounder, 100~100+(somChioceLayerNum*10) inside
+    int ***newrawData;
 
     // fun
-    void LoadFile(const char* infFileName,const char* rawFileName);
+    void LoadFile(const char* infFileName,const char* rawFileName, const char* o_inf);
+    void LoadOutputFile(const char* o_raw);
     bool choice_psomvoxel(glm::mat3x3 m_psomInverse, glm::vec3 v_psomTranslate);
     bool choice_somvoxel(glm::mat3x3 m_psomInverse, float* f_psomTranslate, float* f_scale, bool setBlock);
 
@@ -74,7 +76,7 @@ public:
 
 private:
     // RawData_l* head;
-    bool LoadINFfile(const char* infFileName);
+    bool LoadINFfile(const char* infFileName, const char* o_inf);
     bool SetSampleType(const char* type);
 
     void CreateRawData();
@@ -93,9 +95,11 @@ private:
     void setMaxbounder(int i, int j, int k, int layer, int block, int type);
 
     BYTE* uc_voxelData;
+    BYTE* new_uc_voxelData;
     float* f_voxelData;
+    float* new_f_voxelData;
     double* d_voxelData;
-    int ***newrawData;
+    double* new_d_voxelData;
 
     int* layervoxelnum = {0};
     glm::mat3x3 m_transform;

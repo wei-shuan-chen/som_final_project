@@ -1,8 +1,6 @@
 
 add_executable(som-demo) # create cmake target
 
-
-
 set_target_properties(som-demo
     PROPERTIES
         CXX_STANDARD 17

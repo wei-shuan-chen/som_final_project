@@ -55,7 +55,7 @@ void som_cls::som_init(){
     latticeData.typeNum[4] = latticeData.depth;
 }
 void som_cls::Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min){
-    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    destroy(latticeData.typeNum[latticeData.type]);
     latticeData.width = resolution;
     latticeData.height = resolution;
     latticeData.typeNum[4] = latticeData.depth = resolution;
@@ -72,11 +72,11 @@ void som_cls::Lattice_rate_set(float initrate){
 }
 void som_cls::Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min){
     latticeData.type = type;
-    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    destroy(latticeData.typeNum[latticeData.type]);
     latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, latticeData.depth, max, min);
 }
 void som_cls::Lattice_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min){
-    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    destroy(latticeData.typeNum[latticeData.type]);
     latticeData.lattice = createLatticeData(latticeData.width, latticeData.height, latticeData.depth, max, min);
     inputData.input = createInputDataset(voxelPos, voxelNum);
     inputData.num = voxelNum;
@@ -593,22 +593,22 @@ bool som_cls::isInradiushood(double squaredDist, double radius)
 
 
 
-void som_cls::destroy(glm::fvec3 ***arr, int width, int height, int depth)
+void som_cls::destroy(int depth)
 {
     for(int d = 0; d < depth; d++){
-        for (int h = 0; h < height; h++){
-            free(arr[d][h]);
+        for (int h = 0; h < latticeData.height; h++){
+            free(latticeData.lattice[d][h]);
         }
-        free(arr[d]);
+        free(latticeData.lattice[d]);
     }
 }
-void som_cls::destroyDataset(glm::fvec3 *arr, int datasteNum)
+void som_cls::destroyDataset()
 {
-    free(arr);
+    free(inputData.input);
 }
 void som_cls::SOM_End(){
     // 1. Destroy lattice
-    destroy(latticeData.lattice, latticeData.width, latticeData.height, latticeData.typeNum[latticeData.type]);
+    destroy(latticeData.depth);
     // 2. Destroy input dataset
-    destroyDataset(inputData.input, inputData.num);
+    destroyDataset();
 }
