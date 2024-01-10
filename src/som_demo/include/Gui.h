@@ -14,6 +14,7 @@ using namespace std;
 
 
 extern bool texshow;
+extern int weightType_gui;
 extern int som_psom;
 void imgui_init(GLFWwindow *window);
 void imgui_create();

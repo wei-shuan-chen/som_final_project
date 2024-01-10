@@ -8,31 +8,26 @@ void carve_cls::pvoxel_mapping(){
     cout << rawmodel.pvoxelModel.psomVoxel.size() << endl;
     // for(int v =54439; v < 54440; v++){
     for(int v =0; v < rawmodel.pvoxelModel.psomVoxel.size(); v++){
-        double v_x = rawmodel.pvoxelModel.psomVoxel[v].locate.x;
-        double v_y = rawmodel.pvoxelModel.psomVoxel[v].locate.y;
-        double v_z = rawmodel.pvoxelModel.psomVoxel[v].locate.z;
+        double v_x = rawmodel.pvoxelModel.psomVoxel[v].locate.x+0.5;
+        double v_y = rawmodel.pvoxelModel.psomVoxel[v].locate.y+0.5;
+        double v_z = rawmodel.pvoxelModel.psomVoxel[v].locate.z+0.5;
         double minDist = 100000;
-        glm::ivec3 minLatticeCoord = findMinDistPos(latticeData, v_x, v_y, v_z, &minDist);
+        glm::ivec3 minLatticeCoord = find_min_dist_pos(latticeData, v_x, v_y, v_z, &minDist);
 
         // cout << "minLatticeCoord : "<<minLatticeCoord.x << ", " << minLatticeCoord.y<<", " <<minLatticeCoord.z<<endl;
-        glm::fvec3 trueMinLatticeCoord = surround32Tetrahedron(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
-        // cout << "trueMinLatticeCoord : "<<trueMinLatticeCoord.x << ", " << trueMinLatticeCoord.y<<", " <<trueMinLatticeCoord.z<<endl;
-        glm::fvec3 latticeTexCoord = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1), trueMinLatticeCoord.z/(latticeData->depth-1)};
-        for(int i = 0; i < 3; i++){
-            if(latticeTexCoord[i] <= 0.0+0.00001 && latticeTexCoord[i]>= 0.0-0.00001)latticeTexCoord[i]+=0.0001;
-            if(latticeTexCoord[i] <= 1.0+0.00001 && latticeTexCoord[i]>= 1.0-0.00001)latticeTexCoord[i]-=0.0001;
-        }
+        glm::fvec3 voxelToLatticeCoord = surround_Tetrahedron(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
+        // cout << "voxelToLatticeCoord : "<<voxelToLatticeCoord.x << ", " << voxelToLatticeCoord.y<<", " <<voxelToLatticeCoord.z<<endl;
+        glm::fvec3 latticeTexCoord = {voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), voxelToLatticeCoord.z/(latticeData->depth-1)};
+        latticeTexCoord = tex.lattice_to_texture(glm::fvec4(latticeTexCoord, 1.0), THREEDTEX);
+        // for(int i = 0; i < 3; i++){
+        //     if(latticeTexCoord[i] <= 0.0+0.00001 && latticeTexCoord[i]>= 0.0-0.00001)latticeTexCoord[i]+=0.0001;
+        //     if(latticeTexCoord[i] <= 1.0+0.00001 && latticeTexCoord[i]>= 1.0-0.00001)latticeTexCoord[i]-=0.0001;
+        // }
         if(latticeTexCoord.x < 0.0 || latticeTexCoord.x > 1.0 || latticeTexCoord.y < 0.0 || latticeTexCoord.y > 1.0|| latticeTexCoord.z < 0.0 || latticeTexCoord.z > 1.0){
-            rawmodel.pvoxelModel.psomVoxel[v].color = {0.0, 1.0, 1.0};
+            rawmodel.pvoxelModel.psomVoxel[v].color = {1.0, 1.0, 1.0};
         }else{
-            glm::ivec3 imageRate = {(latticeTexCoord.x*(double)(tex.threeDTex.width-1))+0.5, (latticeTexCoord.y*(double)(tex.threeDTex.height-1))+0.5, (latticeTexCoord.z*(double)(tex.threeDTex.depth-1))+0.5};
-            // cout << "latticeTexCoord : "<<latticeTexCoord.x << ", " << latticeTexCoord.y<<", " <<latticeTexCoord.z<<endl;
-            // cout << "tex : " << (double)(tex.threeDTex.width-1)<< ", " << (double)(tex.threeDTex.height-1)<<", " <<(double)(tex.threeDTex.depth-1)<<"\n";
-            // cout << "la*tex : " << latticeTexCoord.x*(double)(tex.threeDTex.width-1)<< ", " << latticeTexCoord.y*(double)(tex.threeDTex.height-1)<<", " <<latticeTexCoord.z*(double)(tex.threeDTex.depth-1)<<"\n";
-            // cout << "(int)la*tex : " << (int)(latticeTexCoord.x*(double)(tex.threeDTex.width-1))<< ", " << (int)(latticeTexCoord.y*(double)(tex.threeDTex.height-1))<<", " <<(int)(latticeTexCoord.z*(double)(tex.threeDTex.depth-1))<<"\n";
-            // glm::ivec3 tmp = imageRate+glm::fvec3{0.00001,0.00001,0.00001};
-            // cout << "imageRate : " << imageRate.x<< ", " << imageRate.y<<", " <<imageRate.z<<"\n\n";
-            // cout << "tmp : " << tmp.x<< ", " << tmp.y<<", " <<tmp.z<<"\n\n";
+            glm::ivec3 imageRate = {(latticeTexCoord.x*(double)(tex.threeDTex.width-1)), (latticeTexCoord.y*(double)(tex.threeDTex.height-1)), (latticeTexCoord.z*(double)(tex.threeDTex.depth-1))};
+
             int num = imageRate.x*3 + imageRate.y*tex.threeDTex.width*3 + imageRate.z*tex.threeDTex.width*tex.threeDTex.height*3;
             float r = tex.threeDTex.data[num];
             float g = tex.threeDTex.data[num+1];
@@ -40,8 +35,9 @@ void carve_cls::pvoxel_mapping(){
 
             rawmodel.pvoxelModel.psomVoxel[v].color = {r,g,b};
 
-
         }
+
+        // output raw
         glm::ivec3 rawCoord = rawmodel.pvoxelModel.psomVoxel[v].locate;
         if(rawmodel.pvoxelModel.psomVoxel[v].color.r)
             rawmodel.newrawData[rawCoord.y][rawCoord.x][rawCoord.z] = 150;
@@ -57,30 +53,39 @@ void carve_cls::voxel_mapping(int layer, int block){
     if(rawmodel.voxelModel.voxelnum[layer][block] > texsize)texfilter = MAGNIFICATON;
     cout << "voxel : "<< rawmodel.voxelModel.voxelnum[layer][block];
     cout << "texsize : "<< texsize;
+
     for(int n = 0; n < rawmodel.voxelModel.voxelnum[layer][block]; n++){// voxel
         double v_x = rawmodel.voxelModel.somVoxel[layer][block][n].locate.x+0.5;
         double v_y = rawmodel.voxelModel.somVoxel[layer][block][n].locate.y+0.5;
         double v_z = rawmodel.voxelModel.somVoxel[layer][block][n].locate.z+0.5;
         double minDist = 100000;
-        glm::ivec3 minLatticeCoord = findMinDistPos(latticeData, v_x, v_y, v_z, &minDist);
+        glm::ivec3 minLatticeCoord = find_min_dist_pos(latticeData, v_x, v_y, v_z, &minDist);
         // v_x, v_y, v_z
-        glm::fvec2 trueMinLatticeCoord = surround8Triangles(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
-        glm::fvec3 tmpCoord = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1), 0.5};
-        glm::fvec3 latticeTexCoord1 = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(glm::fvec4(tmpCoord, 1.0));
+        glm::fvec2 voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
+        glm::fvec3 tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);
+        glm::fvec3 latticeTexCoord1 = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
         // v_x-0.5, v_y-0.5, v_z-0.5
-        trueMinLatticeCoord = surround8Triangles(latticeData, minDist, {v_x-0.5, v_y-0.5, v_z-0.5}, minLatticeCoord);
-        tmpCoord  = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1), 0.5};
-        glm::fvec3 latticeTexCoord0 = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(glm::fvec4(tmpCoord, 1.0));
+        voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x-0.5, v_y-0.5, v_z-0.5}, minLatticeCoord);
+        tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);//{voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), 0.5};
+        glm::fvec3 latticeTexCoord0 = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
         // v_x+0.5, v_y+0.5, v_z+0.5
-        trueMinLatticeCoord = surround8Triangles(latticeData, minDist, {v_x+0.5, v_y+0.5, v_z+0.5}, minLatticeCoord);
-        tmpCoord  = {trueMinLatticeCoord.x/(latticeData->width-1), trueMinLatticeCoord.y/(latticeData->height-1), 0.5};
-        glm::fvec3 latticeTexCoord2 = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.compute_voxel_texture(glm::fvec4(tmpCoord, 1.0));
+        voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x+0.5, v_y+0.5, v_z+0.5}, minLatticeCoord);
+        tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);//{voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), 0.5};
+        glm::fvec3 latticeTexCoord2 = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
 
-        if(latticeTexCoord1.x < 0.0 || latticeTexCoord1.x > 1.0 || latticeTexCoord1.y < 0.0 || latticeTexCoord1.y > 1.0){
+// cout <<"latticeTexCoord0 : "<<latticeTexCoord0.x<<", "<<latticeTexCoord0.y<<", "<<latticeTexCoord0.z<<endl;
+// cout <<"latticeTexCoord1 : "<<latticeTexCoord1.x<<", "<<latticeTexCoord1.y<<", "<<latticeTexCoord1.z<<endl;
+// cout <<"latticeTexCoord2 : "<<latticeTexCoord2.x<<", "<<latticeTexCoord2.y<<", "<<latticeTexCoord2.z<<endl;
+// cout << "\n";
+        if(latticeTexCoord0.x < 0.0 || latticeTexCoord0.x > 1.0 || latticeTexCoord0.y < 0.0 || latticeTexCoord0.y > 1.0){
+            rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
+        }else if(latticeTexCoord1.x < 0.0 || latticeTexCoord1.x > 1.0 || latticeTexCoord1.y < 0.0 || latticeTexCoord1.y > 1.0){
+            rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
+        }else if(latticeTexCoord2.x < 0.0 || latticeTexCoord2.x > 1.0 || latticeTexCoord2.y < 0.0 || latticeTexCoord2.y > 1.0){
             rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
         }else{
-            glm::ivec2 imageRate0 = {(latticeTexCoord0.x*(double)(tex.imageTex[texType].width-1))+0.5, (latticeTexCoord0.y*(double)(tex.imageTex[texType].height-1))+0.5};
-            glm::ivec2 imageRate2 = {(latticeTexCoord2.x*(double)(tex.imageTex[texType].width-1))+0.5, (latticeTexCoord2.y*(double)(tex.imageTex[texType].height-1))+0.5};
+            glm::ivec2 imageRate0 = {(latticeTexCoord0.x*(double)(tex.imageTex[texType].width-1)), (latticeTexCoord0.y*(double)(tex.imageTex[texType].height-1))};
+            glm::ivec2 imageRate2 = {(latticeTexCoord2.x*(double)(tex.imageTex[texType].width-1)), (latticeTexCoord2.y*(double)(tex.imageTex[texType].height-1))};
             glm::fvec2 imageRate1 = {latticeTexCoord1.x*(double)(tex.imageTex[texType].width-1), latticeTexCoord1.y*(double)(tex.imageTex[texType].height-1)};
             glm::fvec3 color;
             if(!filter){
@@ -98,15 +103,16 @@ void carve_cls::voxel_mapping(int layer, int block){
             if(filter){
                 if(texfilter == MAGNIFICATON){
                     // tex < voxel
-                    color = magFilter(imageRate1, texType);
+                    color = mag_filter(imageRate1, texType);
                 }else{
-                    color = minFilter(imageRate0, imageRate2, texType);
+
+                    color = min_filter(imageRate0, imageRate2, texType);
                 }
             }
             rawmodel.voxelModel.somVoxel[layer][block][n].color = color;
             float r = color.r;
 
-            if(r < 0.5) {
+            if(r < 0.5) {// output raw
                 glm::ivec3 rawCoord = rawmodel.voxelModel.somVoxel[layer][block][n].locate;
                 rawmodel.newrawData[rawCoord.y][rawCoord.x][rawCoord.z] = 50;
             }
@@ -114,9 +120,29 @@ void carve_cls::voxel_mapping(int layer, int block){
     }
     if(texfilter == MINIFICATION) cout << " MINIFICATION"<<endl;
     if(texfilter == MAGNIFICATON) cout << " MAGNIFICATON"<<endl;
-    tex.updateIntensityMap();
+    tex.update_intensityMap();
 }
-glm::fvec3 carve_cls::magFilter(glm::fvec2 imageRate1, int texType){
+glm::fvec3 carve_cls::latticeCoord_to_textureCoord_2D(glm::fvec2 latticeCoord, const LatData_t* latticeData){
+    int s = latticeCoord.s, t = latticeCoord.t, r = 0;
+
+    if(latticeCoord.s == s && latticeCoord.t == t) return latticeData->wTex[r][t][s];
+
+    int delta_t = 1, delta_s = 1;
+    if(s == latticeData->width-1) delta_s = -1;
+    if(t == latticeData->height-1) delta_t = -1;
+
+    glm::fvec3 c00 = latticeData->wTex[r][t][s];
+    glm::fvec3 c01 = latticeData->wTex[r][t][s+delta_s];
+    glm::fvec3 c10 = latticeData->wTex[r][t+delta_t][s];
+    glm::fvec3 c11 = latticeData->wTex[r][t+delta_t][s+delta_s];
+
+    float h = latticeCoord.s-(float)s, k = latticeCoord.t-(float)t;
+
+    glm::fvec3 c = (1-h)*(1-k)*c00 + h*(1-k)*c01 + (1-h)*k*c10 + h*k*c11;
+
+    return c;
+}
+glm::fvec3 carve_cls::mag_filter(glm::fvec2 imageRate1, int texType){
     // tex < voxel
     glm::fvec3 color;
     float deltax = imageRate1.x-(int)imageRate1.x;
@@ -133,7 +159,7 @@ glm::fvec3 carve_cls::magFilter(glm::fvec2 imageRate1, int texType){
     }
     return color;
 }
-glm::fvec3 carve_cls::minFilter(glm::ivec2 imageRate0, glm::ivec2 imageRate2, int texType){
+glm::fvec3 carve_cls::min_filter(glm::ivec2 imageRate0, glm::ivec2 imageRate2, int texType){
     // tex > voxel
     glm::fvec3 color = {0,0,0};
     int l,r,d,t;
@@ -158,13 +184,13 @@ glm::fvec3 carve_cls::minFilter(glm::ivec2 imageRate0, glm::ivec2 imageRate2, in
     for(int w = l; w <= r; w++){
         for(int h = d; h <= t; h++){
             for(int c = 0; c < 3; c++){
-
-                if(tex.imageTex[texType].image[h][w][c]/ 256.0 >0.8){
-                    color[c] += color1[c];
-                }else{
-                    color[c] += color0[c];
-                }
-                // color[c] += tex.imageTex[texType].image[h][w][c]/256.0;
+                // change texture color
+                // if(tex.imageTex[texType].image[h][w][c]/ 256.0 >0.8){
+                //     color[c] += color1[c];
+                // }else{
+                //     color[c] += color0[c];
+                // }
+                color[c] += tex.imageTex[texType].image[h][w][c]/256.0;
             }
             num++;
         }
@@ -174,7 +200,7 @@ glm::fvec3 carve_cls::minFilter(glm::ivec2 imageRate0, glm::ivec2 imageRate2, in
     }
     return color;
 }
-glm::ivec3 carve_cls::findMinDistPos(const LatData_t* latticeData, double v_x, double v_y, double v_z, double* minDist){
+glm::ivec3 carve_cls::find_min_dist_pos(const LatData_t* latticeData, double v_x, double v_y, double v_z, double* minDist){
 
     glm::ivec3 minLatticeCoord = {0,0,0};
     //lattice
@@ -182,9 +208,9 @@ glm::ivec3 carve_cls::findMinDistPos(const LatData_t* latticeData, double v_x, d
         for(int j = 0; j < latticeData->height; j++){
             for(int i = 0; i < latticeData->width; i++){
 
-                double l_x = latticeData->lattice[k][j][i].x;
-                double l_y = latticeData->lattice[k][j][i].y;
-                double l_z = latticeData->lattice[k][j][i].z;
+                double l_x = latticeData->wPos[k][j][i].x;
+                double l_y = latticeData->wPos[k][j][i].y;
+                double l_z = latticeData->wPos[k][j][i].z;
 
                 double nowDist = (l_x-v_x)*(l_x-v_x) + (l_y-v_y)*(l_y-v_y) + (l_z-v_z)*(l_z-v_z);
                 if(nowDist < *minDist){ // find minDist between voxel point and lattice point
@@ -196,16 +222,16 @@ glm::ivec3 carve_cls::findMinDistPos(const LatData_t* latticeData, double v_x, d
     }
     return minLatticeCoord;
 }
-glm::fvec3 carve_cls::surround32Tetrahedron(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord){
+glm::fvec3 carve_cls::surround_Tetrahedron(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord){
     if(pcarve){
         float weight[3][3][3];
         float D = 0.0;
         float v_x = voxelPos.x;
         float v_y = voxelPos.y;
         float v_z = voxelPos.z;
-        float lx0 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].x;
-        float ly0 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].y;
-        float lz0 = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].z;
+        float lx0 = latticeData->wPos[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].x;
+        float ly0 = latticeData->wPos[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].y;
+        float lz0 = latticeData->wPos[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x].z;
         for(int z = -1; z <= 1; z++){
             for(int y = -1; y <= 1; y++){
                 for(int x = -1; x <= 1; x++){
@@ -216,9 +242,9 @@ glm::fvec3 carve_cls::surround32Tetrahedron(const LatData_t* latticeData, double
                         weight[z+1][y+1][x+1] = 0;
                     }
                     else{
-                        float lx = latticeData->lattice[z_i][y_i][x_i].x;
-                        float ly = latticeData->lattice[z_i][y_i][x_i].y;
-                        float lz = latticeData->lattice[z_i][y_i][x_i].z;
+                        float lx = latticeData->wPos[z_i][y_i][x_i].x;
+                        float ly = latticeData->wPos[z_i][y_i][x_i].y;
+                        float lz = latticeData->wPos[z_i][y_i][x_i].z;
                         // float tmpw = sqrt((lx-lx0)*(lx-lx0) + (ly-ly0)*(ly-ly0) + (lz-lz0)*(lz-lz0));
                         weight[z+1][y+1][x+1] = 1.0/sqrt((lx-v_x)*(lx-v_x) + (ly-v_y)*(ly-v_y) + (lz-v_z)*(lz-v_z));
                         // if(tmpw < weight[z+1][y+1][x+1])weight[z+1][y+1][x+1] = 0;
@@ -297,17 +323,17 @@ glm::fvec3 carve_cls::surround32Tetrahedron(const LatData_t* latticeData, double
                 if(a2_j < 0 || a2_j > latticeData->height-1) continue;
                 if(a2_k < 0 || a2_k > latticeData->depth-1) continue;
 
-                glm::fvec3 a0 = latticeData->lattice[a0_k][a0_j][a0_i];
-                glm::fvec3 a1 = latticeData->lattice[a1_k][a1_j][a1_i];
-                glm::fvec3 a2 = latticeData->lattice[a2_k][a2_j][a2_i];
-                glm::fvec3 o = latticeData->lattice[o_k][o_j][o_i];
+                glm::fvec3 a0 = latticeData->wPos[a0_k][a0_j][a0_i];
+                glm::fvec3 a1 = latticeData->wPos[a1_k][a1_j][a1_i];
+                glm::fvec3 a2 = latticeData->wPos[a2_k][a2_j][a2_i];
+                glm::fvec3 o = latticeData->wPos[o_k][o_j][o_i];
                 glm::fvec3 p = voxelPos;
 
                 // Use the Barycentric Coordinates to determine if voxelPos in a tetrahedron.
                 // if in -> compute minDist and continue
-                // if out call pointToTriangle (*4 triangle)
+                // if out call point_to_triangle (*4 triangle)
                 glm::mat3x3 tmp = {a0-o, a1-o, a2-o};
-                glm::mat3x3 inverse_m = math.inverseMatrix(tmp);
+                glm::mat3x3 inverse_m = math.inverseMatrix3(tmp);
                 glm::vec3 n_v = inverse_m*p;
                 // float o_a0_a1_a2 = math.determinant(tmp);
                 // tmp = {p-o,a1-o,a2-o};
@@ -344,9 +370,16 @@ glm::fvec3 carve_cls::surround32Tetrahedron(const LatData_t* latticeData, double
                     // cout << "a0_index : "<< a0_i<<", " << a0_j<<", "<<a0_k<<endl;
                     // cout << "a1_index : "<< a1_i<<", " << a1_j<<", "<<a1_k<<endl;
                     // cout << "a2_index : "<< a2_i<<", " << a2_j<<", "<<a2_k<<endl;
-                    glm::fvec3 tmpCoord = outerTetrahedron(o,minLatticeCoord,a0,{a0_i,a0_j,a0_k},a1,{a1_i,a1_j,a1_k},a2,{a2_i,a2_j,a2_k},p,&minDist);
+                    glm::fvec3 tmpCoord = outer_tetrahedron(o,minLatticeCoord,a0,{a0_i,a0_j,a0_k},a1,{a1_i,a1_j,a1_k},a2,{a2_i,a2_j,a2_k},p,&minDist);
                     if(tmpCoord.x != -1 || tmpCoord.y != -1 || tmpCoord.z != -1){
                         threeDcoord = tmpCoord;
+                        if(threeDcoord.x < 0.0) threeDcoord.x = 0.0;
+                        if(threeDcoord.x > latticeData->width-1) threeDcoord.x = latticeData->width-1;
+                        if(threeDcoord.y < 0.0) threeDcoord.y = 0.0;
+                        if(threeDcoord.y > latticeData->height-1) threeDcoord.y = latticeData->height-1;
+                        if(threeDcoord.z < 0.0) threeDcoord.z = 0.0;
+                        if(threeDcoord.z > latticeData->depth-1) threeDcoord.z = latticeData->depth-1;
+
                     }else{
                         // cout << "continue\n";
                     }
@@ -359,11 +392,11 @@ glm::fvec3 carve_cls::surround32Tetrahedron(const LatData_t* latticeData, double
         return threeDcoord;
     }
 }
-glm::fvec3 carve_cls::outerTetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fvec3 a0, glm::fvec3 a0_index, glm::fvec3 a1, glm::fvec3 a1_index, glm::fvec3 a2, glm::fvec3 a2_index, glm::fvec3 p, double* minDist){
+glm::fvec3 carve_cls::outer_tetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fvec3 a0, glm::fvec3 a0_index, glm::fvec3 a1, glm::fvec3 a1_index, glm::fvec3 a2, glm::fvec3 a2_index, glm::fvec3 p, double* minDist){
     glm::fvec3 ratio = {0,0,0};
     glm::fvec3 threeDcoord = {-1,-1,-1};
     double tmpDist = *minDist;
-    ratio = pointToTriangle(o, a0, a1, p, minDist);
+    ratio = point_to_triangle(o, a0, a1, p, minDist);
     // cout << "0 "<< *minDist<<" ";
     // cout << "ratio : "<< ratio.x << ", " << ratio.y<<", "<<ratio.z<<endl;
     if(tmpDist>*minDist){
@@ -372,7 +405,7 @@ glm::fvec3 carve_cls::outerTetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fv
         threeDcoord.y = ratio[0]*o_index.y + ratio[1]*a0_index.y + ratio[2]*a1_index.y;
         threeDcoord.z = ratio[0]*o_index.z + ratio[1]*a0_index.z + ratio[2]*a1_index.z;
     }
-    ratio = pointToTriangle(o, a0, a2, p, minDist);
+    ratio = point_to_triangle(o, a0, a2, p, minDist);
     // cout << "1 "<< *minDist<<" ";
     // cout << "ratio : "<< ratio.x << ", " << ratio.y<<", "<<ratio.z<<endl;
     if(tmpDist>*minDist){
@@ -382,7 +415,7 @@ glm::fvec3 carve_cls::outerTetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fv
         threeDcoord.z = ratio[0]*o_index.z + ratio[1]*a0_index.z + ratio[2]*a2_index.z;
         // cout <<"threeDCoord : " << threeDcoord.x<<", "<<threeDcoord.y<<", "<<threeDcoord.z<<endl;
     }
-    ratio = pointToTriangle(o, a1, a2, p, minDist);
+    ratio = point_to_triangle(o, a1, a2, p, minDist);
     // cout << "2 "<< *minDist<<" ";
     // cout << "ratio : "<< ratio.x << ", " << ratio.y<<", "<<ratio.z<<endl;
     if(tmpDist>*minDist){
@@ -392,7 +425,7 @@ glm::fvec3 carve_cls::outerTetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fv
         threeDcoord.z = ratio[0]*o_index.z + ratio[1]*a1_index.z + ratio[2]*a2_index.z;
         // cout <<"threeDCoord : " << threeDcoord.x<<", "<<threeDcoord.y<<", "<<threeDcoord.z<<endl;
     }
-    ratio = pointToTriangle(a0, a1, a2, p, minDist);
+    ratio = point_to_triangle(a0, a1, a2, p, minDist);
     // cout << "3 "<< *minDist<<" ";
     // cout << "ratio : "<< ratio.x << ", " << ratio.y<<", "<<ratio.z<<endl;
     if(tmpDist>*minDist){
@@ -407,7 +440,7 @@ glm::fvec3 carve_cls::outerTetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fv
     // cout << "minDist : "<< *minDist<<endl;
     return threeDcoord;
 }
-glm::fvec2 carve_cls::surround8Triangles(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord){
+glm::fvec2 carve_cls::surround_Triangles(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord){
 
     glm::fvec2 twoDcoord = {minLatticeCoord.x,minLatticeCoord.y};
 
@@ -425,12 +458,12 @@ glm::fvec2 carve_cls::surround8Triangles(const LatData_t* latticeData, double mi
         if(a1_j < 0 || a1_j > latticeData->height-1) continue;
         if(a2_i < 0 || a2_i > latticeData->width-1 ) continue;
         if(a2_j < 0 || a2_j > latticeData->height-1) continue;
-        glm::fvec3 a1 = latticeData->lattice[minLatticeCoord.z][a1_j][a1_i];
-        glm::fvec3 a2 = latticeData->lattice[minLatticeCoord.z][a2_j][a2_i];
-        glm::fvec3 o = latticeData->lattice[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
+        glm::fvec3 a1 = latticeData->wPos[minLatticeCoord.z][a1_j][a1_i];
+        glm::fvec3 a2 = latticeData->wPos[minLatticeCoord.z][a2_j][a2_i];
+        glm::fvec3 o = latticeData->wPos[minLatticeCoord.z][minLatticeCoord.y][minLatticeCoord.x];
         glm::fvec3 p = voxelPos;
 
-        glm::fvec3 ratio = pointToTriangle(o, a1, a2, p, &minDist);
+        glm::fvec3 ratio = point_to_triangle(o, a1, a2, p, &minDist);
 
         if(ratio.x + ratio.y + ratio.z == -3){
             continue;
@@ -448,7 +481,7 @@ glm::fvec2 carve_cls::surround8Triangles(const LatData_t* latticeData, double mi
     return twoDcoord;
 
 }
-glm::fvec3 carve_cls::pointToTriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 p, double* minDist){
+glm::fvec3 carve_cls::point_to_triangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 p, double* minDist){
     // Project the point p onto the plane where the triangle is located
     glm::fvec3 vector_n = glm::normalize(math.crossPruduct(a1-o, a2-o));
     glm::fvec3 vector_p = p-o;
@@ -467,12 +500,12 @@ glm::fvec3 carve_cls::pointToTriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2
     if(cross1.x*cross2.x < 0.0 || cross1.x*cross3.x < 0.0 || cross2.x*cross3.x < 0.0){
         // if outer triangle find close point or edgepoint
 
-        projp = outerProjp(o, a1, a2, projp, p);
+        projp = outer_projp(o, a1, a2, projp, p);
         vector_d = p - projp;
     }
-    // glm::fvec3 ratio = barycentricTriCoord(o, a1, a2, projp, vector_n);
+    // glm::fvec3 ratio = barycentric_coord(o, a1, a2, projp, vector_n);
     // if(ratio[0]< 0 || ratio[0]>1 ||ratio[1]< 0 || ratio[1]>1||ratio[2]< 0 || ratio[2]>1){
-    //     projp = outerProjp(o, a1, a2, projp, p);
+    //     projp = outer_projp(o, a1, a2, projp, p);
     //     vector_d = p - projp;
     // }
 
@@ -482,10 +515,10 @@ glm::fvec3 carve_cls::pointToTriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2
     }
     *minDist = tmpDist;
     // compute dist of point to triangle
-    glm::fvec3 ratio = barycentricTriCoord(o, a1, a2, projp, vector_n);
+    glm::fvec3 ratio = barycentric_coord(o, a1, a2, projp, vector_n);
     return ratio;
 }
-glm::fvec3 carve_cls::outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 p){
+glm::fvec3 carve_cls::outer_projp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 p){
 
     // outer point close to triangle point
     // o
@@ -542,7 +575,7 @@ glm::fvec3 carve_cls::outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm
     return newp;
 
 }
-glm::fvec3 carve_cls::barycentricTriCoord(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n){
+glm::fvec3 carve_cls::barycentric_coord(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n){
 
     // compute center of gravity
     glm::fvec3 ratio;

@@ -2,97 +2,121 @@
 #define SOM_H
 
 #include <vector>
+#include <iomanip>
 #include <glm/glm.hpp>
-
 #define PI 3.14159265
 
 using namespace std;
 
-enum latType{
+enum latType
+{
     PLANE,
     CYLINDER,
     DONUT,
     BALL,
-    THREED
+    CUBE
 };
 
-typedef struct LatData_t {
-    glm::fvec3*** lattice; // [5][h][w]
+enum texType
+{
+    TWODTEX,
+    THREEDTEX
+};
+
+enum weightType
+{
+    POS,
+    TEX
+};
+
+typedef struct LatData_t
+{
+    glm::fvec3 ***wPos; // [5][h][w]
+    glm::fvec3 ***wTex;
 
     int width;
     int height;
     int depth;
 
-    int iter = 0;
-    int finalIter = 120000;
+    int iter[2] = {0, 0};
+    int finalIter[2] = {120000, 120000};
+    double initLearningRate[2] = {0.005, 0.005};
+    double initRadius[2] = {width / 2.0, width / 2.0};
 
-    double learningRate = 0.005;
-    double initLearningRate = 0.005;
+    int type = 1; // 0 plane, 1 cylinder, 2 donut, 3 ball, 4 3Dlattice,
+    int typeNum[7] = {1, 1, 1, 6, 10};
 
-    double radius = width/2.0;
-    double initRadius = width/2.0;
+    int texType = 0; // 2D, 3D
+    int texTypeNum[2] = {1, 100};
 
-    int type = 1;// 0 plane, 1 cylinder, 2 donut, 3 ball, 4 3Dlattice
-    int typeNum[5] = {1,1,1,6,10};
-}LatData_t;
+    glm::ivec3 *anchorP; // 0~3 front 4~7 back  (leftdown rightdown leftup rightup)
 
-typedef struct InputData_t {
-    glm::fvec3 *input;
+} LatData_t;
+
+typedef struct InputData_t
+{
+    glm::fvec3 *iPos;
+    glm::fvec3 *iTex;
     // int dataExtraPoint[4];
-    int num = 0;
-}InputData_t;
+    int nPos = 0;
+    int nTex = 0;
+} InputData_t;
 
-class som_cls{
+class som_cls
+{
 public:
     som_cls();
     ~som_cls();
 
-    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type);
-    void SOM_IterateOnce();
+    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, glm::ivec3 texWHD, int texType);
+    void SOM_IterateOnce(int wType);
     void SOM_End();
 
-    LatData_t* Lattice_get();
+    LatData_t *Lattice_get();
 
     void Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min);
     void Lattice_iter_set(int finalIter);
     void Lattice_radius_set(float initradius);
     void Lattice_rate_set(float initrate);
     void Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min);
-    void Lattice_set(std::vector<glm::ivec3> voxelPos, int voxelNum,glm::ivec3 max, glm::ivec3 min);
+    void Lattice_pos_set(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min);
+    void Lattice_tex_set(glm::ivec3 texWHD);
+    void Lattice_anchor_set(glm::ivec3 *newp);
 
 private:
     LatData_t latticeData;
     InputData_t inputData;
-    // glm::ivec2 bmuMove[9] = {{1, 1},{0, 1},{-1, 1},{-1, 0},{-1, -1},{0, -1},{1, -1},{1, 0},{1, 1}};
-    // int ballneighber[6][4] = {{4,3,2,1},{4,0,2,5},{0,3,5,1},{4,0,2,5,},{0,3,5,1},{4,3,2,1}};
-
+    int weightType = 0; // 0 POS, 1 TEX
     // som init
     void som_init();
     // som create
-    glm::fvec3 ***createLatticeData(int width, int height, int depth, glm::ivec3 max, glm::ivec3 min);
-    glm::fvec3 *createInputDataset(std::vector<glm::ivec3> voxelPos, int voxelNum);
+    glm::fvec3 ***create_weight_position(glm::ivec3 max, glm::ivec3 min);
+    glm::fvec3 ***create_weight_texture(); // 0 fld, 1 frd, 2flt, 3 frt, 4 bld, 5brd, 6blt, 7brt
+    glm::fvec3 ***create_weight_texture_2D(glm::fvec3 ***texWeight); // 0 fld, 1 frd, 2flt, 3 frt, 4 bld, 5brd, 6blt, 7brt
+    glm::fvec3 ***create_weight_texture_3D(); // 0 fld, 1 frd, 2flt, 3 frt, 4 bld, 5brd, 6blt, 7brt
+    glm::fvec3 *create_input_position(std::vector<glm::ivec3> voxelPos, int voxelNum);
+    glm::fvec3 *create_input_texture(glm::ivec3 texWHD);
     // som iterate
-    double computeLearningRate();
-    double computeRadius();
-    const glm::fvec3 getInput();
-    const glm::ivec3 findBmu(glm::fvec3 nowInput);
-    // void findBmuNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu);
-    // void ensureNeighbor(glm::fvec3 nowInput, const glm::ivec3 bmu, glm::ivec2 move, double squaredDist);
-    //     int computDelta(int edge, int tmp);
-        double computeScale(double sigma, double dist);
-        void updateNode(glm::fvec3 ***lattice, glm::fvec3 nowInput, glm::ivec3 update, double scale, double learningRate);
+    double compute_learningrate();
+    double compute_radius();
+    const glm::fvec3 get_input();
+    const glm::ivec3 find_bmu(glm::fvec3 nowInput);
+    double compute_scale(double sigma, double dist);
+    void update_node(glm::fvec3 nowInput, glm::ivec3 update, double scale, double learningRate);
 
-    glm::ivec3 computNeiborhood(glm::ivec3 node, glm::ivec3 bmu);
-    glm::ivec3 computeHalfballDist(glm::ivec3 p0);
-    bool isInradiushood(double squaredDist, double radius);
+    glm::ivec3 comput_neiborhood(glm::ivec3 node, glm::ivec3 bmu);
+    glm::ivec3 compute_halfball_dist(glm::ivec3 p0);
+    bool inradius_neiborhood(double squaredDist, double radius);
     // ~som_cls
-    void destroy(int depth);
-    void destroyDataset();
+    void destroy_weight_position(int depth);
+    void destroy_weight_texture(int depth);
+    void destroy_input_position();
+    void destroy_input_texturea();
 };
 
 void create_mutli_som(int layer, int block);
 
-extern som_cls** som;
+extern som_cls **som;
 extern som_cls psom;
 
 // enum Alphabet : int {

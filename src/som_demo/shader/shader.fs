@@ -23,6 +23,7 @@ void main()
     if(texcoord.y == 1) texcoord.y -= 0.0001;
     if(texcoord.z == 1) texcoord.z -= 0.0001;
     if(tex){
+
         if(texType == 0)
             FragColor = texture(texturemap0, texcoord);
         if(texType == 1)

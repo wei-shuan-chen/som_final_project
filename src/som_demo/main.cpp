@@ -165,7 +165,7 @@ void keyPressFun(GLFWwindow* window, int key, int scancode, int action, int mods
 		drawModel.showLatticeLine = !drawModel.showLatticeLine;
 	if(key == GLFW_KEY_G && action == GLFW_PRESS){
 		startSOM = true;
-		createThread();
+		createvoxelThread();
 	}
 
 }

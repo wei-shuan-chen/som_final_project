@@ -19,15 +19,16 @@
 #include "carve.h"
 #include "Math.h"
 
-
-class model_cls{
+class model_cls
+{
 public:
     model_cls();
     ~model_cls();
 
     void Shader_Create();
     void Shader_Use(GLFWwindow *window);
-    void Model_mapping();
+    void Voxel_mapping(int layer, int block);
+    void pVoxel_mapping();
     void Lattice_renew(int layer, int block);
     void Voxel_renew();
     void pVoxel_renew();
@@ -43,13 +44,12 @@ public:
     bool showOutSomIn[3] = {true, true, true};
     bool showLatticePlane = true;
     bool showLatticeLine = true;
-    bool** showEachPart;
+    bool **showEachPart;
 
     // texture_t texInfo;
     // MatrixStack texture_m;
 
 private:
-
     void Modify_position(int x, int y, int z);
     void Shader_init(int n, bool settex);
     void ViewProjection_Create(int n);
@@ -64,7 +64,6 @@ private:
     void rayShader_model(GLFWwindow *window);
     void depthShader_model(GLFWwindow *window);
     void shader_model();
-    glm::fvec3 vector_matrix(glm::mat4 matrix, glm::fvec4 vec);
 
     MatrixStack model;
     MatrixStack view;
@@ -80,12 +79,12 @@ private:
     Item p_axis;
     Item lightcube;
     Item ground;
-    Item** somVoxel;
+    Item **somVoxel;
     Item innerVoxel;
     Item outerVoxel;
     Item psomVoxel;
-    Item** s_lattice_line;
-    Item** s_lattice_plane;
+    Item **s_lattice_line;
+    Item **s_lattice_plane;
     Item ps_lattice_line;
     Item ps_lattice_plane;
 
@@ -94,5 +93,5 @@ private:
 extern model_cls drawModel;
 
 extern bool startSOM;
-extern void createThread();
+extern void createvoxelThread();
 #endif

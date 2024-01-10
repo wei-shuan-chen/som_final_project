@@ -3,8 +3,10 @@
 texture_cls tex;
 
 texture_cls::texture_cls(){
-    texMap.texture_m.Save(glm::translate(texMap.texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.0f)));
-    texMap.texture_m.Push();
+    texMatrix2D.texture_m.Save(glm::translate(texMatrix2D.texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.0f)));
+    texMatrix2D.texture_m.Push();
+    texMatrix3D.texture_m.Save(glm::translate(texMatrix3D.texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.5f)));
+    texMatrix3D.texture_m.Push();
 }
 texture_cls::~texture_cls(){
     free(intensityTex.data);
@@ -14,85 +16,116 @@ texture_cls::~texture_cls(){
     //     free(imageTex[i].data);
     // }
 }
-glm::fvec3 texture_cls::compute_voxel_texture(glm::fvec4 texCoord){
-    texMap.texture_m.Push();
-    texMap.texture_m.Save(glm::translate(texMap.texture_m.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
+glm::fvec3 texture_cls::lattice_to_texture(glm::fvec4 texCoord, int degree){
+    textureMap_t matrix;
+    if(degree == TWODTEX){
+        matrix = texMatrix2D;
+        matrix.texture_m.Save(glm::translate(matrix.texture_m.Top(), glm::vec3(-0.5f, -0.5f, 0.0f)));
+
+    }
+    if(degree == THREEDTEX){
+        matrix = texMatrix3D;
+        matrix.texture_m.Save(glm::translate(matrix.texture_m.Top(), glm::vec3(-0.5f, -0.5f, -0.5f)));
+
+    }
 
     // compute new texture coord
-    glm::fvec3 newTexCoord = {0.0, 0.0, 0.0};
+    glm::fvec3 coord = {0.0, 0.0, 0.0};
     float down = 0.0;
     for(int t = 0; t < 4; t++){
-        down += texMap.texture_m.Top()[t][3]*texCoord[t];
+        down += matrix.texture_m.Top()[t][3]*texCoord[t];
     }
     for(int texNum = 0; texNum < 3; texNum++){
         float tmp = 0.0;
         for(int t = 0; t < 4; t++){
-            tmp += texMap.texture_m.Top()[t][texNum]*texCoord[t];
+            tmp += matrix.texture_m.Top()[t][texNum]*texCoord[t];
         }
-        newTexCoord[texNum] = tmp/down;
+        coord[texNum] = tmp/down;
     }
-    texMap.texture_m.Pop();
 
-    float wb, we, hb, he, gap_w, gap_h;
-    wb = texMap.resolution_w.x;
-    we = texMap.resolution_w.y;
-    hb = texMap.resolution_h.x;
-    he = texMap.resolution_h.y;
+
+    float wb, we, hb, he, db, de, gap_w, gap_h, gap_d;
+    wb = matrix.resolution_w.x;
+    we = matrix.resolution_w.y;
+    hb = matrix.resolution_h.x;
+    he = matrix.resolution_h.y;
+    db = matrix.resolution_d.x;
+    de = matrix.resolution_d.y;
     gap_w = we - wb;
     gap_h = he - hb;
-    if((newTexCoord.s <= we && newTexCoord.s >= wb) && (newTexCoord.t <= he && newTexCoord.t >= hb)){
-        if(newTexCoord.s == we) newTexCoord.s -= 0.0001;
-        if(newTexCoord.t == he) newTexCoord.t -= 0.0001;
-        return newTexCoord;
+    gap_d = de - db;
+    // in the range
+    if((coord.s <= we && coord.s >= wb) && (coord.t <= he && coord.t >= hb) && (coord.p <= de && coord.p >= db)){
+        if(coord.s == we) coord.s -= 0.0001;
+        if(coord.t == he) coord.t -= 0.0001;
+        if(coord.p == de) coord.p -= 0.0001;
+        return coord;
     }
+    // out of range
     // resolution && repeat
-    if(texMap.wrapType == REPEAT){
+    if(matrix.wrapType == REPEAT){
         float tmpCoord;
-        if(newTexCoord.s > we){
-            tmpCoord = newTexCoord.s;
+        if(coord.s > we){
+            tmpCoord = coord.s;
             while(tmpCoord-0.001 > we){
                 tmpCoord -= gap_w;
             }
-            newTexCoord.s = tmpCoord;
+            coord.s = tmpCoord;
         }
-        if(newTexCoord.s < wb){
-            tmpCoord = newTexCoord.s;
+        if(coord.s < wb){
+            tmpCoord = coord.s;
             while(tmpCoord+0.001 < wb){
                 tmpCoord += gap_w;
             }
-            newTexCoord.s = tmpCoord;
+            coord.s = tmpCoord;
         }
-        if(newTexCoord.t > he){
-            tmpCoord = newTexCoord.t;
+        if(coord.t > he){
+            tmpCoord = coord.t;
             while(tmpCoord-0.001 > he){
                 tmpCoord -= gap_h;
             }
-            newTexCoord.t = tmpCoord;
+            coord.t = tmpCoord;
         }
-        if(newTexCoord.t < hb){
-            tmpCoord = newTexCoord.t;
+        if(coord.t < hb){
+            tmpCoord = coord.t;
             while(tmpCoord+0.001 < hb){
                 tmpCoord += gap_h;
             }
-            newTexCoord.t = tmpCoord;
+            coord.t = tmpCoord;
         }
-
+        if(coord.p > de){
+            tmpCoord = coord.p;
+            while(tmpCoord-0.001 > de){
+                tmpCoord -= gap_d;
+            }
+            coord.p = tmpCoord;
+        }
+        if(coord.p < db){
+            tmpCoord = coord.p;
+            while(tmpCoord+0.001 < db){
+                tmpCoord += gap_d;
+            }
+            coord.p = tmpCoord;
+        }
     }
 
     // resolution && border
-    if(texMap.wrapType == BORDER){
-        if(newTexCoord.s > we)
-            newTexCoord.s = 100.1;
-        if(newTexCoord.s < wb)
-            newTexCoord.s = -100.1;
-        if(newTexCoord.t > he)
-            newTexCoord.t = 100.1;
-        if(newTexCoord.t < hb)
-            newTexCoord.t = -100.1;
+    if(matrix.wrapType == BORDER){
+        if(coord.s > we)
+            coord.s = 100.1;
+        if(coord.s < wb)
+            coord.s = -100.1;
+        if(coord.t > he)
+            coord.t = 100.1;
+        if(coord.t < hb)
+            coord.t = -100.1;
+        if(coord.p > db)
+            coord.p = 100.1;
+        if(coord.p < db)
+            coord.p = -100.1;
     }
 
-    // cout <<"\n\n\n";
-    return newTexCoord;
+    return coord;
 }
 void texture_cls::create_texture(){
     create_img_tex();
@@ -100,7 +133,7 @@ void texture_cls::create_texture(){
     create_ray_tex();
     create_3D_tex();
 }
-void texture_cls::bindTexture(int bind){
+void texture_cls::bind_texture(int bind){
 
     glActiveTexture(GL_TEXTURE0+bind);
 
@@ -120,7 +153,7 @@ void texture_cls::bindTexture(int bind){
         glBindTexture(GL_TEXTURE_3D, threeDTex.texture);
     }
 }
-void texture_cls::updataColorMap(vector<float> newdata){
+void texture_cls::updata_colorMap(vector<float> newdata){
     for(int c = 0; c < colormapTex.color+1; c++){
         for(int j = 0; j < 4; j++){
             colormapTex.data[c*4+j] = newdata[c*4+j];
@@ -129,7 +162,7 @@ void texture_cls::updataColorMap(vector<float> newdata){
     glBindTexture(GL_TEXTURE_1D, colormapTex.texture1D);
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, colormapTex.color+1, 0, GL_RGBA, GL_FLOAT, colormapTex.data);
 }
-void texture_cls::updateIntensityMap(){
+void texture_cls::update_intensityMap(){
     for(int z = 0; z < intensityTex.z; z++){
         for(int y = 0; y < intensityTex.y; y++){
             for(int x = 0; x < intensityTex.x; x++){
@@ -203,8 +236,8 @@ void texture_cls::create_ray_tex(){
 }
 void texture_cls::create_3D_tex(){
     int t = 1;
-    threeDTex.width = imageTex[t].width;
-    threeDTex.height = imageTex[t].height;
+    threeDTex.width = 1100;//imageTex[t].width;
+    threeDTex.height = 1100;//imageTex[t].height;
     threeDTex.depth = 10;
     threeDTex.data = (float*)calloc(3*threeDTex.width*threeDTex.height*threeDTex.depth, sizeof(float));
     for(int z = 0; z < threeDTex.depth; z++){
@@ -216,7 +249,7 @@ void texture_cls::create_3D_tex(){
                 // threeDTex.data[num+1] = imageTex[t].image[y][x][1]/256.0;
                 // threeDTex.data[num+2] = imageTex[t].image[y][x][2]/256.0;
 
-                if((x%200 >= 0 && x%200 <= 50)||(y%200 >= 0 && y%200 <= 50)){
+                if((x%200 >= 0 && x%200 <= 99)||(y%200 >= 0 && y%200 <= 99)){
                     threeDTex.data[num] = 1.0;
                     threeDTex.data[num+1] = 0.0;
                     threeDTex.data[num+2] = 0.0;

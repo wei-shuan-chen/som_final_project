@@ -23,15 +23,16 @@ public:
     void voxel_mapping(int layer, int block);
     void pvoxel_mapping();
 private:
-    glm::ivec3 findMinDistPos(const LatData_t* latticeData, double v_x, double v_y, double v_z, double* minDist);
-    glm::fvec2 surround8Triangles(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord);
-    glm::fvec3 surround32Tetrahedron(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord);
-    glm::fvec3 pointToTriangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 p, double* minDist);
-    glm::fvec3 outerProjp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 p);
-    glm::fvec3 barycentricTriCoord(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n);
-    glm::fvec3 outerTetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fvec3 a0, glm::fvec3 a0_index, glm::fvec3 a1, glm::fvec3 a1_index, glm::fvec3 a2, glm::fvec3 a2_index, glm::fvec3 p, double* minDist);
-    glm::fvec3 magFilter(glm::fvec2 imageRate1, int texType );
-    glm::fvec3 minFilter(glm::ivec2 imageRate0, glm::ivec2 imageRate2, int texType);
+    glm::ivec3 find_min_dist_pos(const LatData_t* latticeData, double v_x, double v_y, double v_z, double* minDist);
+    glm::fvec2 surround_Triangles(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord);
+    glm::fvec3 surround_Tetrahedron(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord);
+    glm::fvec3 latticeCoord_to_textureCoord_2D(glm::fvec2 latticeCoord, const LatData_t* latticeData);
+    glm::fvec3 point_to_triangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 p, double* minDist);
+    glm::fvec3 outer_projp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 p);
+    glm::fvec3 barycentric_coord(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n);
+    glm::fvec3 outer_tetrahedron(glm::fvec3 o, glm::fvec3 o_index, glm::fvec3 a0, glm::fvec3 a0_index, glm::fvec3 a1, glm::fvec3 a1_index, glm::fvec3 a2, glm::fvec3 a2_index, glm::fvec3 p, double* minDist);
+    glm::fvec3 mag_filter(glm::fvec2 imageRate1, int texType );
+    glm::fvec3 min_filter(glm::ivec2 imageRate0, glm::ivec2 imageRate2, int texType);
 
 
     // glm::fvec3 tetrahedronOnTriangle();
