@@ -18,13 +18,12 @@ void carve_cls::pvoxel_mapping(){
         glm::fvec3 voxelToLatticeCoord = surround_Tetrahedron(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
         // cout << "voxelToLatticeCoord : "<<voxelToLatticeCoord.x << ", " << voxelToLatticeCoord.y<<", " <<voxelToLatticeCoord.z<<endl;
         glm::fvec3 latticeTexCoord = {voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), voxelToLatticeCoord.z/(latticeData->depth-1)};
+        latticeTexCoord = latticeCoord_to_textureCoord_3D(latticeTexCoord, latticeData);
         latticeTexCoord = tex.lattice_to_texture(glm::fvec4(latticeTexCoord, 1.0), THREEDTEX);
-        // for(int i = 0; i < 3; i++){
-        //     if(latticeTexCoord[i] <= 0.0+0.00001 && latticeTexCoord[i]>= 0.0-0.00001)latticeTexCoord[i]+=0.0001;
-        //     if(latticeTexCoord[i] <= 1.0+0.00001 && latticeTexCoord[i]>= 1.0-0.00001)latticeTexCoord[i]-=0.0001;
-        // }
+
         if(latticeTexCoord.x < 0.0 || latticeTexCoord.x > 1.0 || latticeTexCoord.y < 0.0 || latticeTexCoord.y > 1.0|| latticeTexCoord.z < 0.0 || latticeTexCoord.z > 1.0){
-            rawmodel.pvoxelModel.psomVoxel[v].color = {1.0, 1.0, 1.0};
+            // cout << latticeTexCoord.x<<", "<<latticeTexCoord.y <<", "<<latticeTexCoord.z<<endl;
+            rawmodel.pvoxelModel.psomVoxel[v].color = {1.0, 1.0, 0.0};
         }else{
             glm::ivec3 imageRate = {(latticeTexCoord.x*(double)(tex.threeDTex.width-1)), (latticeTexCoord.y*(double)(tex.threeDTex.height-1)), (latticeTexCoord.z*(double)(tex.threeDTex.depth-1))};
 
@@ -139,6 +138,33 @@ glm::fvec3 carve_cls::latticeCoord_to_textureCoord_2D(glm::fvec2 latticeCoord, c
     float h = latticeCoord.s-(float)s, k = latticeCoord.t-(float)t;
 
     glm::fvec3 c = (1-h)*(1-k)*c00 + h*(1-k)*c01 + (1-h)*k*c10 + h*k*c11;
+
+    return c;
+}
+glm::fvec3 carve_cls::latticeCoord_to_textureCoord_3D(glm::fvec3 latticeCoord, const LatData_t* latticeData){
+    int s = latticeCoord.s, t = latticeCoord.t, r = latticeCoord.r;
+
+    if(latticeCoord.s == s && latticeCoord.t == t && latticeCoord.r == r) return latticeData->wTex[r][t][s];
+
+    int delta_t = 1, delta_s = 1, delta_r = 1;
+    if(s == latticeData->width-1) delta_s = -1;
+    if(t == latticeData->height-1) delta_t = -1;
+    if(r == latticeData->depth-1) delta_r = -1;
+
+    glm::fvec3 c000 = latticeData->wTex[r][t][s];
+    glm::fvec3 c001 = latticeData->wTex[r][t][s+delta_s];
+    glm::fvec3 c010 = latticeData->wTex[r][t+delta_t][s];
+    glm::fvec3 c011 = latticeData->wTex[r][t+delta_t][s+delta_s];
+
+    glm::fvec3 c100 = latticeData->wTex[r+delta_r][t][s];
+    glm::fvec3 c101 = latticeData->wTex[r+delta_r][t][s+delta_s];
+    glm::fvec3 c110 = latticeData->wTex[r+delta_r][t+delta_t][s];
+    glm::fvec3 c111 = latticeData->wTex[r+delta_r][t+delta_t][s+delta_s];
+
+    float _s = latticeCoord.s-(float)s, _t = latticeCoord.t-(float)t, _r = latticeCoord.r-(float)r;
+
+    glm::fvec3 c = (1-_s)*(1-_t)*(1-_r)*c000 + _s*(1-_t)*(1-_r)*c001 + (1-_s)*_t*(1-_r)*c010 + _s*_t*(1-_r)*c011
+                    + (1-_s)*(1-_t)*_r*c100 + _s*(1-_t)*_r*c101 + (1-_s)*_t*_r*c110 + _s*_t*_r*c111;
 
     return c;
 }
@@ -373,22 +399,22 @@ glm::fvec3 carve_cls::surround_Tetrahedron(const LatData_t* latticeData, double 
                     glm::fvec3 tmpCoord = outer_tetrahedron(o,minLatticeCoord,a0,{a0_i,a0_j,a0_k},a1,{a1_i,a1_j,a1_k},a2,{a2_i,a2_j,a2_k},p,&minDist);
                     if(tmpCoord.x != -1 || tmpCoord.y != -1 || tmpCoord.z != -1){
                         threeDcoord = tmpCoord;
-                        if(threeDcoord.x < 0.0) threeDcoord.x = 0.0;
-                        if(threeDcoord.x > latticeData->width-1) threeDcoord.x = latticeData->width-1;
-                        if(threeDcoord.y < 0.0) threeDcoord.y = 0.0;
-                        if(threeDcoord.y > latticeData->height-1) threeDcoord.y = latticeData->height-1;
-                        if(threeDcoord.z < 0.0) threeDcoord.z = 0.0;
-                        if(threeDcoord.z > latticeData->depth-1) threeDcoord.z = latticeData->depth-1;
-
                     }else{
                         // cout << "continue\n";
                     }
-                    // cout<<"\n\n";
+
+
 
                 }
 
             }
         }
+        if(threeDcoord.x < 0.0) threeDcoord.x = 0.0;
+        if(threeDcoord.x > latticeData->width-1) threeDcoord.x = latticeData->width-1;
+        if(threeDcoord.y < 0.0) threeDcoord.y = 0.0;
+        if(threeDcoord.y > latticeData->height-1) threeDcoord.y = latticeData->height-1;
+        if(threeDcoord.z < 0.0) threeDcoord.z = 0.0;
+        if(threeDcoord.z > latticeData->depth-1) threeDcoord.z = latticeData->depth-1;
         return threeDcoord;
     }
 }

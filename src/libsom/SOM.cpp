@@ -23,11 +23,10 @@ som_cls::~som_cls()
 {
 }
 
-void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, glm::ivec3 texWHD, int texType)
+void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, glm::ivec3 texWHD)
 {
     som_init();
     latticeData.type = type;
-    latticeData.texType = texType;
     inputData.nPos = voxelNum;
     inputData.nTex = texWHD.x * texWHD.y * texWHD.z;
 
@@ -45,9 +44,9 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
 }
 void som_cls::som_init()
 {
-    latticeData.width = 10;
-    latticeData.height = 10;
-    latticeData.depth = 10;
+    latticeData.width = 15;
+    latticeData.height = 15;
+    latticeData.depth = 15;
 
     latticeData.iter[0] = 0;
     latticeData.iter[1] = 0;
@@ -67,41 +66,40 @@ void som_cls::som_init()
     latticeData.typeNum[3] = 6;
     latticeData.typeNum[4] = latticeData.depth;
 
-    latticeData.texType = 0;
-    latticeData.texTypeNum[0] = 1;
-    latticeData.texTypeNum[1] = latticeData.depth;
-
     weightType = POS;
 
-    latticeData.anchorP = (glm::ivec3 *)malloc(sizeof(glm::ivec3) * 8);
+    latticeData.anchorEdgeP = (glm::ivec3 *)malloc(sizeof(glm::ivec3) * 8);
     // 0~3 front 4~7 back  (leftdown rightdown leftup rightup)
-    latticeData.anchorP[0] = {0, 3, 0};
-    latticeData.anchorP[1] = {7, 0, 0};
-    latticeData.anchorP[2] = {latticeData.width - 1, latticeData.height - 1, 0};
-    latticeData.anchorP[3] = {0, latticeData.height-1, 0};
+    latticeData.anchorEdgeP[0] = {0, 0, 0};
+    latticeData.anchorEdgeP[1] = {latticeData.width - 1, 0, 0};
+    latticeData.anchorEdgeP[2] = {latticeData.width - 1, latticeData.height - 1, 0};
+    latticeData.anchorEdgeP[3] = {0, latticeData.height - 1, 0};
 
-    latticeData.anchorP[4] = {0, 0, latticeData.depth - 1};
-    latticeData.anchorP[5] = {latticeData.width - 1, 0, latticeData.depth - 1};
-    latticeData.anchorP[6] = {latticeData.width - 1, latticeData.height - 1, latticeData.depth - 1};
-    latticeData.anchorP[7] = {0, latticeData.height - 1, latticeData.depth - 1};
+    latticeData.anchorEdgeP[4] = {0, 0, latticeData.depth - 1};
+    latticeData.anchorEdgeP[5] = {latticeData.width - 1, 0, latticeData.depth - 1};
+    latticeData.anchorEdgeP[6] = {latticeData.width - 1, latticeData.height - 1, latticeData.depth - 1};
+    latticeData.anchorEdgeP[7] = {0, latticeData.height - 1, latticeData.depth - 1};
+
+    latticeData.anchorP = {10, 10, 0};
+    latticeData.anchorTime = 5;
 }
 
 void som_cls::Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min)
 {
     destroy_weight_position(latticeData.typeNum[latticeData.type]);
-    destroy_weight_texture(latticeData.texTypeNum[latticeData.texType]);
+    destroy_weight_texture(latticeData.typeNum[latticeData.type]);
     latticeData.width = resolution;
     latticeData.height = resolution;
     latticeData.typeNum[4] = latticeData.depth = resolution;
-    latticeData.anchorP[0] = {0, 0, 0};
-    latticeData.anchorP[1] = {latticeData.width - 1, 0, 0};
-    latticeData.anchorP[2] = {latticeData.width - 1, latticeData.height - 1, 0};
-    latticeData.anchorP[3] = {0, latticeData.height-1, 0};
+    latticeData.anchorEdgeP[0] = {0, 0, 0};
+    latticeData.anchorEdgeP[1] = {latticeData.width - 1, 0, 0};
+    latticeData.anchorEdgeP[2] = {latticeData.width - 1, latticeData.height - 1, 0};
+    latticeData.anchorEdgeP[3] = {0, latticeData.height - 1, 0};
 
-    latticeData.anchorP[4] = {0, 0, latticeData.depth - 1};
-    latticeData.anchorP[5] = {latticeData.width - 1, 0, latticeData.depth - 1};
-    latticeData.anchorP[6] = {latticeData.width - 1, latticeData.height - 1, latticeData.depth - 1};
-    latticeData.anchorP[7] = {0, latticeData.height - 1, latticeData.depth - 1};
+    latticeData.anchorEdgeP[4] = {0, 0, latticeData.depth - 1};
+    latticeData.anchorEdgeP[5] = {latticeData.width - 1, 0, latticeData.depth - 1};
+    latticeData.anchorEdgeP[6] = {latticeData.width - 1, latticeData.height - 1, latticeData.depth - 1};
+    latticeData.anchorEdgeP[7] = {0, latticeData.height - 1, latticeData.depth - 1};
     latticeData.wPos = create_weight_position(max, min);
     latticeData.wTex = create_weight_texture();
 }
@@ -119,9 +117,12 @@ void som_cls::Lattice_rate_set(float initrate)
 }
 void som_cls::Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min)
 {
+    destroy_weight_texture(latticeData.typeNum[latticeData.type]);
     latticeData.type = type;
     destroy_weight_position(latticeData.typeNum[latticeData.type]);
+
     latticeData.wPos = create_weight_position(max, min);
+    latticeData.wTex = create_weight_texture();
 }
 void som_cls::Lattice_pos_set(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min)
 {
@@ -137,12 +138,17 @@ void som_cls::Lattice_tex_set(glm::ivec3 texWHD)
     inputData.iTex = create_input_texture(texWHD);
     inputData.nTex = texWHD.x * texWHD.y * texWHD.z;
 }
-void som_cls::Lattice_anchor_set(glm::ivec3 *newp)
+void som_cls::Lattice_anchor_edge_set()
 {
-    free(latticeData.anchorP);
     destroy_weight_texture(latticeData.typeNum[latticeData.type]);
-    latticeData.anchorP = newp;
     latticeData.wTex = create_weight_texture();
+}
+void som_cls::Lattice_anchor_set(int *tanc, int anchorTime)
+{
+    latticeData.anchorTime = anchorTime;
+    latticeData.anchorP[0] = tanc[0];
+    latticeData.anchorP[1] = tanc[1];
+    set_anchor_point(latticeData.wTex);
 }
 void som_cls::SOM_IterateOnce(int wType)
 {
@@ -158,9 +164,6 @@ void som_cls::SOM_IterateOnce(int wType)
     // 3. Update BMU and the radius
     for (int k = 0; k < latticeData.typeNum[latticeData.type]; k++)
     {
-        if (weightType == TEX)
-            if (k == latticeData.texTypeNum[latticeData.texType])
-                break; // 0000000000000000000
 
         for (int i = 0; i < latticeData.height; i++)
         {
@@ -200,7 +203,7 @@ glm::fvec3 *som_cls::create_input_position(std::vector<glm::ivec3> voxelPos, int
 }
 glm::fvec3 *som_cls::create_input_texture(glm::ivec3 texWHD)
 {
-    glm::ivec3 *p = latticeData.anchorP;
+    glm::ivec3 *p = latticeData.anchorEdgeP;
 
     glm::fvec3 *dataset = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * texWHD.x * texWHD.y * texWHD.z); // 0000000000
 
@@ -220,40 +223,95 @@ glm::fvec3 *som_cls::create_input_texture(glm::ivec3 texWHD)
 }
 glm::fvec3 ***som_cls::create_weight_texture()
 {
-    int width = latticeData.width, height = latticeData.height, depth = latticeData.texTypeNum[latticeData.texType];
+    int width = latticeData.width, height = latticeData.height, depth = latticeData.typeNum[latticeData.type];
     // 1. create 3D lattice
     glm::fvec3 ***texWeight = (glm::fvec3 ***)malloc(sizeof(glm::fvec3 **) * depth);
-    for (int j = 0; j < depth; j++)
+    glm::ivec3 **midAhcor = (glm::ivec3 **)malloc(sizeof(glm::ivec3 *) * (depth - 2));
+    for (int d = 0; d < depth; d++)
     {
-        texWeight[j] = (glm::fvec3 **)malloc(sizeof(glm::fvec3 *) * height);
-        for (int i = 0; i < height; i++)
+        if (d < depth - 2)
+            midAhcor[d] = (glm::ivec3 *)malloc(sizeof(glm::ivec3) * 4);
+        texWeight[d] = (glm::fvec3 **)malloc(sizeof(glm::fvec3 *) * height);
+        for (int h = 0; h < height; h++)
         {
-            texWeight[j][i] = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * width);
-            for (int k = 0; k < width; k++)
+            texWeight[d][h] = (glm::fvec3 *)malloc(sizeof(glm::fvec3) * width);
+            for (int w = 0; w < width; w++)
             {
                 // 2. init texture weight value
                 double i0, j0, k0;
-
                 i0 = (double)rand() / (double)(RAND_MAX + 1.0);
                 j0 = (double)rand() / (double)(RAND_MAX + 1.0);
                 k0 = (double)rand() / (double)(RAND_MAX + 1.0);
 
-                texWeight[j][i][k] = {i0, j0, k0};
+                texWeight[d][h][w] = {i0, j0, k0};
             }
         }
     }
 
-
-    if (latticeData.texType == TWODTEX)
+    if (latticeData.type != CUBE)
     {
-        // latticeData.partArea = (big_x-small_x+1)*(big_y-small_y+1);
-        return create_weight_texture_2D(texWeight);
+        glm::ivec3 *p = (glm::ivec3 *)malloc(sizeof(glm::ivec3) * 5);
+        for (int i = 0; i < 4; i++)
+            p[i] = latticeData.anchorEdgeP[i];
+        p[4] = p[0]; // 01 12 23 3(4=0)   four edge
+        // 3. find boundary
+        for (int i = 0; i < 4; i++)
+        {
+            connect_two_point_into_edge(texWeight, p[i], p[i + 1]);
+        }
+        // 4. find inside
+        find_edge_indside(texWeight);
+        // 5. set anchor edge point
+        set_anchor_edge_point(texWeight, p);
+        // 6. set anchor point
+        set_anchor_point(texWeight);
     }
-    if(latticeData.texType == THREEDTEX){
-    //     latticeData.partArea = (big_x-small_x)*(big_y-small_y)*(big_z-small_z);
+    if (latticeData.type == CUBE)
+    {
+        const glm::ivec3 *p = latticeData.anchorEdgeP;
+        // for (int a = 0; a < 8; a++)
+        // {
+        //     int i0 =  (a == 0 || a == 3 || a == 4 || a == 7) ? 0 : 1;
+        //     int j0 =  (a == 0 || a == 1 || a == 4 || a == 5) ? 0 : 1;
+        //     int k0 =  (a == 0 || a == 1 || a == 2 || a == 3) ? 0 : 1;
+        //     texWeight[p[a].z][p[a].y][p[a].x] = {i0, j0, k0};
+        // }
 
-        glm::ivec3 *p = latticeData.anchorP;
+        // for(int i = 0; i < 12; i++){
+        //     glm::ivec3 p0 = p[i%8];
+        //     glm::ivec3 p1 = p[(i%8)+1];
+        //     if(i == 3) p1 = p[0];
+        //     if(i == 7) p1 = p[4];
+        //     if(i >= 8) p1 = p[(i%8)+4];
+        //     cout << "p0 : " << p0.x << ", "<<p0.y<<", "<<p0.z<<endl;
+        //     cout << "p1 : " << p1.x << ", "<<p1.y<<", "<<p1.z<<endl;
+        //     connect_two_point_into_edge(texWeight, p0, p1);
+        // }
 
+        // for (int d = 0; d < depth; d++)
+        // {
+        //     for (int h = 0; h < height; h++){
+        //         for (int w = 0; w < width; w++) {
+        //             cout<<setprecision(2) <<"("<< texWeight[d][h][w].x <<", "<< texWeight[d][h][w].y <<", "<<texWeight[d][h][w].z<<")";
+        //         }
+        //         cout << "\n";
+        //     }
+        //     cout << "\n\n";
+        // }
+        // // 3.5. find 6 plane
+        // set_six_plane(texWeight);
+        // // 4. find inside + 5. set anchor point
+        // find_edge_indside_set_anchor_point(texWeight, p);
+        // for (int d = 0; d < depth; d++)
+        // {
+        //     for (int h = 0; h < height; h++){
+        //         for (int w = 0; w < width; w++) {
+        //             cout<<setprecision(2) <<"("<< texWeight[d][h][w].x <<", "<< texWeight[d][h][w].y <<", "<<texWeight[d][h][w].z<<")";
+        //         }
+        //         cout << "\n";
+        //     }
+        //     cout << "\n\n";
+        // }
         int small_x, small_y, small_z, big_x, big_y, big_z;
         small_x = min(min(p[0].x, p[2].x), min(p[4].x, p[6].x));
         big_x = max(max(p[1].x, p[3].x), max(p[5].x, p[7].x));
@@ -280,117 +338,173 @@ glm::fvec3 ***som_cls::create_weight_texture()
                 }
             }
         }
-
     }
-
     return texWeight;
 }
-glm::fvec3 ***som_cls::create_weight_texture_2D(glm::fvec3 ***texWeight){
-    int width = latticeData.width, height = latticeData.height, depth = latticeData.texTypeNum[latticeData.texType];
-    glm::ivec3 *p = latticeData.anchorP;
-    // 3. find boundary
-    p[4] = p[0];
-    for (int i = 0; i < 4; i++)
-    { // 01 12 23 30   four edge
-        int deltay = abs(p[i + 1].y - p[i].y);
-        int deltax = abs(p[i + 1].x - p[i].x);
+void som_cls::set_six_plane(glm::fvec3 ***texWeight)
+{
+    // int plane[4][4] = {{0,3,7,4},{},{},{}};
+}
+void som_cls::connect_two_point_into_edge(glm::fvec3 ***texWeight, const glm::ivec3 p0, const glm::ivec3 p1)
+{
+    int deltax = abs(p1.x - p0.x);
+    int deltay = abs(p1.y - p0.y);
+    int deltaz = abs(p1.z - p0.z);
+    int delta_max = max(max(deltax, deltay), deltaz);
 
-        int w_dir = (p[i + 1].x >= p[i].x) ? 1 : -1;
-        int h_dir = (p[i + 1].y >= p[i].y) ? 1 : -1;
-        int step = (deltax >= deltay) ? deltay : deltax;
+    int w_dir = (p1.x >= p0.x) ? 1 : -1;
+    int h_dir = (p1.y >= p0.y) ? 1 : -1;
+    int d_dir = (p1.z >= p0.z) ? 1 : -1;
 
-        // cout << "\ndelta y = " << deltay << ", delta x = " << deltax<< ", y_dir = " << h_dir << ", x_dir = " << w_dir << endl;
-        int w = p[i].x, h = p[i].y;
-        while (w != p[i + 1].x || h != p[i + 1].y)
+    int step0 = (delta_max == deltax) ? deltay : deltax;
+    int step1 = (delta_max != deltaz) ? deltaz : deltay;
+
+    int w = p0.x, h = p0.y, d = p0.z;
+    while (w != p1.x || h != p1.y || d != p1.z)
+    {
+        // get value
+        if (latticeData.type == CUBE)
         {
-            // get value
-            if(texWeight[0][h][w].x > 0) texWeight[0][h][w].x *= -1.0;
-            if(texWeight[0][h][w].y > 0) texWeight[0][h][w].y *= -1.0;
-            if(texWeight[0][h][w].z > 0) texWeight[0][h][w].z *= -1.0;
-            // cout << "h : " << h << ", w : " << w << ", step : " << step << endl;
-            // for (int hi = 0; hi < height; hi++)
+            if (texWeight[d][h][w].x > 0)
+                texWeight[d][h][w].x *= -1.0;
+            if (texWeight[d][h][w].y > 0)
+                texWeight[d][h][w].y *= -1.0;
+            if (texWeight[d][h][w].z > 0)
+                texWeight[d][h][w].z *= -1.0;
+            // int width = latticeData.width, height = latticeData.height, depth = latticeData.typeNum[latticeData.type];
+            // for (int d = 0; d < depth; d++)
             // {
-            //     for (int wi = 0; wi < width; wi++)
-            //     {
-            //         cout <<setprecision(2) << "(" << texWeight[0][hi][wi].x << ", " << texWeight[0][hi][wi].y << ")";
+            //     for (int h = 0; h < height; h++){
+            //         for (int w = 0; w < width; w++) {
+            //             cout<<setprecision(2) << texWeight[d][h][w].x <<", "<< texWeight[d][h][w].y <<", "<<texWeight[d][h][w].z<<" ";
+            //         }
+            //         cout << "\n";
             //     }
-            //     cout << "\n";
+            //     cout << "\n\n";
             // }
-            // cout << "\n\n\n";
-            // next grid
-            if(deltax >= deltay){
-                if(step < deltax){
-                    step += deltay;
-                    w+=w_dir;
-                }else{
-                    step -= deltax;
-                    h+=h_dir;
-                }
-            }else if(deltax < deltay){
-                if(step < deltay){
-                    step+=deltax;
-                    h+=h_dir;
-                }else{
-                    step-=deltay;
-                    w+=w_dir;
-                }
-            }
         }
-    }
-    // 4. find inside
-    for (int h = 0; h < height; h++)
-    {
-        bool inside = false;
-        int edge = 0;
-        for (int w = 0; w < width; w++)
+        else
         {
-            edge=w;
-            if(texWeight[0][h][w].x <= 1.0 && texWeight[0][h][w].x >= 0.0 && inside) {
-                break;
+            for (int tmp = 0; tmp < latticeData.typeNum[latticeData.type]; tmp++)
+            {
+                if (texWeight[tmp][h][w].x > 0)
+                    texWeight[tmp][h][w].x *= -1.0;
+                if (texWeight[tmp][h][w].y > 0)
+                    texWeight[tmp][h][w].y *= -1.0;
+                if (texWeight[tmp][h][w].z > 0)
+                    texWeight[tmp][h][w].z *= -1.0;
             }
-            if(texWeight[0][h][w].x < 0.0){
-                inside = true;
-            }
-            if(inside) {
-                texWeight[0][h][w].x *= -1.0;
-                texWeight[0][h][w].y *= -1.0;
-                texWeight[0][h][w].z *= -1.0;
-            }
-            else texWeight[0][h][w] = {1.1,1.1,1.1};
-
         }
-        inside = false;
-        for(int w = width-1; w >= edge; w--){
-            if(texWeight[0][h][w].x <= 1.0 && texWeight[0][h][w].x >= 0.0 && inside) break;
-            if(texWeight[0][h][w].x < 0.0){
-                inside = true;
+        // next grid
+        if (deltax == delta_max)
+        {
+            if (step0 < deltax && step1 < deltax)
+            {
+                step0 += deltay;
+                step1 += deltaz;
+                w += w_dir;
             }
-            if(inside) {
-                texWeight[0][h][w].x *= -1.0;
-                texWeight[0][h][w].y *= -1.0;
-                texWeight[0][h][w].z *= -1.0;
+            else if (step0 >= deltax)
+            {
+                step0 -= deltax;
+                h += h_dir;
             }
-            else texWeight[0][h][w] = {1.1,1.1,1.1};
-
+            else if (step1 >= deltax)
+            {
+                step1 -= deltax;
+                d += d_dir;
+            }
+        }
+        else if (deltay == delta_max)
+        {
+            if (step0 < deltay && step1 < deltay)
+            {
+                step0 += deltax;
+                step1 += deltaz;
+                h += h_dir;
+            }
+            else if (step0 >= deltay)
+            {
+                step0 -= deltay;
+                w += w_dir;
+            }
+            else if (step1 >= deltay)
+            {
+                step1 -= deltay;
+                d += d_dir;
+            }
+        }
+        else if (deltaz == delta_max)
+        {
+            if (step0 < deltaz && step1 < deltaz)
+            {
+                step0 += deltax;
+                step1 += deltay;
+                d += d_dir;
+            }
+            else if (step0 >= deltaz)
+            {
+                step0 -= deltaz;
+                w += w_dir;
+            }
+            else if (step1 >= deltaz)
+            {
+                step1 -= deltaz;
+                h += h_dir;
+            }
         }
     }
-    // 5. set anchor point
-    for (int a = 0; a < 4; a++)
+}
+void som_cls::find_edge_indside(glm::fvec3 ***texWeight)
+{
+    int width = latticeData.width, height = latticeData.height, depth = latticeData.typeNum[latticeData.type];
+
+    // 4. find inside
+    for (int d = 0; d < depth; d++)
     {
-        int i0, j0, k0;
-        // i0 = a % 2;
-        if (a == 0 || a == 3 || a == 4 || a == 7)
-            i0 = 0;
-        else
-            i0 = 1;
-        if (a == 0 || a == 1 || a == 4 || a == 5)
-            j0 = 0;
-        else
-            j0 = 1;
-        k0 = 0.0;
-
-        texWeight[0][p[a].y][p[a].x] = {i0, j0, k0};
-
+        for (int h = 0; h < height; h++)
+        {
+            bool inside = false;
+            int edge = 0;
+            for (int w = 0; w < width; w++)
+            {
+                edge = w;
+                if (texWeight[d][h][w].x <= 1.0 && texWeight[d][h][w].x >= 0.0 && inside)
+                {
+                    break;
+                }
+                if (texWeight[d][h][w].x < 0.0)
+                {
+                    inside = true;
+                }
+                if (inside)
+                {
+                    texWeight[d][h][w].x *= -1.0;
+                    texWeight[d][h][w].y *= -1.0;
+                    texWeight[d][h][w].z *= -1.0;
+                }
+                else
+                    texWeight[d][h][w] = {1.1, 1.1, 1.1};
+            }
+            inside = false;
+            for (int w = width - 1; w >= edge; w--)
+            {
+                if (texWeight[d][h][w].x <= 1.0 && texWeight[d][h][w].x >= 0.0 && inside)
+                    break;
+                if (texWeight[d][h][w].x < 0.0)
+                {
+                    inside = true;
+                }
+                if (inside)
+                {
+                    texWeight[d][h][w].x *= -1.0;
+                    texWeight[d][h][w].y *= -1.0;
+                    texWeight[d][h][w].z *= -1.0;
+                }
+                else
+                    texWeight[d][h][w] = {1.1, 1.1, 1.1};
+            }
+        }
     }
     // for (int hi = 0; hi < height; hi++)
     // {
@@ -401,11 +515,43 @@ glm::fvec3 ***som_cls::create_weight_texture_2D(glm::fvec3 ***texWeight){
     //     cout << "\n";
     // }
     // cout << "\n\n\n";
-    return texWeight;
 }
-// glm::fvec3 ***som_cls::create_weight_texture_3D(){
+void som_cls::set_anchor_edge_point(glm::fvec3 ***texWeight, const glm::ivec3 *p)
+{
+    // 5. set anchor edge point
+    int depth = latticeData.typeNum[latticeData.type];
 
-// }
+    for (int d = 0; d < depth; d++)
+    {
+        int num = (latticeData.type != CUBE) ? 4 : 8;
+        for (int a = 0; a < num; a++)
+        {
+            int i0 = (a == 0 || a == 3 || a == 4 || a == 7) ? 0 : 1;
+            int j0 = (a == 0 || a == 1 || a == 4 || a == 5) ? 0 : 1;
+            int k0 = (a == 0 || a == 1 || a == 2 || a == 3) ? 0 : 1;
+
+            int tmpd = (latticeData.type != CUBE) ? d : p[a].z;
+            texWeight[tmpd][p[a].y][p[a].x] = {i0, j0, k0};
+        }
+        glm::ivec3 anc = latticeData.anchorP;
+
+        texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
+        // texWeight[d][p[1].y][p[1].x] = {1.0, 0.5, 0.0};
+        // texWeight[d][p[2].y][p[2].x] = {1.0, 1.0, 0.0};
+        // texWeight[d][p[3].y][p[3].x] = {0.5, 1.0, 0.0};
+    }
+}
+void som_cls::set_anchor_point(glm::fvec3 ***texWeight){
+    // 6. set anchor point
+    int depth = latticeData.typeNum[latticeData.type];
+
+    for (int d = 0; d < depth; d++)
+    {
+        glm::ivec3 anc = latticeData.anchorP;
+
+        texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
+    }
+}
 glm::fvec3 ***som_cls::create_weight_position(glm::ivec3 max, glm::ivec3 min)
 {
     int width = latticeData.width, height = latticeData.height, depth = latticeData.depth;
@@ -585,6 +731,8 @@ const glm::fvec3 som_cls::get_input()
     }
     if (weightType == TEX)
     {
+        if (rand() % latticeData.anchorTime == 0)
+            return {0.5, 0.5, 0.0};
         int i = rand_i * (inputData.nTex);
         return inputData.iTex[i];
     }
@@ -653,12 +801,12 @@ void som_cls::update_node(glm::fvec3 input, glm::ivec3 update, double scale, dou
     {
         for (int t = 0; t < 8; t++)
         {
-            if (latticeData.anchorP[t] == update)
+            if (latticeData.anchorEdgeP[t] == update)
             {
                 return;
             }
         }
-        if (latticeData.wTex[z][y][x].x > 1.0 || latticeData.wTex[z][y][x].y > 1.0 || latticeData.wTex[z][y][x].z > 1.0)
+        if (latticeData.wTex[z][y][x].x > 1.0 || latticeData.wTex[z][y][x].y > 1.0 || latticeData.wTex[z][y][x].z > 1.0 || latticeData.anchorP == update)
             return;
 
         latticeData.wTex[z][y][x].x = latticeData.wTex[z][y][x].x + scale * learningRate * (input.x - latticeData.wTex[z][y][x].x);
@@ -823,7 +971,7 @@ void som_cls::SOM_End()
 {
     // 1. destroy_weight_position lattice
     destroy_weight_position(latticeData.typeNum[latticeData.type]);
-    destroy_weight_texture(latticeData.texTypeNum[latticeData.texType]);
+    destroy_weight_texture(latticeData.typeNum[latticeData.type]);
     // 2. destroy_weight_position input dataset
     destroy_input_position();
     destroy_input_texturea();

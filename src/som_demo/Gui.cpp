@@ -214,6 +214,7 @@ void imgui_funcpsom()
         carve.pcarve = false;
     else
         carve.pcarve = true;
+
     // texture matrix
     static float *ptexScale = (float *)calloc(3 , sizeof(float ));
     static float *ptexTranslate = (float *)calloc(3 , sizeof(float ));
@@ -222,6 +223,7 @@ void imgui_funcpsom()
     static float *ptexResolution_h = (float *)calloc(2 , sizeof(float));
     static float *ptexResolution_d = (float *)calloc(2 , sizeof(float));
     static int ptexWrap = 0;
+    static int **anchor = (int**)malloc(sizeof(int*)*8);
     if(pinit){
         ptexScale[0] = 1;
         ptexScale[1] = 1;
@@ -230,8 +232,64 @@ void imgui_funcpsom()
         ptexResolution_h[1] = 1.0;
         ptexResolution_d[1] = 1.0;
         pinit = false;
-    }
 
+        for(int i = 0; i < 8; i++) anchor[i] = (int*)calloc(3, sizeof(int)); //zyx
+        anchor[1][0] = latticeData->width-1;
+        anchor[2][1] = latticeData->height-1;
+        anchor[2][0] = latticeData->width-1;
+        anchor[3][1] = latticeData->height-1;
+
+        anchor[4][2] = latticeData->depth-1;
+        anchor[5][2] = latticeData->depth-1;
+        anchor[5][0] = latticeData->width-1;
+        anchor[6][2] = latticeData->depth-1;
+        anchor[6][1] = latticeData->height-1;
+        anchor[6][0] = latticeData->width-1;
+        anchor[7][2] = latticeData->depth-1;
+        anchor[7][1] = latticeData->height-1;
+
+    }
+    // anchor point
+    ImGui::Text("anchor point xyz");
+    ImGui::InputInt3("000", anchor[0]);
+    ImGui::InputInt3("001", anchor[1]);
+    ImGui::InputInt3("011", anchor[2]);
+    ImGui::InputInt3("010", anchor[3]);
+    ImGui::InputInt3("100", anchor[4]);
+    ImGui::InputInt3("101", anchor[5]);
+    ImGui::InputInt3("111", anchor[6]);
+    ImGui::InputInt3("110", anchor[7]);
+    // texture wrapping
+    ImGui::Text("texture wrap");
+    ImGui::RadioButton("repeat p", &ptexWrap, 0); ImGui::SameLine();
+    ImGui::RadioButton("border p", &ptexWrap, 1);
+    // texture resolution
+    ImGui::Text("texture resolution");
+    ImGui::InputFloat2("width p", ptexResolution_w);
+    ImGui::InputFloat2("height p", ptexResolution_h);
+    ImGui::InputFloat2("depth p", ptexResolution_d);
+    // texture matrix
+    ImGui::Text("texture matrix");
+    ImGui::SliderFloat3("translate_ptex", ptexTranslate, -1, 1);
+    ImGui::InputFloat3("scale_ptex", ptexScale);
+    ImGui::SliderInt3("rotate_ptex(hw dh dw)", ptexRotate, 0, 360);
+
+    ImGui::Text("iter : %d", latticeData->iter[weightType_gui]);
+
+    glm::ivec3 *p = latticeData->anchorEdgeP;
+    bool anchor_c = false;
+    for(int i = 0; i < 8; i++){
+        if(p[i][0] != anchor[i][0] || p[i][1] != anchor[i][1] || p[i][2] != anchor[i][2]){
+            p[i][0] = anchor[i][0];
+            p[i][1] = anchor[i][1];
+            p[i][2] = anchor[i][2];
+            anchor_c = true;
+        }
+    }
+    if(anchor_c){
+        psom.Lattice_anchor_edge_set();
+        drawModel.pLattice_renew();
+    }
     if (curve)
     {
         glm::ivec3 t_angle = {ptexRotate[0], ptexRotate[1], ptexRotate[2]};
@@ -259,25 +317,6 @@ void imgui_funcpsom()
 
         tex.texMatrix3D.texture_m.Pop();
     }
-
-    // texture wrapping
-    ImGui::Text("texture wrap");
-    ImGui::RadioButton("repeat p", &ptexWrap, 0); ImGui::SameLine();
-    ImGui::RadioButton("border p", &ptexWrap, 1);
-    // texture resolution
-    ImGui::Text("texture resolution");
-    ImGui::InputFloat2("width p", ptexResolution_w);
-    ImGui::InputFloat2("height p", ptexResolution_h);
-    ImGui::InputFloat2("depth p", ptexResolution_d);
-    // texture matrix
-    ImGui::Text("texture matrix");
-    ImGui::SliderFloat3("translate_ptex", ptexTranslate, -1, 1);
-    ImGui::InputFloat3("scale_ptex", ptexScale);
-    ImGui::SliderInt3("rotate_ptex(hw dh dw)", ptexRotate, 0, 360);
-
-
-    ImGui::Text("iter : %d", latticeData->iter[weightType_gui]);
-
 }
 
 void imgui_funcsom()
@@ -336,8 +375,10 @@ void imgui_funcsom()
         {true, true, true, true, true}};
     static int **texType = (int **)malloc(layerNum * sizeof(int *));
     static int **texWrap = (int **)malloc(layerNum * sizeof(int *));
-    static int ***texUp = (int***)malloc(layerNum * sizeof(int **));
-    static int ***texDown = (int***)malloc(layerNum * sizeof(int **));
+    static int ***texUpEdge = (int***)malloc(layerNum * sizeof(int **));
+    static int ***texDownEdge = (int***)malloc(layerNum * sizeof(int **));
+    static int ***texAnchor = (int***)malloc(layerNum * sizeof(int **));
+    static int anchorTime = 5;
     static float ***texResolution_w = (float ***)malloc(layerNum * sizeof(float **));
     static float ***texResolution_h = (float ***)malloc(layerNum * sizeof(float **));
     static float ***texScale = (float ***)malloc(layerNum * sizeof(float **));
@@ -354,8 +395,9 @@ void imgui_funcsom()
         {
             texType[layer] = (int *)calloc(blockNum, sizeof(int));
             texWrap[layer] = (int *)calloc(blockNum, sizeof(int));
-            texUp[layer] = (int **)malloc(blockNum*sizeof(int *));
-            texDown[layer] = (int **)malloc(blockNum*sizeof(int *));
+            texUpEdge[layer] = (int **)malloc(blockNum*sizeof(int *));
+            texDownEdge[layer] = (int **)malloc(blockNum*sizeof(int *));
+            texAnchor[layer] = (int **)malloc(blockNum*sizeof(int*));
             texResolution_w[layer] = (float **)malloc(blockNum * sizeof(float *));
             texResolution_h[layer] = (float **)malloc(blockNum * sizeof(float *));
             texTranslate[layer] = (float **)malloc(blockNum * sizeof(float *));
@@ -374,12 +416,25 @@ void imgui_funcsom()
                 texScale[layer][block] = (float *)calloc(2, sizeof(float));
                 texScale[layer][block][0] = 1.0;
                 texScale[layer][block][1] = 1.0;
-                texUp[layer][block] = (int*)calloc(4, sizeof(int));
-                texUp[layer][block][1] = latticeData->height-1;
-                texUp[layer][block][2] = latticeData->width-1;
-                texUp[layer][block][3] = latticeData->height-1;
-                texDown[layer][block] = (int*)calloc(4, sizeof(int));
-                texDown[layer][block][2] = latticeData->width-1;
+                texUpEdge[layer][block] = (int*)calloc(4, sizeof(int));
+
+                // texUpEdge[layer][block][0] = 2;
+                // texUpEdge[layer][block][1] = 14;
+                // texUpEdge[layer][block][2] = 12;
+                // texUpEdge[layer][block][3] = 6;
+                texUpEdge[layer][block][1] = latticeData->height-1;
+                texUpEdge[layer][block][2] = latticeData->width-1;
+                texUpEdge[layer][block][3] = latticeData->height-1;
+                texDownEdge[layer][block] = (int*)calloc(4, sizeof(int));
+                // texDownEdge[layer][block][0] = 0;
+                // texDownEdge[layer][block][1] = 4;
+                // texDownEdge[layer][block][2] = 11;
+                texDownEdge[layer][block][2] = latticeData->width-1;
+                // texDownEdge[layer][block][3] = 0;
+                texAnchor[layer][block] = (int*)calloc(2, sizeof(int));
+                texAnchor[layer][block][0] = (latticeData->width-1)/3;
+                texAnchor[layer][block][1] = (latticeData->height-1)/3;
+
                 texResolution_w[layer][block] = (float *)calloc(2, sizeof(float));
                 texResolution_h[layer][block] = (float *)calloc(2, sizeof(float));
                 texResolution_w[layer][block][0] = 0.0;
@@ -405,10 +460,14 @@ void imgui_funcsom()
                 ImGui::RadioButton("hive", &texType[layer][block], 0); ImGui::SameLine();
                 ImGui::RadioButton("pattern", &texType[layer][block], 1); ImGui::SameLine();
                 ImGui::RadioButton("wb", &texType[layer][block], 2);
+                // texture anchor edge point
+                ImGui::Text("texture anchor edge point");
+                ImGui::InputInt4("down", texDownEdge[layer][block]);
+                ImGui::InputInt4("up", texUpEdge[layer][block]);
                 // texture anchor point
                 ImGui::Text("texture anchor point");
-                ImGui::InputInt4("down", texDown[layer][block]);
-                ImGui::InputInt4("up", texUp[layer][block]);
+                ImGui::InputInt2("anchor", texAnchor[layer][block]);
+                ImGui::InputInt("rand time", &anchorTime);
                 // texture wrapping
                 ImGui::Text("texture wrap");
                 ImGui::RadioButton("repeat", &texWrap[layer][block], 0); ImGui::SameLine();
@@ -455,10 +514,10 @@ void imgui_funcsom()
                 som[layer][block].Lattice_rate_set(rate[layer][block]);
             if (resolution[layer][block] != latticeData->width)
             {
-                texUp[layer][block][1] = resolution[layer][block]-1;
-                texUp[layer][block][2] = resolution[layer][block]-1;
-                texUp[layer][block][3] = resolution[layer][block]-1;
-                texDown[layer][block][2] = resolution[layer][block]-1;
+                texUpEdge[layer][block][1] = resolution[layer][block]-1;
+                texUpEdge[layer][block][2] = resolution[layer][block]-1;
+                texUpEdge[layer][block][3] = resolution[layer][block]-1;
+                texDownEdge[layer][block][2] = resolution[layer][block]-1;
                 glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
                 glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
                 som[layer][block].Lattice_resolution_set(resolution[layer][block], voxelMaxsize, voxelMinsize);
@@ -471,17 +530,25 @@ void imgui_funcsom()
                 som[layer][block].Lattice_type_set(lat[layer][block], voxelMaxsize, voxelMinsize);
                 drawModel.Lattice_renew(layer, block);
             }
-            glm::ivec3 *p = latticeData->anchorP;
-            int *gui_dp = texDown[layer][block];
-            int *gui_up = texUp[layer][block];
+            // update anchor edge point
+            glm::ivec3 *p = latticeData->anchorEdgeP;
+            int *gui_dp = texDownEdge[layer][block];
+            int *gui_up = texUpEdge[layer][block];
             if(gui_dp[0] != p[0].x || gui_dp[1] != p[0].y || gui_dp[2] != p[1].x || gui_dp[3] != p[1].y ||
             gui_up[0] != p[3].x || gui_up[1] != p[3].y || gui_up[2] != p[2].x || gui_up[3] != p[2].y ){
-                glm::ivec3 *newp = (glm::ivec3*)calloc(8,sizeof(glm::ivec3));
-                newp[0] = newp[4] = {gui_dp[0], gui_dp[1], 0.0};
-                newp[1] = newp[5] = {gui_dp[2], gui_dp[3], 0.0};
-                newp[2] = newp[6] = {gui_up[2], gui_up[3], 0.0};
-                newp[3] = newp[7] = {gui_up[0], gui_up[1], 0.0};
-                som[layer][block].Lattice_anchor_set(newp);
+                p[0] = p[4] = {gui_dp[0], gui_dp[1], 0.0};
+                p[1] = p[5] = {gui_dp[2], gui_dp[3], 0.0};
+                p[2] = p[6] = {gui_up[2], gui_up[3], 0.0};
+                p[3] = p[7] = {gui_up[0], gui_up[1], 0.0};
+                som[layer][block].Lattice_anchor_edge_set();
+                drawModel.Lattice_renew(layer, block);
+            }
+            // update anchor point
+            glm::ivec3 lanc = latticeData->anchorP;
+            int *tanc = texAnchor[layer][block];
+            if(lanc[0] != tanc[0] || lanc[1] != tanc[1] || lanc[2] != tanc[2] || latticeData->anchorTime != anchorTime){
+
+                som[layer][block].Lattice_anchor_set(tanc, anchorTime);
                 drawModel.Lattice_renew(layer, block);
             }
             int t_angle = texRotate[layer][block];

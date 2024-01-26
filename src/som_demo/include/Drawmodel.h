@@ -30,6 +30,7 @@ public:
     void Voxel_mapping(int layer, int block);
     void pVoxel_mapping();
     void Lattice_renew(int layer, int block);
+    void pLattice_renew();
     void Voxel_renew();
     void pVoxel_renew();
     void psom_axis_renew(glm::mat3x3 A, glm::vec3 t);

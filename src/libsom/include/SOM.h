@@ -46,10 +46,12 @@ typedef struct LatData_t
     int type = 1; // 0 plane, 1 cylinder, 2 donut, 3 ball, 4 3Dlattice,
     int typeNum[7] = {1, 1, 1, 6, 10};
 
-    int texType = 0; // 2D, 3D
-    int texTypeNum[2] = {1, 100};
+    // int texType = 0; // 2D, 3D
+    // int texTypeNum[2] = {1, 100};
 
-    glm::ivec3 *anchorP; // 0~3 front 4~7 back  (leftdown rightdown leftup rightup)
+    glm::ivec3 *anchorEdgeP; // 0~3 front 4~7 back  (leftdown rightdown leftup rightup)
+    glm::ivec3 anchorP;
+    int anchorTime;
 
 } LatData_t;
 
@@ -68,7 +70,7 @@ public:
     som_cls();
     ~som_cls();
 
-    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, glm::ivec3 texWHD, int texType);
+    void SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min, int type, glm::ivec3 texWHD);
     void SOM_IterateOnce(int wType);
     void SOM_End();
 
@@ -81,7 +83,8 @@ public:
     void Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min);
     void Lattice_pos_set(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::ivec3 max, glm::ivec3 min);
     void Lattice_tex_set(glm::ivec3 texWHD);
-    void Lattice_anchor_set(glm::ivec3 *newp);
+    void Lattice_anchor_edge_set();
+    void Lattice_anchor_set(int *tanc, int anchorTime);
 
 private:
     LatData_t latticeData;
@@ -92,8 +95,11 @@ private:
     // som create
     glm::fvec3 ***create_weight_position(glm::ivec3 max, glm::ivec3 min);
     glm::fvec3 ***create_weight_texture(); // 0 fld, 1 frd, 2flt, 3 frt, 4 bld, 5brd, 6blt, 7brt
-    glm::fvec3 ***create_weight_texture_2D(glm::fvec3 ***texWeight); // 0 fld, 1 frd, 2flt, 3 frt, 4 bld, 5brd, 6blt, 7brt
-    glm::fvec3 ***create_weight_texture_3D(); // 0 fld, 1 frd, 2flt, 3 frt, 4 bld, 5brd, 6blt, 7brt
+    void connect_two_point_into_edge(glm::fvec3 ***texWeight, const glm::ivec3 p0, const glm::ivec3 p1);
+    void find_edge_indside(glm::fvec3 ***texWeight);
+    void set_anchor_edge_point(glm::fvec3 ***texWeight, const glm::ivec3* p);
+    void set_anchor_point(glm::fvec3 ***texWeight);
+    void set_six_plane(glm::fvec3 ***texWeight);
     glm::fvec3 *create_input_position(std::vector<glm::ivec3> voxelPos, int voxelNum);
     glm::fvec3 *create_input_texture(glm::ivec3 texWHD);
     // som iterate

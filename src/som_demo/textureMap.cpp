@@ -56,9 +56,9 @@ glm::fvec3 texture_cls::lattice_to_texture(glm::fvec4 texCoord, int degree){
     gap_d = de - db;
     // in the range
     if((coord.s <= we && coord.s >= wb) && (coord.t <= he && coord.t >= hb) && (coord.p <= de && coord.p >= db)){
-        if(coord.s == we) coord.s -= 0.0001;
-        if(coord.t == he) coord.t -= 0.0001;
-        if(coord.p == de) coord.p -= 0.0001;
+        // if(coord.s == we) coord.s -= 0.0001;
+        // if(coord.t == he) coord.t -= 0.0001;
+        // if(coord.p == de) coord.p -= 0.0001;
         return coord;
     }
     // out of range
@@ -67,42 +67,42 @@ glm::fvec3 texture_cls::lattice_to_texture(glm::fvec4 texCoord, int degree){
         float tmpCoord;
         if(coord.s > we){
             tmpCoord = coord.s;
-            while(tmpCoord-0.001 > we){
+            while(tmpCoord > we){
                 tmpCoord -= gap_w;
             }
             coord.s = tmpCoord;
         }
         if(coord.s < wb){
             tmpCoord = coord.s;
-            while(tmpCoord+0.001 < wb){
+            while(tmpCoord < wb){
                 tmpCoord += gap_w;
             }
             coord.s = tmpCoord;
         }
         if(coord.t > he){
             tmpCoord = coord.t;
-            while(tmpCoord-0.001 > he){
+            while(tmpCoord > he){
                 tmpCoord -= gap_h;
             }
             coord.t = tmpCoord;
         }
         if(coord.t < hb){
             tmpCoord = coord.t;
-            while(tmpCoord+0.001 < hb){
+            while(tmpCoord < hb){
                 tmpCoord += gap_h;
             }
             coord.t = tmpCoord;
         }
         if(coord.p > de){
             tmpCoord = coord.p;
-            while(tmpCoord-0.001 > de){
+            while(tmpCoord > de){
                 tmpCoord -= gap_d;
             }
             coord.p = tmpCoord;
         }
         if(coord.p < db){
             tmpCoord = coord.p;
-            while(tmpCoord+0.001 < db){
+            while(tmpCoord < db){
                 tmpCoord += gap_d;
             }
             coord.p = tmpCoord;
@@ -236,30 +236,90 @@ void texture_cls::create_ray_tex(){
 }
 void texture_cls::create_3D_tex(){
     int t = 1;
-    threeDTex.width = 1100;//imageTex[t].width;
-    threeDTex.height = 1100;//imageTex[t].height;
-    threeDTex.depth = 10;
+    threeDTex.width = 220;//imageTex[t].width;
+    threeDTex.height = 220;//imageTex[t].height;
+    threeDTex.depth = 11;
     threeDTex.data = (float*)calloc(3*threeDTex.width*threeDTex.height*threeDTex.depth, sizeof(float));
     for(int z = 0; z < threeDTex.depth; z++){
         for(int y = 0; y < threeDTex.height; y++){
             for(int x = 0; x < threeDTex.width; x++){
                 int num = x*3 + y*threeDTex.width*3 + z*threeDTex.width*threeDTex.height*3;
+                int num1 = x*3 + y*threeDTex.width*3 + (10-z)*threeDTex.width*threeDTex.height*3;
+                int edge = threeDTex.width/threeDTex.depth;
+                    // 1.
+                    if(z <= 1 || z >= threeDTex.depth-2 ){
+                        if((x <= edge*2 ||x >= edge*(threeDTex.depth-2))||(y<= edge*2 ||y>= edge*(threeDTex.depth-2) )){
+                            threeDTex.data[num] = 0.0;
+                            threeDTex.data[num+1] = 0.0;
+                            threeDTex.data[num+2] = 1.0;
+                        }else{
+                            threeDTex.data[num] = 1.0;
+                            threeDTex.data[num+1] = 0.0;
+                            threeDTex.data[num+2] = 0.0;
+                        }
+                    }else{
+                        if((x <= edge*2 ||x >= edge*(threeDTex.depth-2))&&(y<= edge*2 ||y>= edge*(threeDTex.depth-2) )){
+                            threeDTex.data[num] = 0.0;
+                            threeDTex.data[num+1] = 0.0;
+                            threeDTex.data[num+2] = 1.0;
+                        }else{
+                            threeDTex.data[num] = 1.0;
+                            threeDTex.data[num+1] = 0.0;
+                            threeDTex.data[num+2] = 0.0;
+                        }
+                    }
+                    // 2.
+                    // if((x%200 >= 0 && x%200 <= 99)||(y%200 >= 0 && y%200 <= 99)){
+                    // // if((x <= 100 || x >= 1000)||(y<= 100 || y >= 1000)){
+                    //     threeDTex.data[num] = 1.0;
+                    //     threeDTex.data[num+1] = 0.0;
+                    //     threeDTex.data[num+2] = 0.0;
+                    // }else{
+                    //     threeDTex.data[num] = 0.0;
+                    //     threeDTex.data[num+1] = 0.0;
+                    //     threeDTex.data[num+2] = 1.0;
+                    // }
+                    // 3.
+                    // int up = (6-z)*100+10;
+                    // int down = (5-z)*100-10;
+                    // if(((x <= up && x >= down)||(x >= 1100-up && x <=1100- down))
+                    // &&((y<= up && y >= down)||(y>= 1100-up && y <= 1100-down))){
+                    //     threeDTex.data[num] = 0.0;
+                    //     threeDTex.data[num+1] = 0.0;
+                    //     threeDTex.data[num+2] = 1.0;
+                    //     threeDTex.data[num1] = 0.0;
+                    //     threeDTex.data[num1+1] = 0.0;
+                    //     threeDTex.data[num1+2] = 1.0;
+                    // }else{
+                    //     threeDTex.data[num] = 1.0;
+                    //     threeDTex.data[num+1] = 0.0;
+                    //     threeDTex.data[num+2] = 0.0;
+                    //     threeDTex.data[num1] = 1.0;
+                    //     threeDTex.data[num1+1] = 0.0;
+                    //     threeDTex.data[num1+2] = 0.0;
+                    // }
+                    // if(z == threeDTex.depth/2){
+                    //     if(((x <= (6-z)*100 && x >= (5-z)*100)||(x >= 1100-((6-z)*100) && x <=1100- ((5-z)*100)))
+                    //     ||((y<= (6-z)*100 && y >= (5-z)*100)||(y>= 1100-((6-z)*100) && y <= 1100-((5-z)*100)))){
+                    //         threeDTex.data[num] = 0.0;
+                    //         threeDTex.data[num+1] = 0.0;
+                    //         threeDTex.data[num+2] = 1.0;
+                    //         threeDTex.data[num1] = 0.0;
+                    //         threeDTex.data[num1+1] = 0.0;
+                    //         threeDTex.data[num1+2] = 1.0;
+                    //     }else{
+                    //         threeDTex.data[num] = 1.0;
+                    //         threeDTex.data[num+1] = 0.0;
+                    //         threeDTex.data[num+2] = 0.0;
+                    //         threeDTex.data[num1] = 1.0;
+                    //         threeDTex.data[num1+1] = 0.0;
+                    //         threeDTex.data[num1+2] = 0.0;
+                    //     }
+                    // }
 
-                // threeDTex.data[num] = imageTex[t].image[y][x][0]/256.0;
-                // threeDTex.data[num+1] = imageTex[t].image[y][x][1]/256.0;
-                // threeDTex.data[num+2] = imageTex[t].image[y][x][2]/256.0;
 
-                if((x%200 >= 0 && x%200 <= 99)||(y%200 >= 0 && y%200 <= 99)){
-                    threeDTex.data[num] = 1.0;
-                    threeDTex.data[num+1] = 0.0;
-                    threeDTex.data[num+2] = 0.0;
-                }else{
-                    threeDTex.data[num] = 0.0;
-                    threeDTex.data[num+1] = 0.0;
-                    threeDTex.data[num+2] = 1.0;
                 }
 
-            }
         }
     }
 

@@ -27,6 +27,7 @@ private:
     glm::fvec2 surround_Triangles(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord);
     glm::fvec3 surround_Tetrahedron(const LatData_t* latticeData, double mid, glm::fvec3 voxelPos, glm::ivec3 minLatticeCoord);
     glm::fvec3 latticeCoord_to_textureCoord_2D(glm::fvec2 latticeCoord, const LatData_t* latticeData);
+    glm::fvec3 latticeCoord_to_textureCoord_3D(glm::fvec3 latticeCoord, const LatData_t* latticeData);
     glm::fvec3 point_to_triangle(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 p, double* minDist);
     glm::fvec3 outer_projp(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 p);
     glm::fvec3 barycentric_coord(glm::fvec3 o, glm::fvec3 a1, glm::fvec3 a2, glm::fvec3 projp, glm::fvec3 vector_n);

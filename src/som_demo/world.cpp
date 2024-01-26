@@ -376,60 +376,60 @@ void renew_pvoxel(psvoxModel_t voxelModel)
         float ty = voxelModel.psomVoxel[i].texcoord.y;
         float tz = voxelModel.psomVoxel[i].texcoord.z;
 
-        // if (b >= 0.5)
-        // {
+        if (b >= 0.5)
+        {
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty, tz}});
-        // }
-        // if (b >= 0.5)
-        // { // 1
+        }
+        if (b >= 0.5)
+        { // 1
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty, tz}});
-        // }
-        // if (b >= 0.5)
-        // { // 5
+        }
+        if (b >= 0.5)
+        { // 5
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
-        // }
-        // if (b >= 0.5)
-        // { // 4
+        }
+        if (b >= 0.5)
+        { // 4
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
-        // }
-        // if (b >= 0.5)
-        // { // 2
+        }
+        if (b >= 0.5)
+        { // 2
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
-        // }
-        // if (b >= 0.5)
-        // { // 3
+        }
+        if (b >= 0.5)
+        { // 3
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
             world.psomVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty, tz}});
-        // }
+        }
     }
 }
 void renew_plattice()
