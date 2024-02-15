@@ -36,9 +36,9 @@ struct World {
 
 void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel);
 void renew_lattice(int layerNum, int blockNum);
-void renew_plattice();
+// void renew_plattice();
 void renew_voxel(svoxModel_t voxelModel);
-void renew_pvoxel(psvoxModel_t voxelModel);
+// void renew_pvoxel(psvoxModel_t voxelModel);
 void renew_paxis(glm::mat3x3 A, glm::vec3 t);
 void destroy_world();
 extern struct World world;

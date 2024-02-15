@@ -14,11 +14,17 @@ enum texFilter{
     MINIFICATION,
     MAGNIFICATON
 };
+enum filter{
+    LINEAR,
+    NEAREST
+};
+
 class carve_cls{
 public:
     carve_cls();
     ~carve_cls();
-    bool filter = false;
+    bool latticeTextureFilter = LINEAR;
+    bool latticeVoxelFilter = LINEAR;
     bool pcarve = true;
     void voxel_mapping(int layer, int block);
     void pvoxel_mapping();

@@ -5,6 +5,7 @@ texture_cls tex;
 texture_cls::texture_cls(){
     texMatrix2D.texture_m.Save(glm::translate(texMatrix2D.texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.0f)));
     texMatrix2D.texture_m.Push();
+    texMatrix2D.texture_m.Push();
     texMatrix3D.texture_m.Save(glm::translate(texMatrix3D.texture_m.Top(), glm::vec3(0.5f, 0.5f, 0.5f)));
     texMatrix3D.texture_m.Push();
 }

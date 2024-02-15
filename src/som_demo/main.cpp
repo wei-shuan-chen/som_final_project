@@ -92,7 +92,7 @@ int main()
 	for(int layer = 0; layer < layerNum; layer++)
         for(int block = 0; block < blockNum; block++)
 			som[layer][block].SOM_End();
-	psom.SOM_End();
+	// psom.SOM_End();
 	glfwTerminate();
 	destroy_world();
 	return 0;
@@ -132,7 +132,7 @@ void processInput(GLFWwindow *window)
 
 	// drawModel.lightPos = drawModel.camera.Position;
 	// light
-	float v = drawModel.rate*deltaTime;
+	float v = drawModel.rate*deltaTime*10;
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
 		drawModel.lightPos = drawModel.lightPos+glm::vec3(0.0,v,0.0);
 	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
@@ -141,8 +141,8 @@ void processInput(GLFWwindow *window)
 		drawModel.lightPos = drawModel.lightPos+glm::vec3(-1*v,0.0,0.0);
 	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
 		drawModel.lightPos = drawModel.lightPos+glm::vec3(v,0.0,0.0);
-	// if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-	// 	lightPos = lightPos+glm::vec3(0.0,0.0,v);
+	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+		drawModel.lightPos = drawModel.lightPos+glm::vec3(0.0,0.0,v);
 	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
 		drawModel.lightPos = drawModel.lightPos+glm::vec3(0.0,0.0,-1*v);
 

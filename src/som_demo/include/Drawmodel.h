@@ -47,8 +47,7 @@ public:
     bool showLatticeLine = true;
     bool **showEachPart;
 
-    // texture_t texInfo;
-    // MatrixStack texture_m;
+    double trainingTime = 0.0, textureingTime = 0.0;
 
 private:
     void Modify_position(int x, int y, int z);

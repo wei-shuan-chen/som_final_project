@@ -46,10 +46,12 @@ void carve_cls::pvoxel_mapping(){
 }
 void carve_cls::voxel_mapping(int layer, int block){
     const LatData_t* latticeData = som[layer][block].Lattice_get();
+
     int texType = rawmodel.voxelModel.somVoxel[layer][block]->textype;
     int texfilter = MINIFICATION;
     int texsize = tex.imageTex[texType].height*tex.imageTex[texType].width;
     if(rawmodel.voxelModel.voxelnum[layer][block] > texsize)texfilter = MAGNIFICATON;
+
     cout << "voxel : "<< rawmodel.voxelModel.voxelnum[layer][block];
     cout << "texsize : "<< texsize;
 
@@ -58,24 +60,29 @@ void carve_cls::voxel_mapping(int layer, int block){
         double v_y = rawmodel.voxelModel.somVoxel[layer][block][n].locate.y+0.5;
         double v_z = rawmodel.voxelModel.somVoxel[layer][block][n].locate.z+0.5;
         double minDist = 100000;
-        glm::ivec3 minLatticeCoord = find_min_dist_pos(latticeData, v_x, v_y, v_z, &minDist);
-        // v_x, v_y, v_z
-        glm::fvec2 voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
-        glm::fvec3 tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);
-        glm::fvec3 latticeTexCoord1 = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
-        // v_x-0.5, v_y-0.5, v_z-0.5
-        voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x-0.5, v_y-0.5, v_z-0.5}, minLatticeCoord);
-        tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);//{voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), 0.5};
-        glm::fvec3 latticeTexCoord0 = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
-        // v_x+0.5, v_y+0.5, v_z+0.5
-        voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x+0.5, v_y+0.5, v_z+0.5}, minLatticeCoord);
-        tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);//{voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), 0.5};
-        glm::fvec3 latticeTexCoord2 = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
+        glm::fvec3 latticeTexCoord0, latticeTexCoord1, latticeTexCoord2, tmpCoord;
 
-// cout <<"latticeTexCoord0 : "<<latticeTexCoord0.x<<", "<<latticeTexCoord0.y<<", "<<latticeTexCoord0.z<<endl;
-// cout <<"latticeTexCoord1 : "<<latticeTexCoord1.x<<", "<<latticeTexCoord1.y<<", "<<latticeTexCoord1.z<<endl;
-// cout <<"latticeTexCoord2 : "<<latticeTexCoord2.x<<", "<<latticeTexCoord2.y<<", "<<latticeTexCoord2.z<<endl;
-// cout << "\n";
+        glm::ivec3 minLatticeCoord = find_min_dist_pos(latticeData, v_x, v_y, v_z, &minDist);
+        if(latticeVoxelFilter == LINEAR){
+            // v_x, v_y, v_z
+            glm::fvec2 voxelToLatticeCoord;
+            voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x, v_y, v_z}, minLatticeCoord);
+            tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);
+            latticeTexCoord1 = rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
+            // v_x-0.5, v_y-0.5, v_z-0.5
+            voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x-0.5, v_y-0.5, v_z-0.5}, minLatticeCoord);
+            tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);//{voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), 0.5};
+            latticeTexCoord0 = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
+            // v_x+0.5, v_y+0.5, v_z+0.5
+            voxelToLatticeCoord = surround_Triangles(latticeData, minDist, {v_x+0.5, v_y+0.5, v_z+0.5}, minLatticeCoord);
+            tmpCoord = latticeCoord_to_textureCoord_2D(voxelToLatticeCoord, latticeData);//{voxelToLatticeCoord.x/(latticeData->width-1), voxelToLatticeCoord.y/(latticeData->height-1), 0.5};
+            latticeTexCoord2 = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
+        }
+        if(latticeVoxelFilter == NEAREST){
+            tmpCoord = latticeCoord_to_textureCoord_2D({minLatticeCoord.x, minLatticeCoord.y}, latticeData);
+            latticeTexCoord0=latticeTexCoord1 =latticeTexCoord2= rawmodel.voxelModel.somVoxel[layer][block][n].texcoord = tex.lattice_to_texture(glm::fvec4(tmpCoord, 1.0), TWODTEX);
+        }
+
         if(latticeTexCoord0.x < 0.0 || latticeTexCoord0.x > 1.0 || latticeTexCoord0.y < 0.0 || latticeTexCoord0.y > 1.0){
             rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
         }else if(latticeTexCoord1.x < 0.0 || latticeTexCoord1.x > 1.0 || latticeTexCoord1.y < 0.0 || latticeTexCoord1.y > 1.0){
@@ -83,42 +90,41 @@ void carve_cls::voxel_mapping(int layer, int block){
         }else if(latticeTexCoord2.x < 0.0 || latticeTexCoord2.x > 1.0 || latticeTexCoord2.y < 0.0 || latticeTexCoord2.y > 1.0){
             rawmodel.voxelModel.somVoxel[layer][block][n].color = {1.0, 1.0, 1.0};
         }else{
-            glm::ivec2 imageRate0 = {(latticeTexCoord0.x*(double)(tex.imageTex[texType].width-1)), (latticeTexCoord0.y*(double)(tex.imageTex[texType].height-1))};
-            glm::ivec2 imageRate2 = {(latticeTexCoord2.x*(double)(tex.imageTex[texType].width-1)), (latticeTexCoord2.y*(double)(tex.imageTex[texType].height-1))};
-            glm::fvec2 imageRate1 = {latticeTexCoord1.x*(double)(tex.imageTex[texType].width-1), latticeTexCoord1.y*(double)(tex.imageTex[texType].height-1)};
-            glm::fvec3 color;
-            if(!filter){
-                glm::fvec3 color0 = {0.0,0.0,0.0};//{0.1,0.21,0.56};//b
-                glm::fvec3 color1 = {1.0,1.0,1.0};//{1.0,0.8941,0.8824};//pink
+            if(latticeTextureFilter == NEAREST){
+                // glm::fvec3 color0 = {0.0,0.0,0.0};//{0.1,0.21,0.56};//b
+                // glm::fvec3 color1 = {1.0,1.0,1.0};//{1.0,0.8941,0.8824};//pink
+                glm::fvec2 imageRate1 = {latticeTexCoord1.x*(double)(tex.imageTex[texType].width-1), latticeTexCoord1.y*(double)(tex.imageTex[texType].height-1)};
+
                 for(int c = 0; c < 3; c++){
-                    if(tex.imageTex[texType].image[(int)imageRate1.y][(int)imageRate1.x][c]/256.0 >0.8){
-                        color[c] = color1[c];
-                    }else{
-                        color[c] = color0[c];
-                    }
-                    // color[c] = tex.imageTex[texType].image[(int)imageRate1.y][(int)imageRate1.x][c]/256.0;
+                    // if(tex.imageTex[texType].image[(int)imageRate1.y][(int)imageRate1.x][c]/256.0 >0.8){
+                    //     color[c] = color1[c];
+                    // }else{
+                    //     color[c] = color0[c];
+                    // }
+                    rawmodel.voxelModel.somVoxel[layer][block][n].color[c] = tex.imageTex[texType].image[(int)imageRate1.y][(int)imageRate1.x][c]/256.0;
                 }
             }
-            if(filter){
+            if(latticeTextureFilter ==LINEAR){
                 if(texfilter == MAGNIFICATON){
                     // tex < voxel
-                    color = mag_filter(imageRate1, texType);
+                    glm::fvec2 imageRate1 = {latticeTexCoord1.x*(double)(tex.imageTex[texType].width-1), latticeTexCoord1.y*(double)(tex.imageTex[texType].height-1)};
+                    rawmodel.voxelModel.somVoxel[layer][block][n].color = mag_filter(imageRate1, texType);
                 }else{
+                    glm::ivec2 imageRate0 = {(latticeTexCoord0.x*(double)(tex.imageTex[texType].width-1)), (latticeTexCoord0.y*(double)(tex.imageTex[texType].height-1))};
+                    glm::ivec2 imageRate2 = {(latticeTexCoord2.x*(double)(tex.imageTex[texType].width-1)), (latticeTexCoord2.y*(double)(tex.imageTex[texType].height-1))};
 
-                    color = min_filter(imageRate0, imageRate2, texType);
+                    rawmodel.voxelModel.somVoxel[layer][block][n].color = min_filter(imageRate0, imageRate2, texType);
                 }
             }
-            rawmodel.voxelModel.somVoxel[layer][block][n].color = color;
-            float r = color.r;
 
-            if(r < 0.5) {// output raw
+            // output raw
+            float r = rawmodel.voxelModel.somVoxel[layer][block][n].color.r;
+            if(r < 0.5) {
                 glm::ivec3 rawCoord = rawmodel.voxelModel.somVoxel[layer][block][n].locate;
                 rawmodel.newrawData[rawCoord.y][rawCoord.x][rawCoord.z] = 50;
             }
         }
     }
-    if(texfilter == MINIFICATION) cout << " MINIFICATION"<<endl;
-    if(texfilter == MAGNIFICATON) cout << " MAGNIFICATON"<<endl;
     tex.update_intensityMap();
 }
 glm::fvec3 carve_cls::latticeCoord_to_textureCoord_2D(glm::fvec2 latticeCoord, const LatData_t* latticeData){

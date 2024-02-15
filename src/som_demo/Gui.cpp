@@ -11,8 +11,10 @@ void imgui_funcpsom();
 bool texshow = false;
 int weightType_gui = POS;
 int som_psom = 0;
-static float f_translate[3] = {100.0f, 150.0f, 100.0f};
-static float f_scale[3] = {100.0f, 50.0f, 100.0f};
+static float f_translate[3] = {0.0f, 0.0f, 0.0f};
+static float f_scale[3] = {1200.0f, 1400.0f, 1200.0f};
+// static float f_translate[3] = {100.0f, 150.0f, 100.0f};
+// static float f_scale[3] = {100.0f, 50.0f, 100.0f};
 static glm::mat3x3 m_inverse;
 bool curve = false;
 void imgui_init(GLFWwindow *window)
@@ -66,6 +68,7 @@ void imgui_funcbuttom()
     if (ImGui::Button("Start"))
     {
         // if(som_psom == SOM ||(som_psom == PSOM && rawmodel.voxelModel.psomVoxel.size() >= 0)){
+
         startSOM = true;
         if (weightType_gui == POS)
             cout << "start position" << endl;
@@ -106,16 +109,24 @@ void imgui_funcbuttom()
     else
         texshow = true;
 
-    // lattice's filtering
-    static int filnum = 0;
-    const char *fil_types[2] = {"false", "true"};
-    const char *fil_type = (filnum >= 0 && filnum < 2) ? fil_types[filnum] : "Unknown";
-    ImGui::SliderInt("filter show", &filnum, 0, 1, fil_type);
-    if (filnum == 0)
-        carve.filter = false;
+    // lattice to texture filtering
+    static int lt_filnum = 0;
+    const char *lt_fil_types[2] = {"linear", "nearest"};
+    const char *lt_fil_type = (lt_filnum >= 0 && lt_filnum < 2) ? lt_fil_types[lt_filnum] : "Unknown";
+    ImGui::SliderInt("filter (texture to lattice)", &lt_filnum, 0, 1, lt_fil_type);
+    if (lt_filnum == LINEAR)
+        carve.latticeTextureFilter = LINEAR;
     else
-        carve.filter = true;
-
+        carve.latticeTextureFilter = NEAREST;
+    // lattice to voxel filtering
+    static int lv_filnum = 0;
+    const char *lv_fil_types[2] = {"linear", "nearest"};
+    const char *lv_fil_type = (lv_filnum >= 0 && lv_filnum < 2) ? lv_fil_types[lv_filnum] : "Unknown";
+    ImGui::SliderInt("filter (voxel to lattice)", &lv_filnum, 0, 1, lv_fil_type);
+    if (lv_filnum == LINEAR)
+        carve.latticeVoxelFilter = LINEAR;
+    else
+        carve.latticeVoxelFilter = NEAREST;
     // som or psom
     static int somnum = SHOWSOM;
     const char *som_types[2] = {"som", "psom"};
@@ -378,7 +389,7 @@ void imgui_funcsom()
     static int ***texUpEdge = (int***)malloc(layerNum * sizeof(int **));
     static int ***texDownEdge = (int***)malloc(layerNum * sizeof(int **));
     static int ***texAnchor = (int***)malloc(layerNum * sizeof(int **));
-    static int anchorTime = 5;
+    static int anchorTime = 500;
     static float ***texResolution_w = (float ***)malloc(layerNum * sizeof(float **));
     static float ***texResolution_h = (float ***)malloc(layerNum * sizeof(float **));
     static float ***texScale = (float ***)malloc(layerNum * sizeof(float **));
@@ -412,6 +423,7 @@ void imgui_funcsom()
             {
                 const LatData_t *latticeData = som[layer][block].Lattice_get();
 
+                lat[layer][block] = 1;
                 texTranslate[layer][block] = (float *)calloc(2, sizeof(float));
                 texScale[layer][block] = (float *)calloc(2, sizeof(float));
                 texScale[layer][block][0] = 1.0;
@@ -432,8 +444,8 @@ void imgui_funcsom()
                 texDownEdge[layer][block][2] = latticeData->width-1;
                 // texDownEdge[layer][block][3] = 0;
                 texAnchor[layer][block] = (int*)calloc(2, sizeof(int));
-                texAnchor[layer][block][0] = (latticeData->width-1)/3;
-                texAnchor[layer][block][1] = (latticeData->height-1)/3;
+                texAnchor[layer][block][0] = (latticeData->width)/2;
+                texAnchor[layer][block][1] = (latticeData->height)/2;
 
                 texResolution_w[layer][block] = (float *)calloc(2, sizeof(float));
                 texResolution_h[layer][block] = (float *)calloc(2, sizeof(float));
@@ -529,6 +541,7 @@ void imgui_funcsom()
                 glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
                 som[layer][block].Lattice_type_set(lat[layer][block], voxelMaxsize, voxelMinsize);
                 drawModel.Lattice_renew(layer, block);
+                int a = 0;
             }
             // update anchor edge point
             glm::ivec3 *p = latticeData->anchorEdgeP;
@@ -552,17 +565,20 @@ void imgui_funcsom()
                 drawModel.Lattice_renew(layer, block);
             }
             int t_angle = texRotate[layer][block];
+            int d_angle = tex.texMatrix2D.anglehw;
             int d_wrap = tex.texMatrix2D.wrapType;
             int t_wrap = texWrap[layer][block];
             glm::fvec2 t_trans = {texTranslate[layer][block][0], texTranslate[layer][block][1]};
+            glm::fvec2 d_trans = {tex.texMatrix2D.translate.x,tex.texMatrix2D.translate.y};
             glm::fvec2 t_scale = {texScale[layer][block][0], texScale[layer][block][1]};
+            glm::fvec2 d_scale = {tex.texMatrix2D.scale.x,tex.texMatrix2D.scale.y};
             glm::fvec2 d_resolution_w = tex.texMatrix2D.resolution_w;
             glm::fvec2 t_resolution_w = {texResolution_w[layer][block][0], texResolution_w[layer][block][1]};
             glm::fvec2 d_resolution_h = tex.texMatrix2D.resolution_h;
             glm::fvec2 t_resolution_h = {texResolution_h[layer][block][0], texResolution_h[layer][block][1]};
-            if (curve)
-            {
-                // if(d_angle != t_angle || d_trans != t_trans || d_scale != t_scale){
+            // if (curve)
+            // {
+                if(d_angle != t_angle || d_trans != t_trans || d_scale != t_scale){
 
                 tex.texMatrix2D.anglehw = t_angle;
                 tex.texMatrix2D.translate.x = t_trans.x;
@@ -570,17 +586,16 @@ void imgui_funcsom()
                 tex.texMatrix2D.scale.x = t_scale.x;
                 tex.texMatrix2D.scale.y = t_scale.y;
 
+                tex.texMatrix2D.texture_m.Pop();
                 tex.texMatrix2D.texture_m.Push();
                 tex.texMatrix2D.texture_m.Save(glm::scale(tex.texMatrix2D.texture_m.Top(), glm::vec3(1.0 / t_scale.x, 1.0 / t_scale.y, 1.0)));
                 tex.texMatrix2D.texture_m.Save(glm::translate(tex.texMatrix2D.texture_m.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
                 tex.texMatrix2D.texture_m.Save(glm::rotate(tex.texMatrix2D.texture_m.Top(), glm::radians((float)t_angle), glm::vec3(0.0, 0.0, 1.0)));
 
                 drawModel.Lattice_renew(layer, block);
-                drawModel.Voxel_mapping(layer, block);
-
-                tex.texMatrix2D.texture_m.Pop();
 
             }
+            if (curve)  drawModel.Voxel_mapping(layer, block);
             if (d_resolution_w != t_resolution_w || d_resolution_h != t_resolution_h || d_wrap != t_wrap)
             {
                 if (t_resolution_w.t < t_resolution_w.s)

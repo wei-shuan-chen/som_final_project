@@ -44,9 +44,9 @@ void som_cls::SOM_Create(std::vector<glm::ivec3> voxelPos, int voxelNum, glm::iv
 }
 void som_cls::som_init()
 {
-    latticeData.width = 15;
-    latticeData.height = 15;
-    latticeData.depth = 15;
+    latticeData.width = 16;
+    latticeData.height = 16;
+    latticeData.depth = 6;
 
     latticeData.iter[0] = 0;
     latticeData.iter[1] = 0;
@@ -80,8 +80,8 @@ void som_cls::som_init()
     latticeData.anchorEdgeP[6] = {latticeData.width - 1, latticeData.height - 1, latticeData.depth - 1};
     latticeData.anchorEdgeP[7] = {0, latticeData.height - 1, latticeData.depth - 1};
 
-    latticeData.anchorP = {10, 10, 0};
-    latticeData.anchorTime = 5;
+    latticeData.anchorP = {(latticeData.width)/2, (latticeData.height)/2, 0};
+    latticeData.anchorTime = 500;
 }
 
 void som_cls::Lattice_resolution_set(int resolution, glm::ivec3 max, glm::ivec3 min)
@@ -119,6 +119,7 @@ void som_cls::Lattice_type_set(int type, glm::ivec3 max, glm::ivec3 min)
 {
     destroy_weight_texture(latticeData.typeNum[latticeData.type]);
     latticeData.type = type;
+
     destroy_weight_position(latticeData.typeNum[latticeData.type]);
 
     latticeData.wPos = create_weight_position(max, min);
@@ -533,7 +534,10 @@ void som_cls::set_anchor_edge_point(glm::fvec3 ***texWeight, const glm::ivec3 *p
             int tmpd = (latticeData.type != CUBE) ? d : p[a].z;
             texWeight[tmpd][p[a].y][p[a].x] = {i0, j0, k0};
         }
-        glm::ivec3 anc = latticeData.anchorP;
+        glm::ivec3 anc;
+        anc.x = (latticeData.anchorP.x<latticeData.anchorEdgeP[6].x) ? latticeData.anchorP.x:latticeData.anchorEdgeP[6].x;
+        anc.y = (latticeData.anchorP.y<latticeData.anchorEdgeP[6].y) ? latticeData.anchorP.y:latticeData.anchorEdgeP[6].y;
+        anc.z = (latticeData.anchorP.z<latticeData.anchorEdgeP[6].z) ? latticeData.anchorP.z:latticeData.anchorEdgeP[6].z;
 
         texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
         // texWeight[d][p[1].y][p[1].x] = {1.0, 0.5, 0.0};
@@ -547,7 +551,11 @@ void som_cls::set_anchor_point(glm::fvec3 ***texWeight){
 
     for (int d = 0; d < depth; d++)
     {
-        glm::ivec3 anc = latticeData.anchorP;
+        glm::ivec3 anc;
+        anc.x = (latticeData.anchorP.x<latticeData.anchorEdgeP[6].x) ? latticeData.anchorP.x:latticeData.anchorEdgeP[6].x;
+        anc.y = (latticeData.anchorP.y<latticeData.anchorEdgeP[6].y) ? latticeData.anchorP.y:latticeData.anchorEdgeP[6].y;
+        anc.z = (latticeData.anchorP.z<latticeData.anchorEdgeP[6].z) ? latticeData.anchorP.z:latticeData.anchorEdgeP[6].z;
+
 
         texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
     }

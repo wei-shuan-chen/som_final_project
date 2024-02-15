@@ -57,8 +57,8 @@ model_cls::~model_cls()
 
 void model_cls::Shader_Create()
 {
-    // rawmodel.LoadFile("raw/input/teapot_dist.inf", "raw/input/teapot_df.raw", "raw/output/teapot.inf");
-    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw", "raw/output/vase.inf");
+    rawmodel.LoadFile("raw/input/bunny_dist.inf", "raw/input/bunny_df.raw", "raw/output/bunny.inf");
+    // rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw", "raw/output/vase.inf");
     create_mutli_som(layerNum, blockNum);
 
     for (int layer = 0; layer < layerNum; layer++)
@@ -70,7 +70,7 @@ void model_cls::Shader_Create()
             glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
             glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
             glm::ivec3 texWHD = {tex.imageTex[2].width, tex.imageTex[2].height, 1};
-            som[layer][block].SOM_Create(voxelPos, voxelNum, voxelMaxsize, voxelMinsize, PLANE, texWHD);
+            som[layer][block].SOM_Create(voxelPos, voxelNum, voxelMaxsize, voxelMinsize, BALL, texWHD);
         }
     }
     std::vector<glm::ivec3> pvoxelPos = rawmodel.pVoxel_Position();
@@ -145,7 +145,7 @@ void model_cls::Shader_Use(GLFWwindow *window)
         if (latticeData->iter[weightType_gui] < latticeData->finalIter[weightType_gui] && startSOM)
         {
                 // psom.SOM_IterateOnce(weightType_gui);
-                renew_plattice();
+                // renew_plattice();
                 ps_lattice_line.renewVBO(world.ps_lattice_line);
                 ps_lattice_plane.renewVBO(world.ps_lattice_plane);
 
@@ -446,35 +446,29 @@ void runthreadVoxelSomIter()
                 {
                     LatData_t *latticeData = som[layer][block].Lattice_get();
                     latticeData->iter[weightType_gui] = 0;
+                    if(weightType_gui == POS) drawModel.trainingTime = glfwGetTime();
                     while (latticeData->iter[weightType_gui] < latticeData->finalIter[weightType_gui] && startSOM)
                     {
                         som[layer][block].SOM_IterateOnce(weightType_gui);
                     }
-
+                    if(weightType_gui == POS) {
+                        drawModel.trainingTime = glfwGetTime()-drawModel.trainingTime;
+                        cout <<"training time : "<< drawModel.trainingTime<<endl;
+                    }
                 }
             }
         }
     }
     if (som_psom == SHOWPSOM)
     {
+
         LatData_t *latticeData = psom.Lattice_get();
         latticeData->iter[weightType_gui] = 0;
         while (latticeData->iter[weightType_gui] < latticeData->finalIter[weightType_gui] && startSOM)
         {
             psom.SOM_IterateOnce(weightType_gui);
         }
-        // int width = latticeData->width, height = latticeData->height, depth = latticeData->typeNum[latticeData->type];
-        // glm::fvec3 ***texWeight = latticeData->wTex;
-        // for (int d = 0; d < depth; d++)
-        // {
-        //     for (int h = 0; h < height; h++){
-        //         for (int w = 0; w < width; w++) {
-        //             cout<<setprecision(2) << texWeight[d][h][w].x <<", "<< texWeight[d][h][w].y <<", "<<texWeight[d][h][w].z<<" ";
-        //         }
-        //         cout << "\n";
-        //     }
-        //     cout << "\n\n";
-        // }
+
     }
 }
 void createvoxelThread()
@@ -510,8 +504,11 @@ void model_cls::Voxel_renew()
 }
 void model_cls::Voxel_mapping(int layer, int block)
 {
-
+    textureingTime = glfwGetTime();
     carve.voxel_mapping(layer, block);
+    textureingTime = glfwGetTime()-textureingTime;
+    cout <<"textureing time : "<< textureingTime<<endl;
+    cout <<"total time : "<< textureingTime+trainingTime<<endl;
     renew_voxel(rawmodel.voxelModel);
     somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
 
@@ -519,26 +516,26 @@ void model_cls::Voxel_mapping(int layer, int block)
 }
 void model_cls::pLattice_renew()
 {
-    renew_plattice();
-    ps_lattice_line.renewVBO(world.ps_lattice_line);
-    ps_lattice_plane.renewVBO(world.ps_lattice_plane);
+    // renew_plattice();
+    // ps_lattice_line.renewVBO(world.ps_lattice_line);
+    // ps_lattice_plane.renewVBO(world.ps_lattice_plane);
 }
 
 void model_cls::pVoxel_renew()
 {
-    renew_pvoxel(rawmodel.pvoxelModel);
-    renew_plattice();
-    psomVoxel.renewVBO(world.psomVoxel);
-    ps_lattice_line.renewVBO(world.ps_lattice_line);
-    ps_lattice_plane.renewVBO(world.ps_lattice_plane);
+    // renew_pvoxel(rawmodel.pvoxelModel);
+    // renew_plattice();
+    // psomVoxel.renewVBO(world.psomVoxel);
+    // ps_lattice_line.renewVBO(world.ps_lattice_line);
+    // ps_lattice_plane.renewVBO(world.ps_lattice_plane);
 }
 void model_cls::pVoxel_mapping()
 {
-    carve.pvoxel_mapping();
-    renew_pvoxel(rawmodel.pvoxelModel);
-    renew_plattice();
-    psomVoxel.renewVBO(world.psomVoxel);
-    ps_lattice_line.renewVBO(world.ps_lattice_line);
-    ps_lattice_plane.renewVBO(world.ps_lattice_plane);
-    log_info("end: p model mapping\n");
+    // carve.pvoxel_mapping();
+    // renew_pvoxel(rawmodel.pvoxelModel);
+    // renew_plattice();
+    // psomVoxel.renewVBO(world.psomVoxel);
+    // ps_lattice_line.renewVBO(world.ps_lattice_line);
+    // ps_lattice_plane.renewVBO(world.ps_lattice_plane);
+    // log_info("end: p model mapping\n");
 }

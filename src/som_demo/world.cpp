@@ -197,9 +197,9 @@ void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
             world.innerVoxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
         }
     }
-    renew_pvoxel(pvoxelModel);
+    // renew_pvoxel(pvoxelModel);
     renew_voxel(voxelModel);
-    renew_plattice();
+    // renew_plattice();
     renew_lattice(voxelModel.somChioceLayerNum, voxelModel.blockNum);
 
     world.lightcube = {
@@ -602,64 +602,59 @@ void renew_lattice(int layerNum, int blockNum)
             for (int k = 0; k < latticeData->typeNum[latticeData->type]; k++)
             {
 
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < height-1; y++)
                 {
 
-                    for (int x = 0; x < width; x++)
+                    for (int x = 0; x < width-1; x++)
                     {
-                        // cout<<  setprecision(2) <<"("<< latticeData->wTex[0][y][x].x << ","<<latticeData->wTex[0][y][x].y<<") ";
-                        if(x<width-1 && y < height-1){
 
-                            // float x_tex, x1_tex, y_tex, y1_tex, z_tex, z1_tex;
-                            glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
-                            glm::fvec3 l_tex, l_x_tex, l_y_tex, l_xy_tex;
+                        // float x_tex, x1_tex, y_tex, y1_tex, z_tex, z1_tex;
+                        glm::fvec3 l_pos, l_x_pos, l_y_pos, l_xy_pos;
+                        glm::fvec3 l_tex, l_x_tex, l_y_tex, l_xy_tex;
 
-                            l_pos = latticeData->wPos[k][y][x];
-                            l_x_pos = latticeData->wPos[k][y][x + 1];
-                            l_y_pos = latticeData->wPos[k][y + 1][x];
-                            l_xy_pos = latticeData->wPos[k][y + 1][x + 1];
+                        l_pos = latticeData->wPos[k][y][x];
+                        l_x_pos = latticeData->wPos[k][y][x + 1];
+                        l_y_pos = latticeData->wPos[k][y + 1][x];
+                        l_xy_pos = latticeData->wPos[k][y + 1][x + 1];
 
-                            // cout << x<<", "<<y<<", "<<k<<" : ("<<latticeData->wTex[k][y][x].x<<", "<<latticeData->wTex[k][y][x].y<<", "<<latticeData->wTex[k][y][x].z<<endl;
-                            l_tex = latticeData->wTex[k][y][x];
-                            l_x_tex = latticeData->wTex[k][y][x + 1];
-                            l_y_tex = latticeData->wTex[k][y + 1][x];
-                            l_xy_tex = latticeData->wTex[k][y + 1][x + 1];
+                        // cout << x<<", "<<y<<", "<<k<<" : ("<<latticeData->wTex[k][y][x].x<<", "<<latticeData->wTex[k][y][x].y<<", "<<latticeData->wTex[k][y][x].z<<endl;
+                        l_tex = latticeData->wTex[k][y][x];
+                        l_x_tex = latticeData->wTex[k][y][x + 1];
+                        l_y_tex = latticeData->wTex[k][y + 1][x];
+                        l_xy_tex = latticeData->wTex[k][y + 1][x + 1];
 
-                            l_tex = tex.lattice_to_texture(glm::fvec4(l_tex.x, l_tex.y, 0.5, 1.0), TWODTEX);
-                            l_x_tex = tex.lattice_to_texture(glm::fvec4(l_x_tex.x, l_x_tex.y, 0.5, 1.0), TWODTEX);
-                            l_y_tex = tex.lattice_to_texture(glm::fvec4(l_y_tex.x, l_y_tex.y, 0.5, 1.0), TWODTEX);
-                            l_xy_tex = tex.lattice_to_texture(glm::fvec4(l_xy_tex.x, l_xy_tex.y, 0.5, 1.0), TWODTEX);
 
-                            // line
-                            lattice_line.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
-                            lattice_line.push_back(Vertex{{l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_y_tex.x, l_y_tex.y, l_y_tex.z}});
+                        l_tex = tex.lattice_to_texture(glm::fvec4(l_tex.x, l_tex.y, 0.5, 1.0), TWODTEX);
+                        l_x_tex = tex.lattice_to_texture(glm::fvec4(l_x_tex.x, l_x_tex.y, 0.5, 1.0), TWODTEX);
+                        l_y_tex = tex.lattice_to_texture(glm::fvec4(l_y_tex.x, l_y_tex.y, 0.5, 1.0), TWODTEX);
+                        l_xy_tex = tex.lattice_to_texture(glm::fvec4(l_xy_tex.x, l_xy_tex.y, 0.5, 1.0), TWODTEX);
 
-                            lattice_line.push_back(Vertex{{l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_y_tex.x, l_y_tex.y, l_y_tex.z}});
-                            lattice_line.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
+                        // line
+                        lattice_line.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
+                        lattice_line.push_back(Vertex{{l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_y_tex.x, l_y_tex.y, l_y_tex.z}});
 
-                            lattice_line.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
-                            lattice_line.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
+                        lattice_line.push_back(Vertex{{l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_y_tex.x, l_y_tex.y, l_y_tex.z}});
+                        lattice_line.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
 
-                            lattice_line.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
-                            lattice_line.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
+                        lattice_line.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
+                        lattice_line.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
 
-                            // plane
-                            lattice_plane.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
-                            lattice_plane.push_back(Vertex{{l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_y_tex.x, l_y_tex.y, l_y_tex.z}});
-                            lattice_plane.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
+                        lattice_line.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
+                        lattice_line.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
 
-                            lattice_plane.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
-                            lattice_plane.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
-                            lattice_plane.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
-                        }
+                        // plane
+                        lattice_plane.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
+                        lattice_plane.push_back(Vertex{{l_y_pos.x, l_y_pos.y, l_y_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_y_tex.x, l_y_tex.y, l_y_tex.z}});
+                        lattice_plane.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
 
+                        lattice_plane.push_back(Vertex{{l_xy_pos.x, l_xy_pos.y, l_xy_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_xy_tex.x, l_xy_tex.y, l_xy_tex.z}});
+                        lattice_plane.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
+                        lattice_plane.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
                     }
-                    // cout <<"("<< latticeData->wTex[0][y][width - 1].x << ","<<latticeData->wTex[0][y][width - 1].y<<") ";
-                    // cout << "\n";
-                }
-                // cout <<"("<< latticeData->wTex[0][height-1][width - 1].x << ","<<latticeData->wTex[0][height-1][width - 1].y<<") ";
 
-                // cout << "\n\n";
+
+                }
+
             }
             d_lattice_line.push_back(lattice_line);
             d_lattice_plane.push_back(lattice_plane);
