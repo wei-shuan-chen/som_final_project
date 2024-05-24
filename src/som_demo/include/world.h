@@ -15,7 +15,11 @@
 #include "RAWmodel.h"
 #include "SOM.h"
 #include "textureMap.h"
-
+enum showFilter{
+    TEXTURING,
+    INCARVING,
+    OUTCATVING
+};
 
 struct World {
 
@@ -28,6 +32,9 @@ struct World {
     std::vector<std::vector<std::vector<Vertex>>> somVoxel; // voxel model
     std::vector<std::vector<std::vector<Vertex>>> s_lattice_line; // lattice
     std::vector<std::vector<std::vector<Vertex>>> s_lattice_plane; // plane of texture
+    // std::vector<std::vector<std::vector<Vertex>>> outsomVoxel; // voxel model
+    // std::vector<std::vector<std::vector<Vertex>>> os_lattice_line; // lattice
+    // std::vector<std::vector<std::vector<Vertex>>> os_lattice_plane; // plane of texture
     std::vector<Vertex> ps_lattice_line;
     std::vector<Vertex> ps_lattice_plane;
     std::vector<Vertex> axis;
@@ -36,11 +43,12 @@ struct World {
 
 void create_world(svoxModel_t  voxelModel, psvoxModel_t pvoxelModel);
 void renew_lattice(int layerNum, int blockNum);
-// void renew_plattice();
 void renew_voxel(svoxModel_t voxelModel);
+void renew_plattice();
 // void renew_pvoxel(psvoxModel_t voxelModel);
 void renew_paxis(glm::mat3x3 A, glm::vec3 t);
 void destroy_world();
+extern int showVoxelType;
 extern struct World world;
 
 #endif

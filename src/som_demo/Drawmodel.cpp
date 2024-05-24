@@ -9,7 +9,7 @@ int layerNum = rawmodel.voxelModel.somChioceLayerNum;
 int blockNum = rawmodel.voxelModel.blockNum;
 model_cls::model_cls()
 {
-    glm::vec3 lightPos = glm::vec3(50, 50, 50);
+    glm::vec3 lightPos = glm::vec3(50, 50, -50);
     Camera camera(glm::vec3(0.0f, 5.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     int layerNum = rawmodel.voxelModel.somChioceLayerNum;
     somVoxel = (Item **)malloc(sizeof(Item *) * layerNum);
@@ -57,8 +57,9 @@ model_cls::~model_cls()
 
 void model_cls::Shader_Create()
 {
-    rawmodel.LoadFile("raw/input/bunny_dist.inf", "raw/input/bunny_df.raw", "raw/output/bunny.inf");
-    // rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw", "raw/output/vase.inf");
+    // rawmodel.LoadFile("raw/input/bunny_dist.inf", "raw/input/bunny_df.raw", "raw/output/bunny.inf");
+    // rawmodel.LoadFile("raw/input/teapot_dist.inf", "raw/input/teapot_df.raw", "raw/output/teapot.inf");
+    rawmodel.LoadFile("raw/input/vase_dist.inf", "raw/input/vase_df.raw", "raw/output/vase.inf");
     create_mutli_som(layerNum, blockNum);
 
     for (int layer = 0; layer < layerNum; layer++)
@@ -87,6 +88,7 @@ void model_cls::Shader_Create()
     depthShader = Shader("shader/depthShader.vs", "shader/depthShader.fs", "shader/depthShader.gs");
 
     boundingbox = Item(world.cube);
+    room = Item(world.cube);
     ground = Item((world.square));
     lightcube = Item(world.cube);
     innerVoxel = Item(world.innerVoxel);
@@ -96,6 +98,8 @@ void model_cls::Shader_Create()
     psomVoxel = Item(world.psomVoxel);
     ps_lattice_line = Item(world.ps_lattice_line);
     ps_lattice_plane = Item(world.ps_lattice_plane);
+
+
 
     for (int layer = 0; layer < layerNum; layer++)
     {
@@ -112,11 +116,11 @@ void model_cls::Shader_Create()
 void model_cls::Modify_position(int x, int y, int z)
 {
     // modify camera
-    rate = max(max(x, y), z) / 50.0;
-    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -8.0, y / 8.0, z * 0.2), rate);
+    rate = max(max(x, y), z) / 10.0;
+    camera.modifyPositionAndmoveSpeed(glm::vec3(x / -4.0, y / 4.0, z * 0.8), rate);
 
     // modify light
-    lightPos = glm::vec3(x, y, z);
+    lightPos = glm::vec3(-x, y, z);
 }
 void model_cls::Shader_Use(GLFWwindow *window)
 {
@@ -254,7 +258,7 @@ void model_cls::rayShader_model(GLFWwindow *window)
     tex.bind_texture(3); // depthtexture
     tex.bind_texture(4);
     tex.bind_texture(5);
-    // Model_bound_create(rayShader);
+    Model_bound_create(rayShader);
     Model_create(rayShader);
     Model_Floor_Create(rayShader);
 }
@@ -279,7 +283,7 @@ void model_cls::Model_Floor_Create(Shader shader)
 
     // floor
     model.Push();
-    model.Save(glm::scale(model.Top(), glm::vec3(1000.0f, 1.0f, 1000.0f)));
+    model.Save(glm::scale(model.Top(), glm::vec3(10000.0f, 1.0f, 10000.0f)));
     model.Save(glm::translate(model.Top(), glm::vec3(-0.5f, 0.0f, -0.5)));
     shader.setMat4("model", model.Top());
     shader.setBool("ray", false);
@@ -360,14 +364,15 @@ void model_cls::Model_lattice_create(Shader shader)
 void model_cls::Model_bound_create(Shader shader)
 {
     model.Push();
-    float x_s = rawmodel.infdata.resolution[1] / 2.0;
-    float y_s = rawmodel.infdata.resolution[2] / 2.0;
-    float z_s = rawmodel.infdata.resolution[0] / 2.0;
+    float x_s = rawmodel.infdata.resolution[1];
+    float y_s = rawmodel.infdata.resolution[2];
+    float z_s = rawmodel.infdata.resolution[0];
     model.Save(glm::scale(model.Top(), glm::vec3(x_s, y_s, z_s)));
+    model.Save(glm::translate(model.Top(), glm::vec3(-0.3, -0.3, -0.3)));
     shader.setVec3("modelSize", glm::vec3(x_s, y_s, z_s));
     shader.setBool("ray", true);
 
-    if (showVoxel)
+    if (showVoxel && som_psom == SHOWSOM)
     {
         shader.setMat4("model", model.Top());
         glBindVertexArray(boundingbox.VAO);
@@ -446,14 +451,20 @@ void runthreadVoxelSomIter()
                 {
                     LatData_t *latticeData = som[layer][block].Lattice_get();
                     latticeData->iter[weightType_gui] = 0;
-                    if(weightType_gui == POS) drawModel.trainingTime = glfwGetTime();
+                    if(weightType_gui == POS) drawModel.v_trainingTime = glfwGetTime();
+                    if(weightType_gui == TEX) drawModel.t_trainingTime = glfwGetTime();
+
                     while (latticeData->iter[weightType_gui] < latticeData->finalIter[weightType_gui] && startSOM)
                     {
                         som[layer][block].SOM_IterateOnce(weightType_gui);
                     }
                     if(weightType_gui == POS) {
-                        drawModel.trainingTime = glfwGetTime()-drawModel.trainingTime;
-                        cout <<"training time : "<< drawModel.trainingTime<<endl;
+                        drawModel.v_trainingTime = glfwGetTime()-drawModel.v_trainingTime;
+                        cout <<"voxel training time : "<< drawModel.v_trainingTime<<endl;
+                    }
+                    if(weightType_gui == TEX) {
+                        drawModel.t_trainingTime = glfwGetTime()-drawModel.t_trainingTime;
+                        cout <<"texture training time : "<< drawModel.t_trainingTime<<endl;
                     }
                 }
             }
@@ -487,7 +498,17 @@ void model_cls::Lattice_renew(int layer, int block)
     s_lattice_line[layer][block].renewVBO(world.s_lattice_line[layer][block]);
     s_lattice_plane[layer][block].renewVBO(world.s_lattice_plane[layer][block]);
 }
-void model_cls::Voxel_renew()
+void model_cls::Voxel_renew(){
+    renew_voxel(rawmodel.voxelModel);
+    for (int layer = 0; layer < layerNum; layer++)
+    {
+        for (int block = 0; block < blockNum; block++)
+        {
+            somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
+        }
+    }
+}
+void model_cls::Voxel_Lattice_renew()
 {
 
     renew_voxel(rawmodel.voxelModel);
@@ -508,7 +529,7 @@ void model_cls::Voxel_mapping(int layer, int block)
     carve.voxel_mapping(layer, block);
     textureingTime = glfwGetTime()-textureingTime;
     cout <<"textureing time : "<< textureingTime<<endl;
-    cout <<"total time : "<< textureingTime+trainingTime<<endl;
+    cout <<"total time : "<< textureingTime+v_trainingTime+t_trainingTime<<endl;
     renew_voxel(rawmodel.voxelModel);
     somVoxel[layer][block].renewVBO(world.somVoxel[layer][block]);
 
@@ -521,7 +542,7 @@ void model_cls::pLattice_renew()
     // ps_lattice_plane.renewVBO(world.ps_lattice_plane);
 }
 
-void model_cls::pVoxel_renew()
+void model_cls::pVoxel_Lattice_renew()
 {
     // renew_pvoxel(rawmodel.pvoxelModel);
     // renew_plattice();

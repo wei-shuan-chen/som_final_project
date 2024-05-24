@@ -1,7 +1,7 @@
 #include "world.h"
 
 struct World world = {};
-
+int showVoxelType = TEXTURING;
 void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
 {
     world.cube = {
@@ -13,12 +13,12 @@ void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
         Vertex{{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 0.0}},
         Vertex{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
 
-        Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
-        Vertex{{1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 0.0}},
-        Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
-        Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
-        Vertex{{0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 1.0}},
-        Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
+        // Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
+        // Vertex{{1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 0.0}},
+        // Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
+        // Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
+        // Vertex{{0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 1.0}},
+        // Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
 
         Vertex{{0.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
         Vertex{{0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 0.0}},
@@ -41,12 +41,12 @@ void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
         Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 1.0}},
         Vertex{{0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
 
-        Vertex{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
-        Vertex{{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 1.0}},
-        Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
-        Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
-        Vertex{{1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 0.0}},
-        Vertex{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
+        // Vertex{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
+        // Vertex{{0.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 1.0}},
+        // Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
+        // Vertex{{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 1.0}},
+        // Vertex{{1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0, 0.0}},
+        // Vertex{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0, 0.0}},
     };
 
     world.axis = world.p_axis = {
@@ -138,6 +138,9 @@ void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
         float r = voxelModel.innerVoxel[i].color.r;
         float g = voxelModel.innerVoxel[i].color.g;
         float b = voxelModel.innerVoxel[i].color.b;
+        // if(showVoxelType == INCARVING){
+
+        // }
 
         float tx = voxelModel.innerVoxel[i].texcoord.x;
         float ty = voxelModel.innerVoxel[i].texcoord.y;
@@ -199,7 +202,7 @@ void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
     }
     // renew_pvoxel(pvoxelModel);
     renew_voxel(voxelModel);
-    // renew_plattice();
+    renew_plattice();
     renew_lattice(voxelModel.somChioceLayerNum, voxelModel.blockNum);
 
     world.lightcube = {
@@ -247,14 +250,15 @@ void create_world(svoxModel_t voxelModel, psvoxModel_t pvoxelModel)
         Vertex{{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
     };
 
+    float r = 0.3412f, g = 0.6824f, b = 0.8196f; // 0.15, 0.1, 0.59
     world.square = {
-        Vertex{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.15f, 0.1f, 0.59f}, {0.0f, 0.0f}},
-        Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.15f, 0.1f, 0.59f}, {0.0f, 1.0f}},
-        Vertex{{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.15f, 0.1f, 0.59f}, {1.0f, 1.0f}},
+        Vertex{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {0.0f, 0.0f}},
+        Vertex{{0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {0.0f, 1.0f}},
+        Vertex{{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {1.0f, 1.0f}},
 
-        Vertex{{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.15f, 0.1f, 0.59f}, {1.0f, 1.0f}},
-        Vertex{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.15f, 0.1f, 0.59f}, {1.0f, 0.0f}},
-        Vertex{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.15f, 0.1f, 0.59f}, {0.0f, 0.0f}},
+        Vertex{{1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {1.0f, 1.0f}},
+        Vertex{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {1.0f, 0.0f}},
+        Vertex{{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {0.0f, 0.0f}},
     };
 }
 void renew_paxis(glm::mat3x3 A, glm::vec3 t)
@@ -275,87 +279,181 @@ void renew_paxis(glm::mat3x3 A, glm::vec3 t)
 void renew_voxel(svoxModel_t voxelModel)
 {
     world.somVoxel.clear();
+    // world.outsomVoxel.clear();
     std::vector<Vertex> voxel;
+    // std::vector<Vertex> outvoxel;
     std::vector<std::vector<Vertex>> d_voxel;
+    // std::vector<std::vector<Vertex>> od_voxel;
     for (int layer = 0; layer < voxelModel.somChioceLayerNum; layer++)
     {
         d_voxel.clear();
+        // od_voxel.clear();
         for (int block = 0; block < voxelModel.blockNum; block++)
         {
             voxel.clear();
+            // outvoxel.clear();
             // cout <<"surface voxel num : "<<layer<<", "<<block<<" : "<< voxelModel.voxelnum[layer][block] << endl;
             for (int i = 0; i < voxelModel.voxelnum[layer][block]; i++)
             {
                 int x = voxelModel.somVoxel[layer][block][i].locate.x;
                 int y = voxelModel.somVoxel[layer][block][i].locate.y;
                 int z = voxelModel.somVoxel[layer][block][i].locate.z;
+                float show = voxelModel.somVoxel[layer][block][i].color.r;
                 float r = voxelModel.somVoxel[layer][block][i].color.r;
                 float g = voxelModel.somVoxel[layer][block][i].color.g;
                 float b = voxelModel.somVoxel[layer][block][i].color.b;
+                if (showVoxelType != TEXTURING)
+                {
+                    r = 1.0, g = 0.733, b = 1.0;
+                }
 
                 float tx = voxelModel.somVoxel[layer][block][i].texcoord.x;
                 float ty = voxelModel.somVoxel[layer][block][i].texcoord.y;
 
-                if (voxelModel.somVoxel[layer][block][i].faceAir[0])
-                { //&& r > 0.5){//0
-                    //                              position                             normal                 color
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
-                }
-                if (voxelModel.somVoxel[layer][block][i].faceAir[1])
-                { //&& r > 0.5){//1
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
-                }
-                if (voxelModel.somVoxel[layer][block][i].faceAir[5])
-                { //&& r > 0.5){//5
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                }
-                if (voxelModel.somVoxel[layer][block][i].faceAir[4])
-                { //&& r > 0.5){//4
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                }
-                if (voxelModel.somVoxel[layer][block][i].faceAir[2])
-                { //&& r > 0.5){//2
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                }
+                if ((showVoxelType == TEXTURING) || (showVoxelType == INCARVING && show > 0.5) || (showVoxelType == OUTCATVING && show < 0.5))
+                {
+                    if (voxelModel.somVoxel[layer][block][i].faceAir[0])
+                    { // 0
+                        //                              position                             normal                 color
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.somVoxel[layer][block][i].faceAir[1])
+                    { // 1
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.somVoxel[layer][block][i].faceAir[5])
+                    { // 5
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.somVoxel[layer][block][i].faceAir[4])
+                    { // 4
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.somVoxel[layer][block][i].faceAir[2])
+                    { // 2
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
 
-                if (voxelModel.somVoxel[layer][block][i].faceAir[3])
-                { //&& r > 0.5){//3
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
-                    voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    if (voxelModel.somVoxel[layer][block][i].faceAir[3])
+                    { // 3
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
                 }
             }
+
+            for (int i = 0; i < voxelModel.outvoxelnum[layer][block]; i++)
+            {
+                int x = voxelModel.outsomVoxel[layer][block][i].locate.x;
+                int y = voxelModel.outsomVoxel[layer][block][i].locate.y;
+                int z = voxelModel.outsomVoxel[layer][block][i].locate.z;
+                float show = voxelModel.outsomVoxel[layer][block][i].color.r;
+                float r = 1.0; // voxelModel.outsomVoxel[layer][block][i].color.r;
+                float g = 1.0; // voxelModel.outsomVoxel[layer][block][i].color.g;
+                float b = 1.0; // voxelModel.outsomVoxel[layer][block][i].color.b;
+                if (showVoxelType != TEXTURING)
+                {
+                    r = 1.0, g = 0.733, b = 1.0;
+                }
+
+                float tx = voxelModel.outsomVoxel[layer][block][i].texcoord.x;
+                float ty = voxelModel.outsomVoxel[layer][block][i].texcoord.y;
+
+                if ((showVoxelType == TEXTURING) || (showVoxelType == INCARVING && show > 0.5) || (showVoxelType == OUTCATVING && show < 0.5))
+                {
+                    if (voxelModel.outsomVoxel[layer][block][i].faceAir[0])
+                    { // 0
+                        //                              position                             normal                 color
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.outsomVoxel[layer][block][i].faceAir[1])
+                    { // 1
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, 0.0f, 1.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.outsomVoxel[layer][block][i].faceAir[5])
+                    { // 5
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {0.0f, 1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.outsomVoxel[layer][block][i].faceAir[4])
+                    { // 4
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {0.0f, -1.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
+                    if (voxelModel.outsomVoxel[layer][block][i].faceAir[2])
+                    { // 2
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 0.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 0.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{0.0f + x, 1.0f + y, 1.0f + z}, {-1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
+
+                    if (voxelModel.outsomVoxel[layer][block][i].faceAir[3])
+                    { // 3
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 0.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 0.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                        voxel.push_back(Vertex{{1.0f + x, 1.0f + y, 1.0f + z}, {1.0f, 0.0f, 0.0f}, {r, g, b}, {tx, ty}});
+                    }
+                }
+            }
+
             d_voxel.push_back(voxel);
+            // d_voxel.push_back(outvoxel);
         }
         world.somVoxel.push_back(d_voxel);
+        // world.outsomVoxel.push_back(od_voxel);
     }
 }
 void renew_pvoxel(psvoxModel_t voxelModel)
@@ -437,7 +535,8 @@ void renew_plattice()
     world.ps_lattice_line.clear();
     world.ps_lattice_plane.clear();
     const LatData_t *latticeData = psom.Lattice_get();
-    float r = 1.0, g = 1.0, b = 1.0; // r = 0.8902, g = 0.6471, b = 0.69;
+    // float r = 1.0, g = 1.0, b = 1.0; // r = 0.8902, g = 0.6471, b = 0.69;
+    float r = 0.94, g = 0.46, b = 0.5451;
     float height = latticeData->height;
     float width = latticeData->width;
     float depth = latticeData->depth;
@@ -459,14 +558,14 @@ void renew_plattice()
                 l_xz_tex = latticeData->wTex[d + 1][h][w + 1];
                 l_xyz_tex = latticeData->wTex[d + 1][h + 1][w + 1];
 
-                l_tex = tex.lattice_to_texture(glm::fvec4(l_tex, 1.0), THREEDTEX);
-                l_x_tex = tex.lattice_to_texture(glm::fvec4(l_x_tex, 1.0), THREEDTEX);
-                l_y_tex = tex.lattice_to_texture(glm::fvec4(l_y_tex, 1.0), THREEDTEX);
-                l_z_tex = tex.lattice_to_texture(glm::fvec4(l_z_tex, 1.0), THREEDTEX);
-                l_xy_tex = tex.lattice_to_texture(glm::fvec4(l_xy_tex, 1.0), THREEDTEX);
-                l_yz_tex = tex.lattice_to_texture(glm::fvec4(l_yz_tex, 1.0), THREEDTEX);
-                l_xz_tex = tex.lattice_to_texture(glm::fvec4(l_xz_tex, 1.0), THREEDTEX);
-                l_xyz_tex = tex.lattice_to_texture(glm::fvec4(l_xyz_tex, 1.0), THREEDTEX);
+                l_tex = tex.lattice_to_texture(glm::fvec4(l_tex, 1.0), THREEDTEX, latticeData, width);
+                l_x_tex = tex.lattice_to_texture(glm::fvec4(l_x_tex, 1.0), THREEDTEX, latticeData, width);
+                l_y_tex = tex.lattice_to_texture(glm::fvec4(l_y_tex, 1.0), THREEDTEX, latticeData, width);
+                l_z_tex = tex.lattice_to_texture(glm::fvec4(l_z_tex, 1.0), THREEDTEX, latticeData, width);
+                l_xy_tex = tex.lattice_to_texture(glm::fvec4(l_xy_tex, 1.0), THREEDTEX, latticeData, width);
+                l_yz_tex = tex.lattice_to_texture(glm::fvec4(l_yz_tex, 1.0), THREEDTEX, latticeData, width);
+                l_xz_tex = tex.lattice_to_texture(glm::fvec4(l_xz_tex, 1.0), THREEDTEX, latticeData, width);
+                l_xyz_tex = tex.lattice_to_texture(glm::fvec4(l_xyz_tex, 1.0), THREEDTEX, latticeData, width);
 
                 l_pos = latticeData->wPos[d][h][w];
                 l_x_pos = latticeData->wPos[d][h][w + 1];
@@ -476,7 +575,6 @@ void renew_plattice()
                 l_yz_pos = latticeData->wPos[d + 1][h + 1][w];
                 l_xz_pos = latticeData->wPos[d + 1][h][w + 1];
                 l_xyz_pos = latticeData->wPos[d + 1][h + 1][w + 1];
-
 
                 // -z
                 world.ps_lattice_line.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, -1.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
@@ -596,16 +694,17 @@ void renew_lattice(int layerNum, int blockNum)
             lattice_line.clear();
             lattice_plane.clear();
             const LatData_t *latticeData = som[layer][block].Lattice_get();
+            // float r = 0.94, g = 0.46, b = 0.5451;
             float r = 1.0, g = 1.0, b = 1.0;
             int height = latticeData->height;
             int width = latticeData->width;
             for (int k = 0; k < latticeData->typeNum[latticeData->type]; k++)
             {
 
-                for (int y = 0; y < height-1; y++)
+                for (int y = 0; y < height - 1; y++)
                 {
 
-                    for (int x = 0; x < width-1; x++)
+                    for (int x = 0; x < width - 1; x++)
                     {
 
                         // float x_tex, x1_tex, y_tex, y1_tex, z_tex, z1_tex;
@@ -623,11 +722,10 @@ void renew_lattice(int layerNum, int blockNum)
                         l_y_tex = latticeData->wTex[k][y + 1][x];
                         l_xy_tex = latticeData->wTex[k][y + 1][x + 1];
 
-
-                        l_tex = tex.lattice_to_texture(glm::fvec4(l_tex.x, l_tex.y, 0.5, 1.0), TWODTEX);
-                        l_x_tex = tex.lattice_to_texture(glm::fvec4(l_x_tex.x, l_x_tex.y, 0.5, 1.0), TWODTEX);
-                        l_y_tex = tex.lattice_to_texture(glm::fvec4(l_y_tex.x, l_y_tex.y, 0.5, 1.0), TWODTEX);
-                        l_xy_tex = tex.lattice_to_texture(glm::fvec4(l_xy_tex.x, l_xy_tex.y, 0.5, 1.0), TWODTEX);
+                        l_tex = tex.lattice_to_texture(glm::fvec4(l_tex.x, l_tex.y, 0.5, 1.0), TWODTEX, latticeData, width);
+                        l_x_tex = tex.lattice_to_texture(glm::fvec4(l_x_tex.x, l_x_tex.y, 0.5, 1.0), TWODTEX, latticeData, width);
+                        l_y_tex = tex.lattice_to_texture(glm::fvec4(l_y_tex.x, l_y_tex.y, 0.5, 1.0), TWODTEX, latticeData, width);
+                        l_xy_tex = tex.lattice_to_texture(glm::fvec4(l_xy_tex.x, l_xy_tex.y, 0.5, 1.0), TWODTEX, latticeData, width);
 
                         // line
                         lattice_line.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
@@ -651,10 +749,7 @@ void renew_lattice(int layerNum, int blockNum)
                         lattice_plane.push_back(Vertex{{l_x_pos.x, l_x_pos.y, l_x_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_x_tex.x, l_x_tex.y, l_x_tex.z}});
                         lattice_plane.push_back(Vertex{{l_pos.x, l_pos.y, l_pos.z}, {0.0f, 0.0f, 0.0f}, {r, g, b}, {l_tex.x, l_tex.y, l_tex.z}});
                     }
-
-
                 }
-
             }
             d_lattice_line.push_back(lattice_line);
             d_lattice_plane.push_back(lattice_plane);

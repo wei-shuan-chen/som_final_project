@@ -12,6 +12,7 @@
 #include "RAWmodel.h"
 #include "SOM.h"
 #include "logger.h"
+#include "carve.h"
 
 using namespace std;
 
@@ -79,7 +80,7 @@ public:
     void bind_texture(int bind);
     void updata_colorMap(vector<float> newdata);
     void update_intensityMap();
-    glm::fvec3 lattice_to_texture(glm::fvec4 texCoord, int degree);
+    glm::fvec3 lattice_to_texture(glm::fvec4 texCoord, int degree, const LatData_t* latticeData, int resolution);
 
     int texTypeNum = 3;
     imageTex_t imageTex[3];

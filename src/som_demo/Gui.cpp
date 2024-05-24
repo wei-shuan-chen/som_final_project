@@ -11,10 +11,10 @@ void imgui_funcpsom();
 bool texshow = false;
 int weightType_gui = POS;
 int som_psom = 0;
-static float f_translate[3] = {0.0f, 0.0f, 0.0f};
-static float f_scale[3] = {1200.0f, 1400.0f, 1200.0f};
-// static float f_translate[3] = {100.0f, 150.0f, 100.0f};
+// static float f_translate[3] = {0.0f, 70.0f, 0.0f};
 // static float f_scale[3] = {100.0f, 50.0f, 100.0f};
+static float f_translate[3] = {0.0f, 00.0f, 0.0f};
+static float f_scale[3] = {300.0f, 500.0f, 300.0f};
 static glm::mat3x3 m_inverse;
 bool curve = false;
 void imgui_init(GLFWwindow *window)
@@ -42,7 +42,7 @@ void imgui_create()
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
     ImGui::Begin("SOM_3D_voxel");
     imgui_funcbuttom();
     imgui_roi();
@@ -56,12 +56,12 @@ void imgui_create()
     }
 
     ImGui::End();
-    ImGui::Begin("TransferFunction");
-    if (rgba.Render() || tex.colormapTex.data[0] == -1)
-    {
-        tex.updata_colorMap(rgba.TransferFunction());
-    }
-    ImGui::End();
+    // ImGui::Begin("TransferFunction");
+    // if (rgba.Render() || tex.colormapTex.data[0] == -1)
+    // {
+    //     tex.updata_colorMap(rgba.TransferFunction());
+    // }
+    // ImGui::End();
 }
 void imgui_funcbuttom()
 {
@@ -79,7 +79,7 @@ void imgui_funcbuttom()
     ImGui::SameLine();
 
     curve = false;
-    if (ImGui::Button("curve"))
+    if (ImGui::Button("carve"))
     {
         curve = true;
     }
@@ -127,15 +127,29 @@ void imgui_funcbuttom()
         carve.latticeVoxelFilter = LINEAR;
     else
         carve.latticeVoxelFilter = NEAREST;
-    // som or psom
-    static int somnum = SHOWSOM;
-    const char *som_types[2] = {"som", "psom"};
-    const char *som_type = (somnum >= 0 && somnum < 2) ? som_types[somnum] : "Unknown";
-    ImGui::SliderInt("som / psom", &somnum, 0, 1, som_type);
-    if (somnum == SHOWSOM)
-        som_psom = SHOWSOM;
-    else
-        som_psom = SHOWPSOM;
+    // // som or psom
+    // static int somnum = SHOWSOM;
+    // const char *som_types[2] = {"som", "psom"};
+    // const char *som_type = (somnum >= 0 && somnum < 2) ? som_types[somnum] : "Unknown";
+    // ImGui::SliderInt("som / psom", &somnum, 0, 1, som_type);
+    // if (somnum == SHOWSOM)
+    //     som_psom = SHOWSOM;
+    // else
+    //     som_psom = SHOWPSOM;
+
+    static int showType = 0;
+    ImGui::RadioButton("texturing", &showType, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("yin carveing", &showType, 1);
+    ImGui::SameLine();
+    ImGui::RadioButton("yan carveing", &showType, 2);
+    if (showType != showVoxelType)
+    {
+        showVoxelType = showType;
+        drawModel.Voxel_renew();
+        // renew_voxel(rawmodel.voxelModel);
+
+    }
 }
 void imgui_roi()
 {
@@ -145,6 +159,9 @@ void imgui_roi()
     static float x_axis[3] = {1.0f, 0.0f, 0.0f};
     static float y_axis[3] = {0.0f, 1.0f, 0.0f};
     static float z_axis[3] = {0.0f, 0.0f, 1.0f};
+    // static float x_axis[3] = {1.0f, 0.1f, 0.0f};
+    // static float y_axis[3] = {-1.0f, 2.0f, -3.0f};
+    // static float z_axis[3] = {0.0f, 0.4f, 1.0f};
     ImGui::Text("ROI axis");
     ImGui::InputFloat3("x_axis", x_axis);
     ImGui::InputFloat3("y_axis", y_axis);
@@ -177,6 +194,20 @@ void imgui_roi()
         int layerNum = rawmodel.voxelModel.somChioceLayerNum;
         int blockNum = rawmodel.voxelModel.blockNum;
         m_inverse = math.inverseMatrix3(m_axis);
+        // for(int i = 0; i < 3; i++){
+        //     for(int j= 0; j < 3; j++){
+        //         cout << m_axis[i][j]<<" ";
+        //     }
+        //     cout <<"\n";
+        // }
+        // cout <<"\ninverse\n";
+        // for(int i = 0; i < 3; i++){
+        //     for(int j= 0; j < 3; j++){
+        //         cout << m_inverse[i][j]<<" ";
+        //     }
+        //     cout <<"\n";
+        // }
+        // cout <<"\n\n";
         drawModel.psom_axis_renew(m_axis, v_translate);
         if (som_psom == SHOWSOM || b_s_ps == SHOWPSOM)
         {
@@ -193,7 +224,7 @@ void imgui_roi()
                         glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
                         glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
                         som[layer][block].Lattice_pos_set(rawmodel.Voxel_Position(layer, block), voxelNum, voxelMaxsize, voxelMinsize);
-                        drawModel.Voxel_renew();
+                        drawModel.Voxel_Lattice_renew();
                     }
                 }
             }
@@ -207,7 +238,7 @@ void imgui_roi()
                 std::vector<glm::ivec3> pvoxelPos = rawmodel.pVoxel_Position();
                 int pvoxelNum = rawmodel.pvoxelModel.psomVoxel.size();
                 psom.Lattice_pos_set(pvoxelPos, pvoxelNum, rawmodel.pvoxelModel.maxsize, rawmodel.pvoxelModel.minsize);
-                drawModel.pVoxel_renew();
+                drawModel.pVoxel_Lattice_renew();
             }
         }
     }
@@ -227,15 +258,16 @@ void imgui_funcpsom()
         carve.pcarve = true;
 
     // texture matrix
-    static float *ptexScale = (float *)calloc(3 , sizeof(float ));
-    static float *ptexTranslate = (float *)calloc(3 , sizeof(float ));
-    static int *ptexRotate = (int *)calloc(3 , sizeof(int ));
-    static float *ptexResolution_w = (float *)calloc(2 , sizeof(float));
-    static float *ptexResolution_h = (float *)calloc(2 , sizeof(float));
-    static float *ptexResolution_d = (float *)calloc(2 , sizeof(float));
+    static float *ptexScale = (float *)calloc(3, sizeof(float));
+    static float *ptexTranslate = (float *)calloc(3, sizeof(float));
+    static int *ptexRotate = (int *)calloc(3, sizeof(int));
+    static float *ptexResolution_w = (float *)calloc(2, sizeof(float));
+    static float *ptexResolution_h = (float *)calloc(2, sizeof(float));
+    static float *ptexResolution_d = (float *)calloc(2, sizeof(float));
     static int ptexWrap = 0;
-    static int **anchor = (int**)malloc(sizeof(int*)*8);
-    if(pinit){
+    static int **anchor = (int **)malloc(sizeof(int *) * 8);
+    if (pinit)
+    {
         ptexScale[0] = 1;
         ptexScale[1] = 1;
         ptexScale[2] = 1;
@@ -244,21 +276,21 @@ void imgui_funcpsom()
         ptexResolution_d[1] = 1.0;
         pinit = false;
 
-        for(int i = 0; i < 8; i++) anchor[i] = (int*)calloc(3, sizeof(int)); //zyx
-        anchor[1][0] = latticeData->width-1;
-        anchor[2][1] = latticeData->height-1;
-        anchor[2][0] = latticeData->width-1;
-        anchor[3][1] = latticeData->height-1;
+        for (int i = 0; i < 8; i++)
+            anchor[i] = (int *)calloc(3, sizeof(int)); // zyx
+        anchor[1][0] = latticeData->width - 1;
+        anchor[2][1] = latticeData->height - 1;
+        anchor[2][0] = latticeData->width - 1;
+        anchor[3][1] = latticeData->height - 1;
 
-        anchor[4][2] = latticeData->depth-1;
-        anchor[5][2] = latticeData->depth-1;
-        anchor[5][0] = latticeData->width-1;
-        anchor[6][2] = latticeData->depth-1;
-        anchor[6][1] = latticeData->height-1;
-        anchor[6][0] = latticeData->width-1;
-        anchor[7][2] = latticeData->depth-1;
-        anchor[7][1] = latticeData->height-1;
-
+        anchor[4][2] = latticeData->depth - 1;
+        anchor[5][2] = latticeData->depth - 1;
+        anchor[5][0] = latticeData->width - 1;
+        anchor[6][2] = latticeData->depth - 1;
+        anchor[6][1] = latticeData->height - 1;
+        anchor[6][0] = latticeData->width - 1;
+        anchor[7][2] = latticeData->depth - 1;
+        anchor[7][1] = latticeData->height - 1;
     }
     // anchor point
     ImGui::Text("anchor point xyz");
@@ -272,7 +304,8 @@ void imgui_funcpsom()
     ImGui::InputInt3("110", anchor[7]);
     // texture wrapping
     ImGui::Text("texture wrap");
-    ImGui::RadioButton("repeat p", &ptexWrap, 0); ImGui::SameLine();
+    ImGui::RadioButton("repeat p", &ptexWrap, 0);
+    ImGui::SameLine();
     ImGui::RadioButton("border p", &ptexWrap, 1);
     // texture resolution
     ImGui::Text("texture resolution");
@@ -289,15 +322,18 @@ void imgui_funcpsom()
 
     glm::ivec3 *p = latticeData->anchorEdgeP;
     bool anchor_c = false;
-    for(int i = 0; i < 8; i++){
-        if(p[i][0] != anchor[i][0] || p[i][1] != anchor[i][1] || p[i][2] != anchor[i][2]){
+    for (int i = 0; i < 8; i++)
+    {
+        if (p[i][0] != anchor[i][0] || p[i][1] != anchor[i][1] || p[i][2] != anchor[i][2])
+        {
             p[i][0] = anchor[i][0];
             p[i][1] = anchor[i][1];
             p[i][2] = anchor[i][2];
             anchor_c = true;
         }
     }
-    if(anchor_c){
+    if (anchor_c)
+    {
         psom.Lattice_anchor_edge_set();
         drawModel.pLattice_renew();
     }
@@ -359,7 +395,7 @@ void imgui_funcsom()
                     som[layer][block].Lattice_pos_set(rawmodel.Voxel_Position(layer, block), voxelNum, voxelMaxsize, voxelMinsize);
                 }
             }
-            drawModel.Voxel_renew();
+            drawModel.Voxel_Lattice_renew();
         }
     }
 
@@ -386,9 +422,9 @@ void imgui_funcsom()
         {true, true, true, true, true}};
     static int **texType = (int **)malloc(layerNum * sizeof(int *));
     static int **texWrap = (int **)malloc(layerNum * sizeof(int *));
-    static int ***texUpEdge = (int***)malloc(layerNum * sizeof(int **));
-    static int ***texDownEdge = (int***)malloc(layerNum * sizeof(int **));
-    static int ***texAnchor = (int***)malloc(layerNum * sizeof(int **));
+    static int ***texUpEdge = (int ***)malloc(layerNum * sizeof(int **));
+    static int ***texDownEdge = (int ***)malloc(layerNum * sizeof(int **));
+    static int ***texAnchor = (int ***)malloc(layerNum * sizeof(int **));
     static int anchorTime = 500;
     static float ***texResolution_w = (float ***)malloc(layerNum * sizeof(float **));
     static float ***texResolution_h = (float ***)malloc(layerNum * sizeof(float **));
@@ -406,9 +442,9 @@ void imgui_funcsom()
         {
             texType[layer] = (int *)calloc(blockNum, sizeof(int));
             texWrap[layer] = (int *)calloc(blockNum, sizeof(int));
-            texUpEdge[layer] = (int **)malloc(blockNum*sizeof(int *));
-            texDownEdge[layer] = (int **)malloc(blockNum*sizeof(int *));
-            texAnchor[layer] = (int **)malloc(blockNum*sizeof(int*));
+            texUpEdge[layer] = (int **)malloc(blockNum * sizeof(int *));
+            texDownEdge[layer] = (int **)malloc(blockNum * sizeof(int *));
+            texAnchor[layer] = (int **)malloc(blockNum * sizeof(int *));
             texResolution_w[layer] = (float **)malloc(blockNum * sizeof(float *));
             texResolution_h[layer] = (float **)malloc(blockNum * sizeof(float *));
             texTranslate[layer] = (float **)malloc(blockNum * sizeof(float *));
@@ -428,24 +464,24 @@ void imgui_funcsom()
                 texScale[layer][block] = (float *)calloc(2, sizeof(float));
                 texScale[layer][block][0] = 1.0;
                 texScale[layer][block][1] = 1.0;
-                texUpEdge[layer][block] = (int*)calloc(4, sizeof(int));
+                texUpEdge[layer][block] = (int *)calloc(4, sizeof(int));
 
                 // texUpEdge[layer][block][0] = 2;
                 // texUpEdge[layer][block][1] = 14;
                 // texUpEdge[layer][block][2] = 12;
                 // texUpEdge[layer][block][3] = 6;
-                texUpEdge[layer][block][1] = latticeData->height-1;
-                texUpEdge[layer][block][2] = latticeData->width-1;
-                texUpEdge[layer][block][3] = latticeData->height-1;
-                texDownEdge[layer][block] = (int*)calloc(4, sizeof(int));
+                texUpEdge[layer][block][1] = latticeData->height - 1;
+                texUpEdge[layer][block][2] = latticeData->width - 1;
+                texUpEdge[layer][block][3] = latticeData->height - 1;
+                texDownEdge[layer][block] = (int *)calloc(4, sizeof(int));
                 // texDownEdge[layer][block][0] = 0;
                 // texDownEdge[layer][block][1] = 4;
                 // texDownEdge[layer][block][2] = 11;
-                texDownEdge[layer][block][2] = latticeData->width-1;
+                texDownEdge[layer][block][2] = latticeData->width - 1;
                 // texDownEdge[layer][block][3] = 0;
-                texAnchor[layer][block] = (int*)calloc(2, sizeof(int));
-                texAnchor[layer][block][0] = (latticeData->width)/2;
-                texAnchor[layer][block][1] = (latticeData->height)/2;
+                texAnchor[layer][block] = (int *)calloc(2, sizeof(int));
+                texAnchor[layer][block][0] = (latticeData->width) / 2;
+                texAnchor[layer][block][1] = (latticeData->height) / 2;
 
                 texResolution_w[layer][block] = (float *)calloc(2, sizeof(float));
                 texResolution_h[layer][block] = (float *)calloc(2, sizeof(float));
@@ -469,8 +505,10 @@ void imgui_funcsom()
                 // textureMap.h    texTypeNum = 3
                 // texture pattern
                 ImGui::Text("texture pattern");
-                ImGui::RadioButton("hive", &texType[layer][block], 0); ImGui::SameLine();
-                ImGui::RadioButton("pattern", &texType[layer][block], 1); ImGui::SameLine();
+                ImGui::RadioButton("hive", &texType[layer][block], 0);
+                ImGui::SameLine();
+                ImGui::RadioButton("pattern", &texType[layer][block], 1);
+                ImGui::SameLine();
                 ImGui::RadioButton("wb", &texType[layer][block], 2);
                 // texture anchor edge point
                 ImGui::Text("texture anchor edge point");
@@ -482,7 +520,8 @@ void imgui_funcsom()
                 ImGui::InputInt("rand time", &anchorTime);
                 // texture wrapping
                 ImGui::Text("texture wrap");
-                ImGui::RadioButton("repeat", &texWrap[layer][block], 0); ImGui::SameLine();
+                ImGui::RadioButton("repeat", &texWrap[layer][block], 0);
+                ImGui::SameLine();
                 ImGui::RadioButton("border", &texWrap[layer][block], 1);
                 // texture resolution
                 ImGui::Text("texture resolution");
@@ -495,18 +534,24 @@ void imgui_funcsom()
                 ImGui::SliderInt("rotate(degree)_tex", &texRotate[layer][block], 0, 360);
 
                 ImGui::Text("lattice");
-                ImGui::RadioButton("plane", &lat[layer][block], 0); ImGui::SameLine();
-                ImGui::RadioButton("cylinder", &lat[layer][block], 1); ImGui::SameLine();
-                ImGui::RadioButton("donut", &lat[layer][block], 2); ImGui::SameLine();
+                ImGui::RadioButton("plane", &lat[layer][block], 0);
+                ImGui::SameLine();
+                ImGui::RadioButton("cylinder", &lat[layer][block], 1);
+                ImGui::SameLine();
+                ImGui::RadioButton("donut", &lat[layer][block], 2);
+                ImGui::SameLine();
                 ImGui::RadioButton("ball", &lat[layer][block], 3);
 
                 ImGui::InputInt("input lattice size", &resolution[layer][block]);
-                ImGui::Text("iter : %d", latticeData->iter[weightType_gui]); ImGui::SameLine();
+                ImGui::Text("iter : %d", latticeData->iter[weightType_gui]);
+                ImGui::SameLine();
                 ImGui::InputInt("input finalIter", &iter[layer][block]);
                 // ImGui::Text("iter(tex) : %d", latticeData->iter[1]);
-                ImGui::Text("radius: %f", latticeData->initRadius[weightType_gui]); ImGui::SameLine();
+                ImGui::Text("radius: %f", latticeData->initRadius[weightType_gui]);
+                ImGui::SameLine();
                 ImGui::InputFloat("input initRadius", &radius[layer][block]);
-                ImGui::Text("learning_rate: %f", latticeData->initLearningRate[weightType_gui]); ImGui::SameLine();
+                ImGui::Text("learning_rate: %f", latticeData->initLearningRate[weightType_gui]);
+                ImGui::SameLine();
                 ImGui::InputFloat("input initRate", &rate[layer][block]);
             }
             if (resolution[layer][block] == 0)
@@ -526,10 +571,17 @@ void imgui_funcsom()
                 som[layer][block].Lattice_rate_set(rate[layer][block]);
             if (resolution[layer][block] != latticeData->width)
             {
-                texUpEdge[layer][block][1] = resolution[layer][block]-1;
-                texUpEdge[layer][block][2] = resolution[layer][block]-1;
-                texUpEdge[layer][block][3] = resolution[layer][block]-1;
-                texDownEdge[layer][block][2] = resolution[layer][block]-1;
+                int *tanc = texAnchor[layer][block];
+                tanc[0] = (tanc[0] > resolution[layer][block] - 1) ? resolution[layer][block] - 1 : tanc[0];
+                tanc[1] = (tanc[1] > resolution[layer][block] - 1) ? resolution[layer][block] - 1 : tanc[1];
+                tanc[2] = 0;
+                // cout << tanc[0] <<", "<<tanc[1]<<endl;
+                // if(tanc[0] != texAnchor[layer][block][0] || tanc[1] != texAnchor[layer][block][1])
+                som[layer][block].Lattice_anchor_set(tanc, anchorTime);
+                texUpEdge[layer][block][1] = resolution[layer][block] - 1;
+                texUpEdge[layer][block][2] = resolution[layer][block] - 1;
+                texUpEdge[layer][block][3] = resolution[layer][block] - 1;
+                texDownEdge[layer][block][2] = resolution[layer][block] - 1;
                 glm::ivec3 voxelMaxsize = rawmodel.voxelModel.maxsize[layer][block];
                 glm::ivec3 voxelMinsize = rawmodel.voxelModel.minsize[layer][block];
                 som[layer][block].Lattice_resolution_set(resolution[layer][block], voxelMaxsize, voxelMinsize);
@@ -547,8 +599,9 @@ void imgui_funcsom()
             glm::ivec3 *p = latticeData->anchorEdgeP;
             int *gui_dp = texDownEdge[layer][block];
             int *gui_up = texUpEdge[layer][block];
-            if(gui_dp[0] != p[0].x || gui_dp[1] != p[0].y || gui_dp[2] != p[1].x || gui_dp[3] != p[1].y ||
-            gui_up[0] != p[3].x || gui_up[1] != p[3].y || gui_up[2] != p[2].x || gui_up[3] != p[2].y ){
+            if (gui_dp[0] != p[0].x || gui_dp[1] != p[0].y || gui_dp[2] != p[1].x || gui_dp[3] != p[1].y ||
+                gui_up[0] != p[3].x || gui_up[1] != p[3].y || gui_up[2] != p[2].x || gui_up[3] != p[2].y)
+            {
                 p[0] = p[4] = {gui_dp[0], gui_dp[1], 0.0};
                 p[1] = p[5] = {gui_dp[2], gui_dp[3], 0.0};
                 p[2] = p[6] = {gui_up[2], gui_up[3], 0.0};
@@ -559,8 +612,11 @@ void imgui_funcsom()
             // update anchor point
             glm::ivec3 lanc = latticeData->anchorP;
             int *tanc = texAnchor[layer][block];
-            if(lanc[0] != tanc[0] || lanc[1] != tanc[1] || lanc[2] != tanc[2] || latticeData->anchorTime != anchorTime){
-
+            if (lanc[0] != tanc[0] || lanc[1] != tanc[1] || lanc[2] != tanc[2] || latticeData->anchorTime != anchorTime)
+            {
+                tanc[0] = (tanc[0] > resolution[layer][block]) ? resolution[layer][block] : tanc[0];
+                tanc[1] = (tanc[1] > resolution[layer][block]) ? resolution[layer][block] : tanc[1];
+                tanc[2] = 0;(tanc[2] > resolution[layer][block]) ? resolution[layer][block] : tanc[2];
                 som[layer][block].Lattice_anchor_set(tanc, anchorTime);
                 drawModel.Lattice_renew(layer, block);
             }
@@ -569,16 +625,17 @@ void imgui_funcsom()
             int d_wrap = tex.texMatrix2D.wrapType;
             int t_wrap = texWrap[layer][block];
             glm::fvec2 t_trans = {texTranslate[layer][block][0], texTranslate[layer][block][1]};
-            glm::fvec2 d_trans = {tex.texMatrix2D.translate.x,tex.texMatrix2D.translate.y};
+            glm::fvec2 d_trans = {tex.texMatrix2D.translate.x, tex.texMatrix2D.translate.y};
             glm::fvec2 t_scale = {texScale[layer][block][0], texScale[layer][block][1]};
-            glm::fvec2 d_scale = {tex.texMatrix2D.scale.x,tex.texMatrix2D.scale.y};
+            glm::fvec2 d_scale = {tex.texMatrix2D.scale.x, tex.texMatrix2D.scale.y};
             glm::fvec2 d_resolution_w = tex.texMatrix2D.resolution_w;
             glm::fvec2 t_resolution_w = {texResolution_w[layer][block][0], texResolution_w[layer][block][1]};
             glm::fvec2 d_resolution_h = tex.texMatrix2D.resolution_h;
             glm::fvec2 t_resolution_h = {texResolution_h[layer][block][0], texResolution_h[layer][block][1]};
             // if (curve)
             // {
-                if(d_angle != t_angle || d_trans != t_trans || d_scale != t_scale){
+            if (d_angle != t_angle || d_trans != t_trans || d_scale != t_scale)
+            {
 
                 tex.texMatrix2D.anglehw = t_angle;
                 tex.texMatrix2D.translate.x = t_trans.x;
@@ -586,16 +643,19 @@ void imgui_funcsom()
                 tex.texMatrix2D.scale.x = t_scale.x;
                 tex.texMatrix2D.scale.y = t_scale.y;
 
+                float sx = (t_scale.x == 0) ? 0.0 : 1.0 / t_scale.x;
+                float sy = (t_scale.y == 0) ? 0.0 : 1.0 / t_scale.y;
+
                 tex.texMatrix2D.texture_m.Pop();
                 tex.texMatrix2D.texture_m.Push();
-                tex.texMatrix2D.texture_m.Save(glm::scale(tex.texMatrix2D.texture_m.Top(), glm::vec3(1.0 / t_scale.x, 1.0 / t_scale.y, 1.0)));
+                tex.texMatrix2D.texture_m.Save(glm::scale(tex.texMatrix2D.texture_m.Top(), glm::vec3(sx, sy, 1.0)));
                 tex.texMatrix2D.texture_m.Save(glm::translate(tex.texMatrix2D.texture_m.Top(), glm::vec3(-t_trans.x, -t_trans.y, 0.0f)));
                 tex.texMatrix2D.texture_m.Save(glm::rotate(tex.texMatrix2D.texture_m.Top(), glm::radians((float)t_angle), glm::vec3(0.0, 0.0, 1.0)));
 
                 drawModel.Lattice_renew(layer, block);
-
             }
-            if (curve)  drawModel.Voxel_mapping(layer, block);
+            if (curve)
+                drawModel.Voxel_mapping(layer, block);
             if (d_resolution_w != t_resolution_w || d_resolution_h != t_resolution_h || d_wrap != t_wrap)
             {
                 if (t_resolution_w.t < t_resolution_w.s)
@@ -607,7 +667,8 @@ void imgui_funcsom()
                 tex.texMatrix2D.wrapType = t_wrap;
                 drawModel.Lattice_renew(layer, block);
             }
-            if(rawmodel.voxelModel.somVoxel[layer][block]->textype != texType[layer][block]){
+            if (rawmodel.voxelModel.somVoxel[layer][block]->textype != texType[layer][block])
+            {
                 rawmodel.voxelModel.somVoxel[layer][block]->textype = texType[layer][block];
                 glm::ivec3 texWHD = {tex.imageTex[texType[layer][block]].width, tex.imageTex[texType[layer][block]].height, 1};
                 som[layer][block].Lattice_tex_set(texWHD);

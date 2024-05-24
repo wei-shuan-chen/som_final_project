@@ -15,7 +15,8 @@ enum voxelType{
     OUTTER,
     INNER,
     SOM,
-    PSOM
+    PSOM,
+    OUTSOM
 };
 
 typedef struct InfData_t {
@@ -105,4 +106,5 @@ private:
     glm::mat3x3 m_transform;
 };
 extern RAWmodel_cls rawmodel;
+
 #endif

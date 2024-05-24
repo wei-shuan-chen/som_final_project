@@ -33,8 +33,10 @@ typedef struct SurfaceVoxModel_t {
     std::vector<SOMVoxData_t> midVoxel;
     std::vector<USVoxData_t> innerVoxel;// layer somInitLayer+somChioceLayerNum
     USVoxData_t*** somVoxel;
+    USVoxData_t*** outsomVoxel;
 
     int **voxelnum; // voxel num
+    int **outvoxelnum; // voxel num
     glm::ivec3 **maxsize;
     glm::ivec3 **minsize;
 

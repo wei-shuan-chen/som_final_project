@@ -31,13 +31,14 @@ public:
     void pVoxel_mapping();
     void Lattice_renew(int layer, int block);
     void pLattice_renew();
+    void Voxel_Lattice_renew();
     void Voxel_renew();
-    void pVoxel_renew();
+    void pVoxel_Lattice_renew();
     void psom_axis_renew(glm::mat3x3 A, glm::vec3 t);
 
     Camera camera;
     glm::vec3 lightPos;
-    glm::vec3 modelsize = {0.1, 0.1, 0.1};
+    glm::vec3 modelsize = {0.4, 0.4, 0.4};
     int SCR_WIDTH = 800, SCR_HEIGHT = 600;
     float rate;
 
@@ -47,7 +48,7 @@ public:
     bool showLatticeLine = true;
     bool **showEachPart;
 
-    double trainingTime = 0.0, textureingTime = 0.0;
+    double v_trainingTime = 0.0, t_trainingTime = 0.0, textureingTime = 0.0;
 
 private:
     void Modify_position(int x, int y, int z);
@@ -75,6 +76,7 @@ private:
     Shader depthShader;
 
     Item boundingbox;
+    Item room;
     Item axis;
     Item p_axis;
     Item lightcube;

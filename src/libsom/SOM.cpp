@@ -149,6 +149,9 @@ void som_cls::Lattice_anchor_set(int *tanc, int anchorTime)
     latticeData.anchorTime = anchorTime;
     latticeData.anchorP[0] = tanc[0];
     latticeData.anchorP[1] = tanc[1];
+    latticeData.anchorP[2] = tanc[2];
+    // cout << tanc[0] << " , "<< tanc[1]<<endl;
+    // cout << latticeData.anchorP[0] << " , "<< latticeData.anchorP[1]<<"\n\n";
     set_anchor_point(latticeData.wTex);
 }
 void som_cls::SOM_IterateOnce(int wType)
@@ -160,7 +163,7 @@ void som_cls::SOM_IterateOnce(int wType)
     const glm::fvec3 nowInput = get_input();
     // cout << "nowinput : "<< nowInput.x << ", " << nowInput.y << ", " << nowInput.z<< endl;
     // 2. Find BMU
-    const glm::ivec3 bmu = find_bmu(nowInput);
+    const glm::ivec3 bmu = find_bmu(nowInput);//(nowInput.x == 1.5 && weightType == TEX) ? latticeData.anchorP : find_bmu(nowInput);
     // cout << "bmu : " << bmu.x << ", " << bmu.y << ", " << bmu.z << endl;
     // 3. Update BMU and the radius
     for (int k = 0; k < latticeData.typeNum[latticeData.type]; k++)
@@ -485,7 +488,7 @@ void som_cls::find_edge_indside(glm::fvec3 ***texWeight)
                     texWeight[d][h][w].z *= -1.0;
                 }
                 else
-                    texWeight[d][h][w] = {1.1, 1.1, 1.1};
+                    texWeight[d][h][w] = {10000.0, 10000.0, 10000.0};
             }
             inside = false;
             for (int w = width - 1; w >= edge; w--)
@@ -503,7 +506,7 @@ void som_cls::find_edge_indside(glm::fvec3 ***texWeight)
                     texWeight[d][h][w].z *= -1.0;
                 }
                 else
-                    texWeight[d][h][w] = {1.1, 1.1, 1.1};
+                    texWeight[d][h][w] = {10000.0, 10000.0, 10000.0};
             }
         }
     }
@@ -534,12 +537,12 @@ void som_cls::set_anchor_edge_point(glm::fvec3 ***texWeight, const glm::ivec3 *p
             int tmpd = (latticeData.type != CUBE) ? d : p[a].z;
             texWeight[tmpd][p[a].y][p[a].x] = {i0, j0, k0};
         }
-        glm::ivec3 anc;
-        anc.x = (latticeData.anchorP.x<latticeData.anchorEdgeP[6].x) ? latticeData.anchorP.x:latticeData.anchorEdgeP[6].x;
-        anc.y = (latticeData.anchorP.y<latticeData.anchorEdgeP[6].y) ? latticeData.anchorP.y:latticeData.anchorEdgeP[6].y;
-        anc.z = (latticeData.anchorP.z<latticeData.anchorEdgeP[6].z) ? latticeData.anchorP.z:latticeData.anchorEdgeP[6].z;
+        // glm::ivec3 anc=latticeData.anchorP;
+        // anc.x = (latticeData.anchorP.x<latticeData.anchorEdgeP[6].x) ? latticeData.anchorP.x:latticeData.anchorEdgeP[6].x;
+        // anc.y = (latticeData.anchorP.y<latticeData.anchorEdgeP[6].y) ? latticeData.anchorP.y:latticeData.anchorEdgeP[6].y;
+        // anc.z = (latticeData.anchorP.z<latticeData.anchorEdgeP[6].z) ? latticeData.anchorP.z:latticeData.anchorEdgeP[6].z;
 
-        texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
+        // texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
         // texWeight[d][p[1].y][p[1].x] = {1.0, 0.5, 0.0};
         // texWeight[d][p[2].y][p[2].x] = {1.0, 1.0, 0.0};
         // texWeight[d][p[3].y][p[3].x] = {0.5, 1.0, 0.0};
@@ -549,16 +552,16 @@ void som_cls::set_anchor_point(glm::fvec3 ***texWeight){
     // 6. set anchor point
     int depth = latticeData.typeNum[latticeData.type];
 
-    for (int d = 0; d < depth; d++)
-    {
-        glm::ivec3 anc;
-        anc.x = (latticeData.anchorP.x<latticeData.anchorEdgeP[6].x) ? latticeData.anchorP.x:latticeData.anchorEdgeP[6].x;
-        anc.y = (latticeData.anchorP.y<latticeData.anchorEdgeP[6].y) ? latticeData.anchorP.y:latticeData.anchorEdgeP[6].y;
-        anc.z = (latticeData.anchorP.z<latticeData.anchorEdgeP[6].z) ? latticeData.anchorP.z:latticeData.anchorEdgeP[6].z;
+    // for (int d = 0; d < depth; d++)
+    // {
+        glm::ivec3 anc=latticeData.anchorP;
+        // cout << anc.x <<", "<<anc.y<<endl;
+        // anc.x = (latticeData.anchorP.x<latticeData.anchorEdgeP[6].x) ? latticeData.anchorP.x:latticeData.anchorEdgeP[6].x;
+        // anc.y = (latticeData.anchorP.y<latticeData.anchorEdgeP[6].y) ? latticeData.anchorP.y:latticeData.anchorEdgeP[6].y;
+        // anc.z = (latticeData.anchorP.z<latticeData.anchorEdgeP[6].z) ? latticeData.anchorP.z:latticeData.anchorEdgeP[6].z;
 
-
-        texWeight[anc.z][anc.y][anc.x] = {0.5, 0.5, 0.0};
-    }
+        texWeight[0][anc.y][anc.x] = {0.5, 0.5, 0.0};
+    // }
 }
 glm::fvec3 ***som_cls::create_weight_position(glm::ivec3 max, glm::ivec3 min)
 {
@@ -814,6 +817,8 @@ void som_cls::update_node(glm::fvec3 input, glm::ivec3 update, double scale, dou
                 return;
             }
         }
+        if(latticeData.anchorP == update)
+            return;
         if (latticeData.wTex[z][y][x].x > 1.0 || latticeData.wTex[z][y][x].y > 1.0 || latticeData.wTex[z][y][x].z > 1.0 || latticeData.anchorP == update)
             return;
 
